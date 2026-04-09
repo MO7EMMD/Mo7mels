@@ -45,3 +45,5 @@ Render setup:
 - Port: provided automatically by Render through `PORT`
 
 The included `render.yaml` can be used to create the service quickly after connecting the repository.
+
+Last deployment trigger: 2026-04-09
