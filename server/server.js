@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const dataDir = path.join(__dirname, 'data')
 const dbPath = path.join(dataDir, 'db.json')
+const publicPath = path.join(__dirname, '..', 'public')
 const distPath = path.join(__dirname, '..', 'dist')
 const app = express()
 const port = process.env.PORT || 3001
@@ -178,6 +179,7 @@ app.post('/api/embeds', async (request, response) => {
   return response.status(201).json({ embed, embeds })
 })
 
+app.use(express.static(publicPath))
 app.use(express.static(distPath))
 
 app.get('*', async (_request, response, next) => {
