@@ -15,6 +15,8 @@ const distPath = path.join(__dirname, '..', 'dist')
 const app = express()
 const port = process.env.PORT || 3001
 const configuredSiteUrl = normalizeSiteUrl(process.env.SITE_URL)
+const primarySiteUrl = 'https://mo7mels.com'
+const effectiveSiteUrl = configuredSiteUrl || primarySiteUrl
 const canonicalRedirectEnabled = process.env.ENABLE_CANONICAL_REDIRECT === 'true'
 const isProduction = process.env.NODE_ENV === 'production'
 const defaultSupabaseUrl = 'https://sygxmbqvtcxjwjabnbpa.supabase.co'
@@ -65,7 +67,7 @@ function getRequestOrigin(request) {
 }
 
 function getSiteUrl(request) {
-  return configuredSiteUrl || getRequestOrigin(request)
+  return effectiveSiteUrl || getRequestOrigin(request)
 }
 
 function buildSitemapXml(siteUrl) {
@@ -188,7 +190,7 @@ app.get('/api/health', (_request, response) => {
 })
 
 app.use((request, response, next) => {
-  if (!canonicalRedirectEnabled || request.method !== 'GET' || !configuredSiteUrl) {
+  if (!canonicalRedirectEnabled || request.method !== 'GET' || !effectiveSiteUrl) {
     return next()
   }
 
@@ -200,11 +202,11 @@ app.use((request, response, next) => {
 
   const requestOrigin = `${request.protocol}://${host}`
 
-  if (requestOrigin === configuredSiteUrl) {
+  if (requestOrigin === effectiveSiteUrl) {
     return next()
   }
 
-  return response.redirect(301, new URL(request.originalUrl, configuredSiteUrl).toString())
+  return response.redirect(301, new URL(request.originalUrl, effectiveSiteUrl).toString())
 })
 
 app.post('/api/auth/signup', async (request, response) => {
@@ -359,7 +361,7 @@ app.get('*', async (_request, response, next) => {
 ensureDatabase()
   .then(() => {
     if (isProduction && !configuredSiteUrl) {
-      console.warn('SITE_URL is not set; using request origin fallback.')
+      console.warn(`SITE_URL is not set; using default domain ${primarySiteUrl}.`)
     }
 
     if (isProduction && !process.env.SUPABASE_URL) {
