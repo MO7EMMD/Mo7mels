@@ -78,6 +78,10 @@ function isValidHttpUrl(rawUrl) {
   }
 }
 
+function getTopEmbedType(typeUsage) {
+  return Object.entries(typeUsage).sort((left, right) => right[1] - left[1])[0]?.[0] || ''
+}
+
 function getInitialPath() {
   if (typeof window === 'undefined') {
     return '/'
@@ -89,9 +93,18 @@ function getInitialPath() {
 }
 
 async function apiRequest(path, options = {}) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const authorizationHeader = session?.access_token
+    ? { Authorization: `Bearer ${session.access_token}` }
+    : {}
+
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...authorizationHeader,
       ...(options.headers || {}),
     },
     ...options,
@@ -154,6 +167,20 @@ const translations = {
     dashboardName: 'Name',
     dashboardEmail: 'Email',
     dashboardJoined: 'Joined',
+    dashboardInsights: 'Account Insights',
+    dashboardUserId: 'User ID',
+    dashboardMemberFor: 'Member for',
+    dashboardLastEmbed: 'Last saved embed',
+    dashboardEmbedsWeek: 'Embeds in last 7 days',
+    dashboardEmbedsMonth: 'Embeds in last 30 days',
+    dashboardActivityLevel: 'Activity level',
+    dashboardActivityLow: 'Low',
+    dashboardActivityMedium: 'Medium',
+    dashboardActivityHigh: 'High',
+    dashboardPlatformMix: 'Platforms used',
+    dashboardTopPlatform: 'Top platform',
+    dashboardNoActivityYet: 'No activity yet',
+    dashboardDaysUnit: 'days',
     dashboardBack: 'Back To Generator',
     embedTypes: {
       youtube: 'YouTube',
@@ -234,6 +261,20 @@ const translations = {
     dashboardName: 'الاسم',
     dashboardEmail: 'البريد الإلكتروني',
     dashboardJoined: 'تاريخ الانضمام',
+    dashboardInsights: 'مؤشرات الحساب',
+    dashboardUserId: 'معرّف المستخدم',
+    dashboardMemberFor: 'مدة العضوية',
+    dashboardLastEmbed: 'آخر كود محفوظ',
+    dashboardEmbedsWeek: 'أكواد آخر 7 أيام',
+    dashboardEmbedsMonth: 'أكواد آخر 30 يومًا',
+    dashboardActivityLevel: 'مستوى النشاط',
+    dashboardActivityLow: 'منخفض',
+    dashboardActivityMedium: 'متوسط',
+    dashboardActivityHigh: 'عالٍ',
+    dashboardPlatformMix: 'المنصات المستخدمة',
+    dashboardTopPlatform: 'المنصة الأكثر استخدامًا',
+    dashboardNoActivityYet: 'لا يوجد نشاط حتى الآن',
+    dashboardDaysUnit: 'يوم',
     dashboardBack: 'العودة إلى المولد',
     embedTypes: {
       youtube: 'يوتيوب',
@@ -441,7 +482,7 @@ function App() {
 
     const fetchSavedEmbeds = async () => {
       try {
-        const response = await apiRequest(`/embeds?email=${encodeURIComponent(currentUser.email)}`)
+        const response = await apiRequest('/embeds')
         setSavedEmbeds(response.embeds || [])
       } catch {
         setSavedEmbeds([])
@@ -571,7 +612,6 @@ function App() {
       const response = await apiRequest('/embeds', {
         method: 'POST',
         body: JSON.stringify({
-          email: currentUser.email,
           type,
           sourceUrl,
           embedCode: code,
@@ -760,6 +800,41 @@ function App() {
 
   const renderDashboardPage = () => (
     <div className="dashboard-shell">
+      {(() => {
+        const joinedAtTimestamp = new Date(currentUser?.createdAt || Date.now()).getTime()
+        const memberDays = Math.max(1, Math.floor((Date.now() - joinedAtTimestamp) / 86400000) + 1)
+        const weekAgoTimestamp = Date.now() - 7 * 86400000
+        const monthAgoTimestamp = Date.now() - 30 * 86400000
+        const embedsThisWeek = savedEmbeds.filter(
+          (item) => new Date(item.createdAt).getTime() >= weekAgoTimestamp,
+        ).length
+        const embedsThisMonth = savedEmbeds.filter(
+          (item) => new Date(item.createdAt).getTime() >= monthAgoTimestamp,
+        ).length
+        const activityLevel =
+          embedsThisMonth >= 16
+            ? { label: content.dashboardActivityHigh, tone: 'high' }
+            : embedsThisMonth >= 4
+              ? { label: content.dashboardActivityMedium, tone: 'medium' }
+              : { label: content.dashboardActivityLow, tone: 'low' }
+        const typeUsage = savedEmbeds.reduce((accumulator, item) => {
+          const key = item.type || 'general'
+          return {
+            ...accumulator,
+            [key]: (accumulator[key] || 0) + 1,
+          }
+        }, {})
+        const topType = getTopEmbedType(typeUsage)
+        const topTypeLabel = topType
+          ? content.embedTypes[topType] || content.embedTypes.general
+          : content.dashboardNoActivityYet
+        const latestEmbedLabel = savedEmbeds[0]?.createdAt
+          ? new Date(savedEmbeds[0].createdAt).toLocaleString()
+          : content.dashboardNoActivityYet
+        const shortUserId = currentUser?.id ? String(currentUser.id).slice(0, 8) : '--'
+
+        return (
+          <>
       <header className="auth-page-topbar">
         <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
           {content.dashboardBack}
@@ -815,6 +890,46 @@ function App() {
               <strong>{new Date(currentUser?.createdAt || Date.now()).toLocaleDateString()}</strong>
             </div>
           </div>
+
+          <h3 className="dashboard-details-title">{content.dashboardInsights}</h3>
+          <div className="dashboard-details-grid">
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardUserId}</span>
+              <strong>{shortUserId}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardMemberFor}</span>
+              <strong>
+                {memberDays} {content.dashboardDaysUnit}
+              </strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardLastEmbed}</span>
+              <strong>{latestEmbedLabel}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardEmbedsWeek}</span>
+              <strong>{embedsThisWeek}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardEmbedsMonth}</span>
+              <strong>{embedsThisMonth}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardActivityLevel}</span>
+              <strong className={`dashboard-activity-level ${activityLevel.tone}`}>
+                {activityLevel.label}
+              </strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardPlatformMix}</span>
+              <strong>{Object.keys(typeUsage).length}</strong>
+            </div>
+            <div className="dashboard-detail-item dashboard-detail-wide">
+              <span>{content.dashboardTopPlatform}</span>
+              <strong>{topTypeLabel}</strong>
+            </div>
+          </div>
         </article>
       </section>
 
@@ -836,6 +951,9 @@ function App() {
           </div>
         )}
       </section>
+          </>
+        )
+      })()}
     </div>
   )
 

@@ -3,5 +3,14 @@ services:
     name: mo7mels
     env: node
     plan: free
+    envVars:
+      - key: SITE_URL
+        value: https://mo7mels.com
+      - key: ENABLE_CANONICAL_REDIRECT
+        value: "true"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
     buildCommand: npm install && npm run build
     startCommand: npm start
