@@ -50,8 +50,22 @@ function normalizeSiteUrl(rawUrl) {
   }
 }
 
-function getSiteUrl() {
-  return configuredSiteUrl
+function getRequestOrigin(request) {
+  if (!request) {
+    return ''
+  }
+
+  const host = request.get('host')
+
+  if (!host) {
+    return ''
+  }
+
+  return `${request.protocol}://${host}`
+}
+
+function getSiteUrl(request) {
+  return configuredSiteUrl || getRequestOrigin(request)
 }
 
 function buildSitemapXml(siteUrl) {
@@ -301,7 +315,7 @@ app.post('/api/embeds', requireSupabaseUser, async (request, response) => {
 })
 
 app.get('/robots.txt', (request, response) => {
-  const siteUrl = getSiteUrl()
+  const siteUrl = getSiteUrl(request)
 
   if (!siteUrl) {
     return response.status(503).type('text/plain').send('SITE_URL is required for robots.txt in production.')
@@ -311,7 +325,7 @@ app.get('/robots.txt', (request, response) => {
 })
 
 app.get('/sitemap.xml', (request, response) => {
-  const siteUrl = getSiteUrl()
+  const siteUrl = getSiteUrl(request)
 
   if (!siteUrl) {
     return response.status(503).type('text/plain').send('SITE_URL is required for sitemap.xml in production.')
@@ -328,7 +342,7 @@ app.get('*', async (_request, response, next) => {
     const indexPath = path.join(distPath, 'index.html')
     await fs.access(indexPath)
 
-    const siteUrl = getSiteUrl()
+    const siteUrl = getSiteUrl(_request)
 
     if (!siteUrl) {
       return response.status(503).type('text/plain').send('SITE_URL is required for production HTML metadata.')
@@ -345,7 +359,7 @@ app.get('*', async (_request, response, next) => {
 ensureDatabase()
   .then(() => {
     if (isProduction && !configuredSiteUrl) {
-      throw new Error('SITE_URL must be set in production.')
+      console.warn('SITE_URL is not set; using request origin fallback.')
     }
 
     if (isProduction && !process.env.SUPABASE_URL) {
