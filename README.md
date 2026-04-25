@@ -43,7 +43,7 @@ Render setup:
 - Build command: `npm install && npm run build`
 - Start command: `npm start`
 - Port: provided automatically by Render through `PORT`
-- Required environment variable: `SITE_URL=https://mo7mels.com`
+- Required environment variable: `SITE_URL=https://mo7mels.onrender.com`
 - Canonical redirect: `ENABLE_CANONICAL_REDIRECT=true` to force traffic onto the primary domain
 - Required for authenticated embed API: `SUPABASE_URL` and `SUPABASE_ANON_KEY`
 
@@ -55,7 +55,7 @@ To connect a custom domain on Render:
 
 1. Open your Render service and add the domain under `Settings > Custom Domains`.
 2. Add the DNS records exactly as Render shows for your domain or subdomain.
-3. Set `SITE_URL` to your final primary URL: `https://mo7mels.com`.
+3. Set `SITE_URL` to your final primary URL: `https://mo7mels.onrender.com`.
 4. If you want the Render default URL or secondary hostnames to redirect to the main domain, set `ENABLE_CANONICAL_REDIRECT=true`.
 5. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables.
 6. Redeploy the service after saving the environment variables.

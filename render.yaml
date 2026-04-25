@@ -5,7 +5,7 @@ services:
     plan: free
     envVars:
       - key: SITE_URL
-        value: https://mo7mels.com
+        value: https://mo7mels.onrender.com
       - key: ENABLE_CANONICAL_REDIRECT
         value: "true"
       - key: SUPABASE_URL

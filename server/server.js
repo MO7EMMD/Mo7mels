@@ -15,7 +15,7 @@ const distPath = path.join(__dirname, '..', 'dist')
 const app = express()
 const port = process.env.PORT || 3001
 const configuredSiteUrl = normalizeSiteUrl(process.env.SITE_URL)
-const primarySiteUrl = 'https://mo7mels.com'
+const primarySiteUrl = 'https://mo7mels.onrender.com'
 const effectiveSiteUrl = configuredSiteUrl || primarySiteUrl
 const canonicalRedirectEnabled = process.env.ENABLE_CANONICAL_REDIRECT === 'true'
 const isProduction = process.env.NODE_ENV === 'production'
