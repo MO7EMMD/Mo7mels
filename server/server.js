@@ -190,7 +190,7 @@ app.get('/api/health', (_request, response) => {
 })
 
 app.use((request, response, next) => {
-  if (!canonicalRedirectEnabled || request.method !== 'GET' || !effectiveSiteUrl) {
+  if (!canonicalRedirectEnabled || request.method !== 'GET' || !configuredSiteUrl) {
     return next()
   }
 
@@ -202,11 +202,11 @@ app.use((request, response, next) => {
 
   const requestOrigin = `${request.protocol}://${host}`
 
-  if (requestOrigin === effectiveSiteUrl) {
+  if (requestOrigin === configuredSiteUrl) {
     return next()
   }
 
-  return response.redirect(301, new URL(request.originalUrl, effectiveSiteUrl).toString())
+  return response.redirect(301, new URL(request.originalUrl, configuredSiteUrl).toString())
 })
 
 app.post('/api/auth/signup', async (request, response) => {
