@@ -1,4 +1,11 @@
 {
-  "users": [],
-  "embeds": []
+  "users": [
+    {
+      "id": 1,
+      "username": "mo7mels",
+      "password": "Mo7mels@09"
+    }
+  ],
+  "embeds": [],
+  "subscriptions": []
 }

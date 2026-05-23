@@ -6,11 +6,29 @@ services:
     envVars:
       - key: SITE_URL
         value: https://mo7mels.onrender.com
+      - key: SITE_NAME
+        value: Mo7mels
+      - key: SITE_LOGO_URL
+        value: https://mo7mels.onrender.com/site-logo.svg
       - key: ENABLE_CANONICAL_REDIRECT
         value: "true"
-      - key: SUPABASE_URL
+      - key: VITE_MAINTENANCE_MODE
+        value: "false"
+      - key: VITE_MAINTENANCE_TITLE
+        value: "نعتذر لإزعاجك"
+      - key: VITE_MAINTENANCE_MESSAGE
+        value: "الموقع حالياً يخضع لرفع تحديثات. سنعود قريباً بخدمة أفضل. شكراً لصبرك."
+      - key: SMTP_HOST
         sync: false
-      - key: SUPABASE_ANON_KEY
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
         sync: false
     buildCommand: npm install && npm run build
     startCommand: npm start

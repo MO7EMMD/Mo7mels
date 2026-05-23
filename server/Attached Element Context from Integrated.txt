@@ -1,0 +1,49 @@
+Attached Element Context from Integrated Browser
+
+Element: html
+
+URL: file:///C:/my.website/website/dist/index.html
+
+HTML Path: html
+
+Outer HTML:
+```html
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mo7mels is a professional embed generator for YouTube, Shorts, TikTok, Instagram, and general links with account management and saved embeds.">
+    <link rel="canonical" href="__SITE_URL__/">
+    <meta name="keywords" content="Mo7mels, embed generator, YouTube embed, TikTok embed, Instagram embed, iframe generator">
+    <meta property="og:title" content="Mo7mels">
+    <meta property="og:description" content="Generate and manage embeds for YouTube, Shorts, TikTok, Instagram, and general links.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="__SITE_URL__/">
+    <meta name="robots" content="index,follow">
+    <title>Mo7mels</title>
+    <script type="module" crossorigin="" src="/assets/index-tktxXtLV.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-BgpIobyV.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+  
+</body></html>
+```
+
+Dimensions:
+- top: 0px
+- left: 0px
+- width: 696px
+- height: 8px
+
+CSS:
+```css
+
+
+/* Resolved values */
+display: block;
+height: 8px;
+view-transition-name: root /*UA*/;
+width: 696px;
+```

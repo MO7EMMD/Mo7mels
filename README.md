@@ -22,7 +22,7 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 - Generate embed codes for TikTok videos
 - Generate embed codes for Instagram posts and reels
 - Generic iframe embeds for other URLs
-- Login and signup pages with validation using Supabase Auth
+- Login and signup pages with email OTP verification
 - Confirm password field for new accounts
 - Dashboard page for reviewing saved embed history
 - File-based API server with JSON storage in `server/data/db.json`
@@ -45,7 +45,19 @@ Render setup:
 - Port: provided automatically by Render through `PORT`
 - Required environment variable: `SITE_URL=https://mo7mels.onrender.com`
 - Canonical redirect: `ENABLE_CANONICAL_REDIRECT=true` to force traffic onto the primary domain
-- Required for authenticated embed API: `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+- Optional environment variables for OTP email branding and SMTP delivery:
+  - `SITE_NAME`
+  - `SITE_LOGO_URL`
+  - `EMAIL_FROM`
+  - `SMTP_HOST`
+  - `SMTP_PORT`
+  - `SMTP_SECURE`
+  - `SMTP_USER`
+  - `SMTP_PASS`
+- Maintenance notification variables for site update mode:
+  - `VITE_MAINTENANCE_MODE` = `true` or `false`
+  - `VITE_MAINTENANCE_TITLE`
+  - `VITE_MAINTENANCE_MESSAGE`
 
 The included `render.yaml` can be used to create the service quickly after connecting the repository.
 
@@ -57,7 +69,7 @@ To connect a custom domain on Render:
 2. Add the DNS records exactly as Render shows for your domain or subdomain.
 3. Set `SITE_URL` to your final primary URL: `https://mo7mels.onrender.com`.
 4. If you want the Render default URL or secondary hostnames to redirect to the main domain, set `ENABLE_CANONICAL_REDIRECT=true`.
-5. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables.
+5. Add email branding and SMTP environment variables if you want OTP delivery to work automatically.
 6. Redeploy the service after saving the environment variables.
 
 If `SITE_URL` is missing in production, the server now refuses to generate canonical metadata, `robots.txt`, and `sitemap.xml` from request headers.

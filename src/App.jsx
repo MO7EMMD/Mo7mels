@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { supabase } from './supabaseClient'
+import { PayPalScriptProvider, PayPalButtons, FUNDING } from '@paypal/react-paypal-js'
+
+// Replace these with your actual PayPal Plan IDs from the PayPal Developer Dashboard
+const PAYPAL_CLIENT_ID = 'AQduOnVI3FTIp2aBlgqMnCiLhY8dO3nWxGYudLWlN57vzCbydKTs88S7UpI6M2GXzMYbFj8xJYjgYw-x'
+const PAYPAL_PLAN_IDS = {
+  basic: 'YOUR_BASIC_PLAN_ID',
+  pro: 'YOUR_PRO_PLAN_ID',
+  business: 'YOUR_BUSINESS_PLAN_ID',
+}
 
 const API_BASE = '/api'
+const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
+const MAINTENANCE_TITLE = import.meta.env.VITE_MAINTENANCE_TITLE || 'نعتذر لإزعاجك'
+const MAINTENANCE_MESSAGE =
+  import.meta.env.VITE_MAINTENANCE_MESSAGE ||
+  'الموقع الآن يخضع لعملية تحديث سريعة لتحسين التجربة. نشكرك على صبرك، وسيعود للعمل خلال دقائق.'
 
 function extractYouTubeVideoId(rawUrl) {
   try {
@@ -92,14 +105,8 @@ function getInitialPath() {
     : '/'
 }
 
-async function apiRequest(path, options = {}) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  const authorizationHeader = session?.access_token
-    ? { Authorization: `Bearer ${session.access_token}` }
-    : {}
+async function apiRequest(path, options = {}, token = '') {
+  const authorizationHeader = token ? { Authorization: `Bearer ${token}` } : {}
 
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -136,7 +143,10 @@ const translations = {
     generate: 'Generate Embed',
     embedCode: 'Embed Code',
     subscriptions: 'Subscriptions',
-    choosePlan: 'Choose Plan',
+    choosePlan: 'Subscribe',
+    currentPlan: 'Current Plan',
+    cancelPlan: 'Cancel Subscription',
+    planKeys: ['basic', 'pro', 'business'],
     period: '/month',
     plans: ['Basic', 'Pro', 'Business'],
     features: {
@@ -182,6 +192,8 @@ const translations = {
     dashboardNoActivityYet: 'No activity yet',
     dashboardDaysUnit: 'days',
     dashboardBack: 'Back To Generator',
+    dashboardChartTitle: 'Platform Usage Chart',
+    dashboardChartEmpty: 'No data yet. Start generating embeds to see chart.',
     embedTypes: {
       youtube: 'YouTube',
       tiktok: 'TikTok',
@@ -197,6 +209,25 @@ const translations = {
       loginSuccess: 'Login successful.',
       signupSuccess: 'Account created successfully.',
       loginRequired: 'Please log in first to open the dashboard.',
+      otpSent: 'A verification code has been sent to your email.',
+      otpSuccess: 'Email verified successfully.',
+      otpInvalid: 'Invalid or expired code. Please try again.',
+      otpResent: 'Verification code resent to your email.',
+    },
+    otp: {
+      title: 'Verify Your Email',
+      subtitle: 'Enter the 6-digit code sent to your email address.',
+      label: 'Verification Code',
+      submit: 'Verify',
+      resend: 'Resend Code',
+      back: 'Back',
+    },
+    subscription: {
+      loginRequired: 'Please log in to subscribe.',
+      success: 'Subscription activated successfully.',
+      cancelled: 'Subscription cancelled.',
+      error: 'Failed to activate subscription. Please try again.',
+      cancelError: 'Failed to cancel subscription. Please try again.',
     },
     errors: {
       empty: 'Please enter a link first.',
@@ -230,7 +261,10 @@ const translations = {
     generate: 'إنشاء الإيمبد',
     embedCode: 'كود الإيمبد',
     subscriptions: 'الاشتراكات',
-    choosePlan: 'اختر الخطة',
+    choosePlan: 'اشترك الآن',
+    currentPlan: 'الخطة الحالية',
+    cancelPlan: 'إلغاء الاشتراك',
+    planKeys: ['basic', 'pro', 'business'],
     period: '/شهريًا',
     plans: ['الأساسية', 'الاحترافية', 'الأعمال'],
     features: {
@@ -276,6 +310,8 @@ const translations = {
     dashboardNoActivityYet: 'لا يوجد نشاط حتى الآن',
     dashboardDaysUnit: 'يوم',
     dashboardBack: 'العودة إلى المولد',
+    dashboardChartTitle: 'مخطط استخدام المنصات',
+    dashboardChartEmpty: 'لا توجد بيانات بعد. ابدأ بإنشاء أكواد تضمين لعرض المخطط.',
     embedTypes: {
       youtube: 'يوتيوب',
       tiktok: 'تيك توك',
@@ -291,6 +327,25 @@ const translations = {
       loginSuccess: 'تم تسجيل الدخول بنجاح.',
       signupSuccess: 'تم إنشاء الحساب بنجاح.',
       loginRequired: 'يجب تسجيل الدخول أولًا لفتح لوحة التحكم.',
+      otpSent: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني.',
+      otpSuccess: 'تم التحقق من البريد الإلكتروني بنجاح.',
+      otpInvalid: 'الرمز غير صالح أو منتهي الصلاحية. يرجى المحاولة مجددًا.',
+      otpResent: 'تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني.',
+    },
+    otp: {
+      title: 'تحقق من بريدك الإلكتروني',
+      subtitle: 'أدخل رمز التحقق المكون من 6 أرقام الذي أُرسل إلى بريدك.',
+      label: 'رمز التحقق',
+      submit: 'تحقق',
+      resend: 'إعادة الإرسال',
+      back: 'رجوع',
+    },
+    subscription: {
+      loginRequired: 'يرجى تسجيل الدخول أولاً للاشتراك.',
+      success: 'تم تفعيل الاشتراك بنجاح.',
+      cancelled: 'تم إلغاء الاشتراك.',
+      error: 'فشل تفعيل الاشتراك. يرجى المحاولة مجددًا.',
+      cancelError: 'فشل إلغاء الاشتراك. يرجى المحاولة مجددًا.',
     },
     errors: {
       empty: 'يرجى إدخال رابط أولاً.',
@@ -349,6 +404,16 @@ function App() {
   const [embedCode, setEmbedCode] = useState('')
   const [validationMessage, setValidationMessage] = useState('')
   const [validationType, setValidationType] = useState('')
+  const [otpPending, setOtpPending] = useState(false)
+  const [otpEmail, setOtpEmail] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [sessionToken, setSessionToken] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return window.localStorage.getItem('sessionToken') || ''
+  })
+  const [userSubscription, setUserSubscription] = useState(null)
+  const [subscriptionMessage, setSubscriptionMessage] = useState('')
+  const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
   const previewRef = useRef(null)
 
   const content = translations[language]
@@ -388,43 +453,21 @@ function App() {
 
   useEffect(() => {
     const syncSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      if (!sessionToken) {
+        setCurrentUser(null)
+        return
+      }
 
-      if (session?.user) {
-        setCurrentUser({
-          id: session.user.id,
-          name: session.user.user_metadata?.full_name || session.user.email,
-          email: session.user.email,
-          createdAt: session.user.created_at,
-        })
-      } else {
+      try {
+        const response = await apiRequest('/auth/me', {}, sessionToken)
+        setCurrentUser(response.user)
+      } catch {
         setCurrentUser(null)
       }
     }
 
     syncSession()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setCurrentUser({
-          id: session.user.id,
-          name: session.user.user_metadata?.full_name || session.user.email,
-          email: session.user.email,
-          createdAt: session.user.created_at,
-        })
-      } else {
-        setCurrentUser(null)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+  }, [sessionToken])
 
   useEffect(() => {
     if (!previewRef.current || !embedCode) {
@@ -477,19 +520,30 @@ function App() {
   useEffect(() => {
     if (!currentUser) {
       setSavedEmbeds([])
+      setUserSubscription(null)
       return
     }
 
     const fetchSavedEmbeds = async () => {
       try {
-        const response = await apiRequest('/embeds')
+        const response = await apiRequest('/embeds', {}, sessionToken)
         setSavedEmbeds(response.embeds || [])
       } catch {
         setSavedEmbeds([])
       }
     }
 
+    const fetchSubscription = async () => {
+      try {
+        const response = await apiRequest('/subscription', {}, sessionToken)
+        setUserSubscription(response.subscription || null)
+      } catch {
+        setUserSubscription(null)
+      }
+    }
+
     fetchSavedEmbeds()
+    fetchSubscription()
   }, [currentUser])
 
   const navigateTo = (path) => {
@@ -505,9 +559,11 @@ function App() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
     setCurrentUser(null)
+    setSessionToken('')
+    window.localStorage.removeItem('sessionToken')
     setSavedEmbeds([])
+    setUserSubscription(null)
     navigateTo('/')
   }
 
@@ -551,55 +607,150 @@ function App() {
 
     try {
       if (isSignupPage) {
-        const { data, error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password: trimmedPassword,
-          options: {
-            data: {
-              full_name: trimmedName,
-            },
-          },
+        const response = await fetch(`${API_BASE}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trimmedName,
+            email: trimmedEmail,
+            password: trimmedPassword,
+            confirmPassword: trimmedConfirmPassword,
+          }),
         })
 
-        if (error) {
-          throw error
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok) {
+          throw new Error(data.message || content.errors.serverUnavailable)
         }
 
-        if (data.user) {
-          setCurrentUser({
-            id: data.user.id,
-            name: data.user.user_metadata?.full_name || data.user.email,
-            email: data.user.email,
-            createdAt: data.user.created_at,
-          })
-        }
+        setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
+        setOtpEmail(trimmedEmail)
+        setOtpCode('')
+        setOtpPending(true)
+        setAuthMessageType('success')
+        setAuthMessage(content.authMessages.otpSent)
+        return
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: trimmedEmail,
-          password: trimmedPassword,
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: trimmedEmail,
+            password: trimmedPassword,
+          }),
         })
 
-        if (error) {
-          throw error
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok) {
+          throw new Error(data.message || content.errors.serverUnavailable)
         }
 
-        if (data.user) {
-          setCurrentUser({
-            id: data.user.id,
-            name: data.user.user_metadata?.full_name || data.user.email,
-            email: data.user.email,
-            createdAt: data.user.created_at,
-          })
-        }
+        setCurrentUser(data.user)
+        setSessionToken(data.token || '')
+        window.localStorage.setItem('sessionToken', data.token || '')
+        setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
+        setAuthMessageType('success')
+        setAuthMessage(content.authMessages.loginSuccess)
+        navigateTo('/dashboard')
       }
-
-      setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
-      setAuthMessageType('success')
-      setAuthMessage(isSignupPage ? content.authMessages.signupSuccess : content.authMessages.loginSuccess)
-      navigateTo('/dashboard')
     } catch (error) {
       setAuthMessageType('error')
       setAuthMessage(error.message || content.errors.serverUnavailable)
+    }
+  }
+
+  const handleOtpVerify = async () => {
+    const trimmedCode = otpCode.trim()
+
+    if (!trimmedCode) {
+      setAuthMessageType('error')
+      setAuthMessage(content.authMessages.otpInvalid)
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpEmail, token: trimmedCode }),
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(data.message || content.authMessages.otpInvalid)
+      }
+
+      setCurrentUser(data.user)
+      setSessionToken(data.token || '')
+      window.localStorage.setItem('sessionToken', data.token || '')
+      setOtpPending(false)
+      setOtpCode('')
+      setOtpEmail('')
+      setAuthMessageType('success')
+      setAuthMessage(content.authMessages.otpSuccess)
+      navigateTo('/dashboard')
+    } catch (error) {
+      setAuthMessageType('error')
+      setAuthMessage(error.message || content.authMessages.otpInvalid)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpEmail }),
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(data.message || content.errors.serverUnavailable)
+      }
+
+      setAuthMessageType('success')
+      setAuthMessage(content.authMessages.otpResent)
+    } catch (error) {
+      setAuthMessageType('error')
+      setAuthMessage(error.message || content.errors.serverUnavailable)
+    }
+  }
+
+  const handleSubscribe = async (planKey, subscriptionId) => {
+    if (!currentUser) {
+      setSubscriptionMessageType('error')
+      setSubscriptionMessage(content.subscription.loginRequired)
+      navigateTo('/login')
+      return
+    }
+
+    try {
+      const response = await apiRequest('/subscription', {
+        method: 'POST',
+        body: JSON.stringify({ planKey, subscriptionId }),
+      }, sessionToken)
+      setUserSubscription(response.subscription)
+      setSubscriptionMessageType('success')
+      setSubscriptionMessage(content.subscription.success)
+    } catch {
+      setSubscriptionMessageType('error')
+      setSubscriptionMessage(content.subscription.error)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    try {
+      await apiRequest('/subscription', { method: 'DELETE' }, sessionToken)
+      setUserSubscription(null)
+      setSubscriptionMessageType('success')
+      setSubscriptionMessage(content.subscription.cancelled)
+    } catch {
+      setSubscriptionMessageType('error')
+      setSubscriptionMessage(content.subscription.cancelError)
     }
   }
 
@@ -616,7 +767,7 @@ function App() {
           sourceUrl,
           embedCode: code,
         }),
-      })
+      }, sessionToken)
 
       setSavedEmbeds(response.embeds || [])
     } catch {
@@ -694,6 +845,78 @@ function App() {
     setValidationMessage(nextMessage)
     await saveEmbedToAccount(nextType, normalizedUrl, nextCode)
   }
+
+  const renderOtpPage = () => (
+    <div className="auth-page-shell">
+      <header className="auth-page-topbar">
+        <button
+          type="button"
+          className="nav-link-button"
+          onClick={() => {
+            setOtpPending(false)
+            setOtpCode('')
+            setAuthMessage('')
+            setAuthMessageType('')
+          }}
+        >
+          {content.otp.back}
+        </button>
+        <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
+      </header>
+
+      <section className="auth-layout">
+        <aside className="auth-showcase">
+          <span className="eyebrow-badge">{content.brand}</span>
+          <h1>{content.otp.title}</h1>
+          <p>{content.authAsideText}</p>
+          <div className="showcase-stats">
+            {content.authStats.map((item) => (
+              <div className="showcase-stat" key={item}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <div className="auth-form-card">
+          <div className="auth-form-header">
+            <h2>{content.otp.title}</h2>
+            <p>{content.otp.subtitle}</p>
+            <p className="otp-email-hint">{otpEmail}</p>
+          </div>
+
+          <div className="auth-fields">
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder={content.otp.label}
+              value={otpCode}
+              onChange={(event) => {
+                setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))
+                if (authMessage) {
+                  setAuthMessage('')
+                  setAuthMessageType('')
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleOtpVerify()
+                }
+              }}
+            />
+            {authMessage && <p className={`auth-feedback ${authMessageType}`}>{authMessage}</p>}
+            <button type="button" className="auth-submit-button" onClick={handleOtpVerify}>
+              {content.otp.submit}
+            </button>
+            <button type="button" className="auth-route-button" onClick={handleResendOtp}>
+              {content.otp.resend}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
 
   const renderAuthPage = () => (
     <div className="auth-page-shell">
@@ -869,7 +1092,11 @@ function App() {
             </div>
             <div className="dashboard-stat-card">
               <span>{content.dashboardStats[2]}</span>
-              <strong>{content.dashboardPlan}</strong>
+              <strong>
+                {userSubscription?.planKey
+                  ? content.plans[content.planKeys.indexOf(userSubscription.planKey)] || content.dashboardPlan
+                  : content.dashboardPlan}
+              </strong>
             </div>
           </div>
         </article>
@@ -931,6 +1158,40 @@ function App() {
             </div>
           </div>
         </article>
+      </section>
+
+      <section className="dashboard-card dashboard-chart-section">
+        <h2>{content.dashboardChartTitle}</h2>
+        {Object.keys(typeUsage).length === 0 ? (
+          <p className="dashboard-empty">{content.dashboardChartEmpty}</p>
+        ) : (
+          <div className="platform-chart">
+            {[
+              { key: 'youtube', color: '#ff3b3b' },
+              { key: 'tiktok', color: '#010101' },
+              { key: 'instagram', color: '#e1306c' },
+              { key: 'general', color: '#4a67ff' },
+            ]
+              .filter(({ key }) => typeUsage[key])
+              .sort((a, b) => (typeUsage[b.key] || 0) - (typeUsage[a.key] || 0))
+              .map(({ key, color }) => {
+                const count = typeUsage[key] || 0
+                const pct = Math.round((count / savedEmbeds.length) * 100)
+                return (
+                  <div className="chart-row" key={key}>
+                    <span className="chart-label">{content.embedTypes[key]}</span>
+                    <div className="chart-bar-track">
+                      <div
+                        className="chart-bar-fill"
+                        style={{ width: `${pct}%`, background: color }}
+                      />
+                    </div>
+                    <span className="chart-value">{count} ({pct}%)</span>
+                  </div>
+                )
+              })}
+          </div>
+        )}
       </section>
 
       <section className="dashboard-card dashboard-activity">
@@ -1013,35 +1274,115 @@ function App() {
 
       <div className="subscriptions-section">
         <h2>{content.subscriptions}</h2>
+        {subscriptionMessage && (
+          <p className={`auth-feedback ${subscriptionMessageType}`}>{subscriptionMessage}</p>
+        )}
         <div className="subscriptions-grid">
-          {localizedPlans.map((plan) => (
-            <div className="subscription-card" key={plan.name}>
-              <h3>{plan.name}</h3>
-              <p className="subscription-price">
-                {plan.price}
-                <span>{plan.period}</span>
-              </p>
-              <ul>
-                {plan.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
-                ))}
-              </ul>
-              <button type="button">{content.choosePlan}</button>
-            </div>
-          ))}
+          {localizedPlans.map((plan, index) => {
+            const planKey = content.planKeys[index]
+            const isActive = userSubscription?.planKey === planKey && userSubscription?.status === 'active'
+            return (
+              <div className={`subscription-card${isActive ? ' subscription-card--active' : ''}`} key={plan.name}>
+                {isActive && <span className="subscription-badge">{content.currentPlan}</span>}
+                <h3>{plan.name}</h3>
+                <p className="subscription-price">
+                  {plan.price}
+                  <span>{plan.period}</span>
+                </p>
+                <ul>
+                  {plan.features.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+                {isActive ? (
+                  <button
+                    type="button"
+                    className="subscription-cancel-button"
+                    onClick={handleCancelSubscription}
+                  >
+                    {content.cancelPlan}
+                  </button>
+                ) : (
+                  <div className="subscription-payment-buttons">
+                    <PayPalButtons
+                      fundingSource={FUNDING.PAYPAL}
+                      style={{ layout: 'vertical', label: 'subscribe', height: 40 }}
+                      createSubscription={(_data, actions) =>
+                        actions.subscription.create({ plan_id: PAYPAL_PLAN_IDS[planKey] })
+                      }
+                      onApprove={(data) => handleSubscribe(planKey, data.subscriptionID)}
+                      onError={() => {
+                        setSubscriptionMessageType('error')
+                        setSubscriptionMessage(content.subscription.error)
+                      }}
+                      onClick={(_data, actions) => {
+                        if (!currentUser) {
+                          setSubscriptionMessageType('error')
+                          setSubscriptionMessage(content.subscription.loginRequired)
+                          navigateTo('/login')
+                          return actions.reject()
+                        }
+                        return actions.resolve()
+                      }}
+                    />
+                    <PayPalButtons
+                      fundingSource={FUNDING.CARD}
+                      style={{ layout: 'vertical', height: 40 }}
+                      createSubscription={(_data, actions) =>
+                        actions.subscription.create({ plan_id: PAYPAL_PLAN_IDS[planKey] })
+                      }
+                      onApprove={(data) => handleSubscribe(planKey, data.subscriptionID)}
+                      onError={() => {
+                        setSubscriptionMessageType('error')
+                        setSubscriptionMessage(content.subscription.error)
+                      }}
+                      onClick={(_data, actions) => {
+                        if (!currentUser) {
+                          setSubscriptionMessageType('error')
+                          setSubscriptionMessage(content.subscription.loginRequired)
+                          navigateTo('/login')
+                          return actions.reject()
+                        }
+                        return actions.resolve()
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
   )
 
+  if (MAINTENANCE_MODE) {
+    return (
+      <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
+        <div className="page-shell maintenance-active" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <section className="maintenance-notice maintenance-only">
+            <div className="maintenance-notice__content">
+              <h2>{MAINTENANCE_TITLE}</h2>
+              <p>{MAINTENANCE_MESSAGE}</p>
+            </div>
+          </section>
+        </div>
+      </PayPalScriptProvider>
+    )
+  }
+
   return (
-    <div className="page-shell" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      {currentPath === '/dashboard'
-        ? renderDashboardPage()
-        : currentPath === '/'
-          ? renderHomePage()
-          : renderAuthPage()}
-    </div>
+    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
+      <div className="page-shell" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {otpPending
+          ? renderOtpPage()
+          : currentPath === '/dashboard'
+            ? renderDashboardPage()
+            : currentPath === '/'
+              ? renderHomePage()
+              : renderAuthPage()}
+      </div>
+    </PayPalScriptProvider>
   )
 }
 

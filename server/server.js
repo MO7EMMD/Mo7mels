@@ -1,7 +1,7 @@
 import cors from 'cors'
 import express from 'express'
-import { createClient } from '@supabase/supabase-js'
-import { createHash } from 'node:crypto'
+import nodemailer from 'nodemailer'
+import { createHash, randomBytes } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,17 +19,24 @@ const primarySiteUrl = 'https://mo7mels.onrender.com'
 const effectiveSiteUrl = configuredSiteUrl || primarySiteUrl
 const canonicalRedirectEnabled = process.env.ENABLE_CANONICAL_REDIRECT === 'true'
 const isProduction = process.env.NODE_ENV === 'production'
-const defaultSupabaseUrl = 'https://sygxmbqvtcxjwjabnbpa.supabase.co'
-const defaultSupabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5Z3htYnF2dGN4andqYWJuYnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2OTk2MjQsImV4cCI6MjA5MTI3NTYyNH0.WQv7YYe1XDc3Z9Yf8ayl0-oEji2fQNuhGiLj-m-qTew'
-const supabaseUrl = process.env.SUPABASE_URL || defaultSupabaseUrl
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || defaultSupabaseAnonKey
-const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey)
-const supabaseAuthClient = hasSupabaseConfig
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+const SITE_NAME = process.env.SITE_NAME || 'Mo7mels'
+const SITE_LOGO_URL = process.env.SITE_LOGO_URL || `${effectiveSiteUrl}/site-logo.svg`
+const SITE_IMAGE_URL = process.env.SITE_IMAGE_URL || SITE_LOGO_URL
+const EMAIL_FROM = process.env.EMAIL_FROM || `no-reply@${new URL(effectiveSiteUrl).hostname}`
+const SMTP_HOST = process.env.SMTP_HOST || ''
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 587
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true'
+const SMTP_USER = process.env.SMTP_USER || ''
+const SMTP_PASS = process.env.SMTP_PASS || ''
+const smtpConfigured = Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
+const mailTransporter = smtpConfigured
+  ? nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
       auth: {
-        autoRefreshToken: false,
-        persistSession: false,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
       },
     })
   : null
@@ -121,25 +128,72 @@ function getBearerToken(request) {
   return authorizationHeader.slice(7).trim()
 }
 
-async function requireSupabaseUser(request, response, next) {
-  if (!supabaseAuthClient) {
-    return response.status(503).json({
-      message: 'Supabase auth is not configured on the server.',
-    })
+function generateOtpCode() {
+  return String(Math.floor(100000 + Math.random() * 900000))
+}
+
+function createSessionToken() {
+  return createHash('sha256').update(`${Date.now()}-${randomBytes(16).toString('hex')}`).digest('hex')
+}
+
+function buildOtpHtml(email, code) {
+  return `
+    <div style="font-family: Arial, sans-serif; color: #1f2937; padding: 24px; background: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(15,23,42,.12);">
+        <div style="padding: 24px; text-align: center; background: #2563eb; color: #ffffff;">
+          <img src="${SITE_LOGO_URL}" alt="${SITE_NAME} logo" style="width: 96px; height: auto; margin-bottom: 16px;" />
+          <h1 style="margin: 0; font-size: 28px; line-height: 1.1;">${SITE_NAME}</h1>
+          <p style="margin: 8px 0 0; color: rgba(255,255,255,.9);">رمز التحقق عبر البريد الإلكتروني</p>
+        </div>
+        <div style="padding: 28px; color: #111827; text-align: center;">
+          <p style="font-size: 16px; line-height: 1.6;">مرحبًا،</p>
+          <p style="font-size: 16px; line-height: 1.6;">استخدم الرمز التالي لتأكيد بريدك الإلكتروني وإكمال تسجيلك في ${SITE_NAME}:</p>
+          <div style="margin: 24px auto; display: inline-flex; padding: 20px 28px; border-radius: 20px; background: #f1f5f9; color: #1d4ed8; font-size: 32px; letter-spacing: 0.18em; font-weight: 700;">${code}</div>
+          <p style="margin: 24px 0 0; font-size: 15px; line-height: 1.7; color: #475569;">إذا لم تطلب هذا الرمز، يمكنك تجاهل هذه الرسالة.</p>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; color: #475569; font-size: 14px; text-align: center;">
+          <p style="margin: 0;">${SITE_NAME} · ${effectiveSiteUrl}</p>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+async function sendOtpEmail(email, code) {
+  if (!mailTransporter) {
+    console.warn('SMTP is not configured. OTP email not sent to', email)
+    return
   }
 
+  await mailTransporter.sendMail({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `${SITE_NAME} - رمز التحقق`,
+    html: buildOtpHtml(email, code),
+  })
+}
+
+function isOtpExpired(user) {
+  return !user.otpExpiresAt || new Date(user.otpExpiresAt) < new Date()
+}
+
+async function requireAuthenticatedUser(request, response, next) {
   const accessToken = getBearerToken(request)
 
   if (!accessToken) {
     return response.status(401).json({ message: 'Missing authorization token.' })
   }
 
-  const {
-    data: { user },
-    error,
-  } = await supabaseAuthClient.auth.getUser(accessToken)
+  const database = await readDatabase()
+  const session = (database.sessions || []).find((item) => item.token === accessToken)
 
-  if (error || !user?.email) {
+  if (!session || new Date(session.expiresAt) < new Date()) {
+    return response.status(401).json({ message: 'Invalid or expired authorization token.' })
+  }
+
+  const user = database.users.find((item) => item.email === session.userEmail && item.verified)
+
+  if (!user) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
@@ -153,7 +207,15 @@ async function ensureDatabase() {
   try {
     await fs.access(dbPath)
   } catch {
-    await fs.writeFile(dbPath, JSON.stringify({ users: [], embeds: [] }, null, 2), 'utf8')
+    await fs.writeFile(
+      dbPath,
+      JSON.stringify(
+        { users: [], embeds: [], subscriptions: [], sessions: [] },
+        null,
+        2,
+      ),
+      'utf8',
+    )
   }
 }
 
@@ -166,9 +228,11 @@ async function readDatabase() {
     return {
       users: Array.isArray(parsed.users) ? parsed.users : [],
       embeds: Array.isArray(parsed.embeds) ? parsed.embeds : [],
+      subscriptions: Array.isArray(parsed.subscriptions) ? parsed.subscriptions : [],
+      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
     }
   } catch {
-    return { users: [], embeds: [] }
+    return { users: [], embeds: [], subscriptions: [], sessions: [] }
   }
 }
 
@@ -237,24 +301,91 @@ app.post('/api/auth/signup', async (request, response) => {
   }
 
   const database = await readDatabase()
-  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+  let existingUser = database.users.find((user) => user.email === normalizedEmail)
 
-  if (existingUser) {
+  if (existingUser && existingUser.verified) {
     return response.status(409).json({ message: 'This email is already registered.' })
   }
 
-  const user = {
-    id: Date.now(),
-    name: trimmedName,
-    email: normalizedEmail,
-    passwordHash: hashPassword(normalizedPassword),
-    createdAt: new Date().toISOString(),
+  const otpCode = generateOtpCode()
+  const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+
+  if (existingUser) {
+    existingUser.name = trimmedName
+    existingUser.passwordHash = hashPassword(normalizedPassword)
+    existingUser.otpCode = otpCode
+    existingUser.otpExpiresAt = otpExpiresAt
+    existingUser.verified = false
+  } else {
+    existingUser = {
+      id: Date.now(),
+      name: trimmedName,
+      email: normalizedEmail,
+      passwordHash: hashPassword(normalizedPassword),
+      verified: false,
+      otpCode,
+      otpExpiresAt,
+      createdAt: new Date().toISOString(),
+    }
+    database.users.push(existingUser)
   }
 
-  database.users.push(user)
+  await writeDatabase(database)
+  await sendOtpEmail(normalizedEmail, otpCode)
+
+  return response.status(200).json({ message: 'OTP sent to your email.' })
+})
+
+app.post('/api/auth/verify-otp', async (request, response) => {
+  const { email, token } = request.body || {}
+  const normalizedEmail = normalizeEmail(email)
+  const trimmedToken = String(token || '').trim()
+
+  if (!trimmedToken) {
+    return response.status(400).json({ message: 'OTP token is required.' })
+  }
+
+  const database = await readDatabase()
+  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+
+  if (!existingUser || existingUser.verified) {
+    return response.status(400).json({ message: 'No pending verification found for this email.' })
+  }
+
+  if (isOtpExpired(existingUser) || existingUser.otpCode !== trimmedToken) {
+    return response.status(400).json({ message: 'Invalid or expired OTP code.' })
+  }
+
+  existingUser.verified = true
+  existingUser.otpCode = null
+  existingUser.otpExpiresAt = null
   await writeDatabase(database)
 
-  return response.status(201).json({ user: toPublicUser(user) })
+  const tokenValue = createSessionToken()
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  database.sessions.push({ token: tokenValue, userEmail: normalizedEmail, expiresAt })
+  await writeDatabase(database)
+
+  return response.json({ user: toPublicUser(existingUser), token: tokenValue })
+})
+
+app.post('/api/auth/resend-otp', async (request, response) => {
+  const { email } = request.body || {}
+  const normalizedEmail = normalizeEmail(email)
+
+  const database = await readDatabase()
+  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+
+  if (!existingUser || existingUser.verified) {
+    return response.status(400).json({ message: 'No pending verification found for this email.' })
+  }
+
+  existingUser.otpCode = generateOtpCode()
+  existingUser.otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+  await writeDatabase(database)
+  await sendOtpEmail(normalizedEmail, existingUser.otpCode)
+
+  return response.json({ message: 'OTP resent to your email.' })
 })
 
 app.post('/api/auth/login', async (request, response) => {
@@ -269,14 +400,46 @@ app.post('/api/auth/login', async (request, response) => {
     return response.status(404).json({ message: 'No account was found with this email.' })
   }
 
+  if (!existingUser.verified) {
+    return response.status(403).json({ message: 'Please verify your email before logging in.' })
+  }
+
   if (existingUser.passwordHash !== hashPassword(normalizedPassword)) {
     return response.status(401).json({ message: 'Incorrect password.' })
   }
 
-  return response.json({ user: toPublicUser(existingUser) })
+  const tokenValue = createSessionToken()
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  database.sessions.push({ token: tokenValue, userEmail: normalizedEmail, expiresAt })
+  await writeDatabase(database)
+
+  return response.json({ user: toPublicUser(existingUser), token: tokenValue })
 })
 
-app.get('/api/embeds', requireSupabaseUser, async (request, response) => {
+app.get('/api/auth/me', async (request, response) => {
+  const accessToken = getBearerToken(request)
+
+  if (!accessToken) {
+    return response.status(401).json({ message: 'Missing authorization token.' })
+  }
+
+  const database = await readDatabase()
+  const session = (database.sessions || []).find((item) => item.token === accessToken)
+
+  if (!session || new Date(session.expiresAt) < new Date()) {
+    return response.status(401).json({ message: 'Invalid or expired authorization token.' })
+  }
+
+  const user = database.users.find((item) => item.email === session.userEmail && item.verified)
+
+  if (!user) {
+    return response.status(401).json({ message: 'Invalid or expired authorization token.' })
+  }
+
+  return response.json({ user: toPublicUser(user) })
+})
+
+app.get('/api/embeds', requireAuthenticatedUser, async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   const database = await readDatabase()
   const embeds = database.embeds
@@ -286,7 +449,7 @@ app.get('/api/embeds', requireSupabaseUser, async (request, response) => {
   return response.json({ embeds })
 })
 
-app.post('/api/embeds', requireSupabaseUser, async (request, response) => {
+app.post('/api/embeds', requireAuthenticatedUser, async (request, response) => {
   const { type, sourceUrl, embedCode } = request.body || {}
   const normalizedEmail = normalizeEmail(request.authUser.email)
 
@@ -314,6 +477,61 @@ app.post('/api/embeds', requireSupabaseUser, async (request, response) => {
     .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
 
   return response.status(201).json({ embed, embeds })
+})
+
+app.get('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+  const normalizedEmail = normalizeEmail(request.authUser.email)
+  const database = await readDatabase()
+  const subscription = database.subscriptions?.find((sub) => sub.userEmail === normalizedEmail) || null
+  return response.json({ subscription })
+})
+
+app.post('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+  const { planKey, subscriptionId } = request.body || {}
+  const normalizedEmail = normalizeEmail(request.authUser.email)
+
+  const validPlans = ['basic', 'pro', 'business']
+  if (!planKey || !validPlans.includes(planKey)) {
+    return response.status(400).json({ message: 'Invalid plan.' })
+  }
+
+  if (!subscriptionId) {
+    return response.status(400).json({ message: 'Missing PayPal subscription ID.' })
+  }
+
+  const database = await readDatabase()
+  if (!Array.isArray(database.subscriptions)) {
+    database.subscriptions = []
+  }
+
+  const existingIndex = database.subscriptions.findIndex((sub) => sub.userEmail === normalizedEmail)
+  const subscription = {
+    userEmail: normalizedEmail,
+    planKey,
+    subscriptionId,
+    status: 'active',
+    activatedAt: new Date().toISOString(),
+  }
+
+  if (existingIndex >= 0) {
+    database.subscriptions[existingIndex] = subscription
+  } else {
+    database.subscriptions.push(subscription)
+  }
+
+  await writeDatabase(database)
+  return response.status(201).json({ subscription })
+})
+
+app.delete('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+  const normalizedEmail = normalizeEmail(request.authUser.email)
+  const database = await readDatabase()
+  if (!Array.isArray(database.subscriptions)) {
+    database.subscriptions = []
+  }
+  database.subscriptions = database.subscriptions.filter((sub) => sub.userEmail !== normalizedEmail)
+  await writeDatabase(database)
+  return response.json({ ok: true })
 })
 
 app.get('/robots.txt', (request, response) => {
@@ -364,12 +582,8 @@ ensureDatabase()
       console.warn(`SITE_URL is not set; using default domain ${primarySiteUrl}.`)
     }
 
-    if (isProduction && !process.env.SUPABASE_URL) {
-      console.warn('SUPABASE_URL is not set; falling back to project default value.')
-    }
-
-    if (isProduction && !process.env.SUPABASE_ANON_KEY) {
-      console.warn('SUPABASE_ANON_KEY is not set; falling back to project default value.')
+    if (isProduction && !smtpConfigured) {
+      console.warn('SMTP is not configured; OTP email delivery will be disabled.')
     }
 
     app.listen(port, () => {
