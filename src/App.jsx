@@ -481,10 +481,6 @@ function App() {
   const [embedCode, setEmbedCode] = useState('')
   const [validationMessage, setValidationMessage] = useState('')
   const [validationType, setValidationType] = useState('')
-  const [otpPending, setOtpPending] = useState(false)
-  const [otpEmail, setOtpEmail] = useState('')
-  const [otpCode, setOtpCode] = useState('')
-  const [otpDebugCode, setOtpDebugCode] = useState('')
   const [profileName, setProfileName] = useState(currentUser?.name || '')
   const [newEmailInput, setNewEmailInput] = useState(currentUser?.email || '')
   const [currentPasswordInput, setCurrentPasswordInput] = useState('')
@@ -715,12 +711,12 @@ function App() {
         }
 
         setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
-        setOtpEmail(trimmedEmail)
-        setOtpCode('')
-        setOtpDebugCode(data.debugOtp || '')
-        setOtpPending(true)
         setAuthMessageType('success')
-        setAuthMessage(content.authMessages.otpSent)
+        setAuthMessage(content.authMessages.signupSuccess)
+        setCurrentUser(data.user)
+        setSessionToken(data.token || '')
+        window.localStorage.setItem('sessionToken', data.token || '')
+        navigateTo('/dashboard')
         return
       } else {
         const response = await fetch(`${API_BASE}/auth/login`, {
@@ -746,67 +742,6 @@ function App() {
         setAuthMessage(content.authMessages.loginSuccess)
         navigateTo('/dashboard')
       }
-    } catch (error) {
-      setAuthMessageType('error')
-      setAuthMessage(error.message || content.errors.serverUnavailable)
-    }
-  }
-
-  const handleOtpVerify = async () => {
-    const trimmedCode = otpCode.trim()
-
-    if (!trimmedCode) {
-      setAuthMessageType('error')
-      setAuthMessage(content.authMessages.otpInvalid)
-      return
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: otpEmail, token: trimmedCode }),
-      })
-
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        throw new Error(data.message || content.authMessages.otpInvalid)
-      }
-
-      setCurrentUser(data.user)
-      setSessionToken(data.token || '')
-      window.localStorage.setItem('sessionToken', data.token || '')
-      setOtpPending(false)
-      setOtpCode('')
-      setOtpEmail('')
-      setOtpDebugCode('')
-      setAuthMessageType('success')
-      setAuthMessage(content.authMessages.otpSuccess)
-      navigateTo('/dashboard')
-    } catch (error) {
-      setAuthMessageType('error')
-      setAuthMessage(error.message || content.authMessages.otpInvalid)
-    }
-  }
-
-  const handleResendOtp = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/auth/resend-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: otpEmail }),
-      })
-
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        throw new Error(data.message || content.errors.serverUnavailable)
-      }
-
-      setOtpDebugCode(data.debugOtp || '')
-      setAuthMessageType('success')
-      setAuthMessage(content.authMessages.otpResent)
     } catch (error) {
       setAuthMessageType('error')
       setAuthMessage(error.message || content.errors.serverUnavailable)
@@ -938,84 +873,6 @@ function App() {
     setValidationMessage(nextMessage)
     await saveEmbedToAccount(nextType, normalizedUrl, nextCode)
   }
-
-  const renderOtpPage = () => (
-    <div className="auth-page-shell">
-      <header className="auth-page-topbar">
-        <button
-          type="button"
-          className="nav-link-button"
-          onClick={() => {
-            setOtpPending(false)
-            setOtpCode('')
-            setOtpDebugCode('')
-            setAuthMessage('')
-            setAuthMessageType('')
-          }}
-        >
-          {content.otp.back}
-        </button>
-        <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
-      </header>
-
-      <section className="auth-layout">
-        <aside className="auth-showcase">
-          <span className="eyebrow-badge">{content.brand}</span>
-          <h1>{content.otp.title}</h1>
-          <p>{content.authAsideText}</p>
-          <div className="showcase-stats">
-            {content.authStats.map((item) => (
-              <div className="showcase-stat" key={item}>
-                {item}
-              </div>
-            ))}
-          </div>
-        </aside>
-
-        <div className="auth-form-card">
-          <div className="auth-form-header">
-            <h2>{content.otp.title}</h2>
-            <p>{content.otp.subtitle}</p>
-            <p className="otp-email-hint">{otpEmail}</p>
-            {otpDebugCode && (
-              <p className="otp-debug-hint">
-                {content.otp.debugHint}: <strong>{otpDebugCode}</strong>
-              </p>
-            )}
-          </div>
-
-          <div className="auth-fields">
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder={content.otp.label}
-              value={otpCode}
-              onChange={(event) => {
-                setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))
-                if (authMessage) {
-                  setAuthMessage('')
-                  setAuthMessageType('')
-                }
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  handleOtpVerify()
-                }
-              }}
-            />
-            {authMessage && <p className={`auth-feedback ${authMessageType}`}>{authMessage}</p>}
-            <button type="button" className="auth-submit-button" onClick={handleOtpVerify}>
-              {content.otp.submit}
-            </button>
-            <button type="button" className="auth-route-button" onClick={handleResendOtp}>
-              {content.otp.resend}
-            </button>
-          </div>
-        </div>
-      </section>
-    </div>
-  )
 
   const renderAuthPage = () => (
     <div className="auth-page-shell">
@@ -1630,13 +1487,11 @@ function App() {
   return (
     <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
       <div className="page-shell" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        {otpPending
-          ? renderOtpPage()
-          : currentPath === '/dashboard'
-            ? renderDashboardPage()
-            : currentPath === '/'
-              ? renderHomePage()
-              : renderAuthPage()}
+        {currentPath === '/dashboard'
+          ? renderDashboardPage()
+          : currentPath === '/'
+            ? renderHomePage()
+            : renderAuthPage()}
       </div>
     </PayPalScriptProvider>
   )

@@ -249,7 +249,7 @@ async function requireAuthenticatedUser(request, response, next) {
 
     const user = await db.getUserByEmail(session.user_email || session.userEmail)
 
-    if (!user || !user.verified) {
+    if (!user) {
       return response.status(401).json({ message: 'Invalid or expired authorization token.' })
     }
 
@@ -366,111 +366,26 @@ app.post('/api/auth/signup', asyncRoute(async (request, response) => {
 
   let existingUser = await db.getUserByEmail(normalizedEmail)
 
-  if (existingUser && existingUser.verified) {
+  if (existingUser) {
     return response.status(409).json({ message: 'This email is already registered.' })
   }
 
-  const otpCode = generateOtpCode()
-  const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-
-  if (existingUser) {
-    await db.updateUserByEmail(normalizedEmail, {
-      name: trimmedName,
-      password_hash: hashPassword(normalizedPassword),
-      otp_code: otpCode,
-      otp_expires_at: otpExpiresAt,
-      verified: false,
-    })
-  } else {
-    await db.createUser({
-      name: trimmedName,
-      email: normalizedEmail,
-      password_hash: hashPassword(normalizedPassword),
-      otp_code: otpCode,
-      otp_expires_at: otpExpiresAt,
-    })
-  }
-
-  let emailDeliveryFailed = false
-
-  try {
-    await sendOtpEmail(normalizedEmail, otpCode)
-  } catch (error) {
-    emailDeliveryFailed = true
-    console.error('Failed to send OTP email:', error?.message || error)
-  }
-
-  if (emailDeliveryFailed) {
-    // Temporary operational fallback: keep signup usable and show OTP in UI.
-    return response.status(200).json({
-      message: 'OTP generated, but email delivery failed. استخدم الكود الظاهر مؤقتًا.',
-      debugOtp: otpCode,
-    })
-  }
-
-  return response.status(200).json({ message: 'OTP sent to your email.', debugOtp: OTP_DEBUG ? otpCode : undefined })
-}))
-
-app.post('/api/auth/verify-otp', asyncRoute(async (request, response) => {
-  const { email, token } = request.body || {}
-  const normalizedEmail = normalizeEmail(email)
-  const trimmedToken = String(token || '').trim()
-
-  if (!trimmedToken) {
-    return response.status(400).json({ message: 'OTP token is required.' })
-  }
-
-  const existingUser = await db.getUserByEmail(normalizedEmail)
-
-  if (!existingUser || existingUser.verified) {
-    return response.status(400).json({ message: 'No pending verification found for this email.' })
-  }
-
-  if (isOtpExpired(existingUser) || String(existingUser.otp_code || existingUser.otpCode) !== trimmedToken) {
-    return response.status(400).json({ message: 'Invalid or expired OTP code.' })
-  }
-
-  await db.updateUserByEmail(normalizedEmail, { verified: true, otp_code: null, otp_expires_at: null })
+  const user = await db.createUser({
+    name: trimmedName,
+    email: normalizedEmail,
+    password_hash: hashPassword(normalizedPassword),
+    verified: true,
+  })
 
   const tokenValue = createSessionToken()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   await db.createSession(tokenValue, normalizedEmail, expiresAt)
 
-  const user = await db.getUserByEmail(normalizedEmail)
-  return response.json({ user: toPublicUser(user), token: tokenValue })
-}))
-
-app.post('/api/auth/resend-otp', asyncRoute(async (request, response) => {
-  const { email } = request.body || {}
-  const normalizedEmail = normalizeEmail(email)
-
-  const existingUser = await db.getUserByEmail(normalizedEmail)
-
-  if (!existingUser || existingUser.verified) {
-    return response.status(400).json({ message: 'No pending verification found for this email.' })
-  }
-
-  const newCode = generateOtpCode()
-  const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-  await db.updateUserByEmail(normalizedEmail, { otp_code: newCode, otp_expires_at: otpExpiresAt })
-
-  let emailDeliveryFailed = false
-
-  try {
-    await sendOtpEmail(normalizedEmail, newCode)
-  } catch (error) {
-    emailDeliveryFailed = true
-    console.error('Failed to resend OTP email:', error?.message || error)
-  }
-
-  if (emailDeliveryFailed) {
-    return response.json({
-      message: 'OTP regenerated, but email delivery failed. استخدم الكود الظاهر مؤقتًا.',
-      debugOtp: newCode,
-    })
-  }
-
-  return response.json({ message: 'OTP resent to your email.', debugOtp: OTP_DEBUG ? newCode : undefined })
+  return response.status(201).json({
+    message: 'Account created successfully.',
+    user: toPublicUser(user),
+    token: tokenValue,
+  })
 }))
 
 app.post('/api/auth/login', asyncRoute(async (request, response) => {
@@ -482,10 +397,6 @@ app.post('/api/auth/login', asyncRoute(async (request, response) => {
 
   if (!existingUser) {
     return response.status(404).json({ message: 'No account was found with this email.' })
-  }
-
-  if (!existingUser.verified) {
-    return response.status(403).json({ message: 'Please verify your email before logging in.' })
   }
 
   if ((existingUser.password_hash || existingUser.passwordHash) !== hashPassword(normalizedPassword)) {
@@ -514,7 +425,7 @@ app.get('/api/auth/me', asyncRoute(async (request, response) => {
 
   const user = await db.getUserByEmail(session.user_email || session.userEmail)
 
-  if (!user || !user.verified) {
+  if (!user) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
