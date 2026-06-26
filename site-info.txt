@@ -3,8 +3,8 @@ Repository: https://github.com/MO7EMMD/Mo7mels.git
 Branch: main
 Latest commit: e565265 (Add custom OTP and maintenance notification updates)
 
-Deployment service: Vercel (preferred)
-Vercel project: mo7mels
+Deployment service: Render (preferred)
+Render service name: mo7mels
 Primary URL: https://mo7mels.com
 Plan: free
 
@@ -18,8 +18,7 @@ Main features:
 - Custom OTP email branding with logo and support links
 - Dashboard to review saved embeds and subscription status
 - Maintenance mode support via environment variables
-- Vercel deployment configuration in vercel.json
-- Render deployment configuration in render.yaml (optional fallback)
+- Render deployment configuration in render.yaml
 
 Important files:
 - src/App.jsx: main React UI and auth flow
@@ -35,7 +34,7 @@ NPM scripts:
 - npm run build: build production frontend assets
 - npm start: run the production server
 
-Vercel environment variables used:
+Render environment variables used:
 - SITE_URL=https://mo7mels.com
 - SITE_NAME=Mo7mels
 - SITE_LOGO_URL=https://mo7mels.onrender.com/site-logo.svg
@@ -56,7 +55,7 @@ Identifiers:
 - GitHub repository: Mo7mels
 - Repository URL: https://github.com/MO7EMMD/Mo7mels.git
 - NPM package/name: mo7mels
-- Vercel project: mo7mels
+- Render service name: mo7mels
 - Site URL: https://mo7mels.com
 - Latest commit hash: e565265
  

@@ -36,14 +36,14 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 
 ## Deployment
 
-Recommended simple/free deployment: **Vercel** (frontend + API in one project).
+Recommended simple/free deployment: **Render** (frontend + API in one service).
 
-### Vercel setup
+### Render setup
 
-1. Import the repository into Vercel.
-2. Framework preset: `Other` (the repo includes `vercel.json` to handle build/routes).
-3. Set these required environment variables in Vercel:
-   - `SITE_URL=https://<your-vercel-domain>`
+1. Connect the repository to Render and create a Web Service.
+2. Use the included `render.yaml` (Blueprint) for automatic configuration.
+3. Set these required environment variables in Render:
+   - `SITE_URL=https://mo7mels.com`
    - `DATABASE_URL=postgres://...`
 4. Set optional variables as needed:
    - `SITE_NAME`
@@ -65,21 +65,17 @@ Recommended simple/free deployment: **Vercel** (frontend + API in one project).
 
 Notes:
 
-- `vercel.json` routes `/api/*`, `/robots.txt`, and `/sitemap.xml` to the serverless API.
-- SPA routes are redirected to `index.html`.
+- Render will run `npm install && npm run build` then `npm start`.
+- The Express server serves API and built frontend together.
 - Keep a hosted Postgres database (for example Neon/Supabase/Render Postgres).
 - For OTP email delivery, configure either SMTP settings or `RESEND_API_KEY`.
 
-### Render (optional)
-
-You can still deploy on Render using the existing `render.yaml` if needed.
-
 ## Custom Domain
 
-To connect a custom domain on Vercel:
+To connect a custom domain on Render:
 
-1. Open your Vercel project and go to `Settings > Domains`.
-2. Add your domain and follow Vercel DNS instructions.
+1. Open your Render service and go to `Settings > Custom Domains`.
+2. Add your domain (`mo7mels.com` and optionally `www.mo7mels.com`).
 3. Set `SITE_URL` to your final primary URL.
 4. Set `ENABLE_CANONICAL_REDIRECT=true` if you want non-primary hostnames redirected.
 5. Add SMTP and branding environment variables if you want production OTP emails.

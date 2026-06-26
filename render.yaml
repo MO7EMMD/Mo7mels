@@ -5,11 +5,11 @@ services:
     plan: free
     envVars:
       - key: SITE_URL
-        value: https://mo7mels.onrender.com
+        value: https://mo7mels.com
       - key: SITE_NAME
         value: Mo7mels
       - key: SITE_LOGO_URL
-        value: https://mo7mels.onrender.com/site-logo.svg
+        value: https://mo7mels.com/site-logo.svg
       - key: ENABLE_CANONICAL_REDIRECT
         value: "true"
       - key: VITE_MAINTENANCE_MODE
@@ -35,6 +35,8 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: EMAIL_FROM
+        sync: false
+      - key: RESEND_API_KEY
         sync: false
     buildCommand: npm install && npm run build
     startCommand: npm start
