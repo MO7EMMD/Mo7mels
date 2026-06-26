@@ -325,6 +325,11 @@ app.use((request, response, next) => {
 
   const requestOrigin = `${request.protocol}://${host}`
 
+  // Avoid redirect loops when registrar forwarding points the custom domain to *.onrender.com.
+  if (host.endsWith('.onrender.com')) {
+    return next()
+  }
+
   if (requestOrigin === configuredSiteUrl) {
     return next()
   }
