@@ -391,11 +391,21 @@ app.post('/api/auth/signup', asyncRoute(async (request, response) => {
     })
   }
 
+  let emailDeliveryFailed = false
+
   try {
     await sendOtpEmail(normalizedEmail, otpCode)
   } catch (error) {
+    emailDeliveryFailed = true
     console.error('Failed to send OTP email:', error?.message || error)
-    return response.status(500).json({ message: 'Failed to send OTP email. تأكد من إعداد SMTP بشكل صحيح.' })
+  }
+
+  if (emailDeliveryFailed) {
+    // Temporary operational fallback: keep signup usable and show OTP in UI.
+    return response.status(200).json({
+      message: 'OTP generated, but email delivery failed. استخدم الكود الظاهر مؤقتًا.',
+      debugOtp: otpCode,
+    })
   }
 
   return response.status(200).json({ message: 'OTP sent to your email.', debugOtp: OTP_DEBUG ? otpCode : undefined })
@@ -444,11 +454,20 @@ app.post('/api/auth/resend-otp', asyncRoute(async (request, response) => {
   const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
   await db.updateUserByEmail(normalizedEmail, { otp_code: newCode, otp_expires_at: otpExpiresAt })
 
+  let emailDeliveryFailed = false
+
   try {
     await sendOtpEmail(normalizedEmail, newCode)
   } catch (error) {
+    emailDeliveryFailed = true
     console.error('Failed to resend OTP email:', error?.message || error)
-    return response.status(500).json({ message: 'Failed to resend OTP email. تأكد من إعداد SMTP بشكل صحيح.' })
+  }
+
+  if (emailDeliveryFailed) {
+    return response.json({
+      message: 'OTP regenerated, but email delivery failed. استخدم الكود الظاهر مؤقتًا.',
+      debugOtp: newCode,
+    })
   }
 
   return response.json({ message: 'OTP resent to your email.', debugOtp: OTP_DEBUG ? newCode : undefined })
