@@ -51,6 +51,12 @@ app.set('trust proxy', true)
 app.use(cors())
 app.use(express.json())
 
+function asyncRoute(handler) {
+  return (request, response, next) => {
+    Promise.resolve(handler(request, response, next)).catch(next)
+  }
+}
+
 function normalizeSiteUrl(rawUrl) {
   if (!rawUrl) {
     return ''
@@ -228,26 +234,30 @@ function isOtpExpired(user) {
 }
 
 async function requireAuthenticatedUser(request, response, next) {
-  const accessToken = getBearerToken(request)
+  try {
+    const accessToken = getBearerToken(request)
 
-  if (!accessToken) {
-    return response.status(401).json({ message: 'Missing authorization token.' })
+    if (!accessToken) {
+      return response.status(401).json({ message: 'Missing authorization token.' })
+    }
+
+    const session = await db.getSession(accessToken)
+
+    if (!session || new Date(session.expires_at || session.expiresAt) < new Date()) {
+      return response.status(401).json({ message: 'Invalid or expired authorization token.' })
+    }
+
+    const user = await db.getUserByEmail(session.user_email || session.userEmail)
+
+    if (!user || !user.verified) {
+      return response.status(401).json({ message: 'Invalid or expired authorization token.' })
+    }
+
+    request.authUser = user
+    return next()
+  } catch (error) {
+    return next(error)
   }
-
-  const session = await db.getSession(accessToken)
-
-  if (!session || new Date(session.expires_at || session.expiresAt) < new Date()) {
-    return response.status(401).json({ message: 'Invalid or expired authorization token.' })
-  }
-
-  const user = await db.getUserByEmail(session.user_email || session.userEmail)
-
-  if (!user || !user.verified) {
-    return response.status(401).json({ message: 'Invalid or expired authorization token.' })
-  }
-
-  request.authUser = user
-  return next()
 }
 
 async function ensureDatabase() {
@@ -322,7 +332,7 @@ app.use((request, response, next) => {
   return response.redirect(301, new URL(request.originalUrl, configuredSiteUrl).toString())
 })
 
-app.post('/api/auth/signup', async (request, response) => {
+app.post('/api/auth/signup', asyncRoute(async (request, response) => {
   const { name, email, password, confirmPassword } = request.body || {}
   const trimmedName = String(name || '').trim()
   const normalizedEmail = normalizeEmail(email)
@@ -384,9 +394,9 @@ app.post('/api/auth/signup', async (request, response) => {
   }
 
   return response.status(200).json({ message: 'OTP sent to your email.', debugOtp: OTP_DEBUG ? otpCode : undefined })
-})
+}))
 
-app.post('/api/auth/verify-otp', async (request, response) => {
+app.post('/api/auth/verify-otp', asyncRoute(async (request, response) => {
   const { email, token } = request.body || {}
   const normalizedEmail = normalizeEmail(email)
   const trimmedToken = String(token || '').trim()
@@ -413,9 +423,9 @@ app.post('/api/auth/verify-otp', async (request, response) => {
 
   const user = await db.getUserByEmail(normalizedEmail)
   return response.json({ user: toPublicUser(user), token: tokenValue })
-})
+}))
 
-app.post('/api/auth/resend-otp', async (request, response) => {
+app.post('/api/auth/resend-otp', asyncRoute(async (request, response) => {
   const { email } = request.body || {}
   const normalizedEmail = normalizeEmail(email)
 
@@ -437,9 +447,9 @@ app.post('/api/auth/resend-otp', async (request, response) => {
   }
 
   return response.json({ message: 'OTP resent to your email.', debugOtp: OTP_DEBUG ? newCode : undefined })
-})
+}))
 
-app.post('/api/auth/login', async (request, response) => {
+app.post('/api/auth/login', asyncRoute(async (request, response) => {
   const { email, password } = request.body || {}
   const normalizedEmail = normalizeEmail(email)
   const normalizedPassword = String(password || '').trim()
@@ -463,9 +473,9 @@ app.post('/api/auth/login', async (request, response) => {
   await db.createSession(tokenValue, normalizedEmail, expiresAt)
 
   return response.json({ user: toPublicUser(existingUser), token: tokenValue })
-})
+}))
 
-app.get('/api/auth/me', async (request, response) => {
+app.get('/api/auth/me', asyncRoute(async (request, response) => {
   const accessToken = getBearerToken(request)
 
   if (!accessToken) {
@@ -485,9 +495,9 @@ app.get('/api/auth/me', async (request, response) => {
   }
 
   return response.json({ user: toPublicUser(user) })
-})
+}))
 
-app.put('/api/auth/me', requireAuthenticatedUser, async (request, response) => {
+app.put('/api/auth/me', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const { name } = request.body || {}
   if (!name || String(name).trim().length < 1) {
     return response.status(400).json({ message: 'Name is required.' })
@@ -496,9 +506,9 @@ app.put('/api/auth/me', requireAuthenticatedUser, async (request, response) => {
   const email = normalizeEmail(request.authUser.email)
   const updated = await db.updateUserByEmail(email, { name: String(name).trim() })
   return response.json({ user: toPublicUser(updated) })
-})
+}))
 
-app.post('/api/auth/change-password', requireAuthenticatedUser, async (request, response) => {
+app.post('/api/auth/change-password', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const { currentPassword, newPassword } = request.body || {}
   if (!currentPassword || !newPassword) {
     return response.status(400).json({ message: 'Current and new passwords are required.' })
@@ -518,9 +528,9 @@ app.post('/api/auth/change-password', requireAuthenticatedUser, async (request, 
 
   await db.updateUserByEmail(email, { password_hash: hashPassword(String(newPassword)) })
   return response.json({ message: 'Password updated.' })
-})
+}))
 
-app.post('/api/auth/change-email', requireAuthenticatedUser, async (request, response) => {
+app.post('/api/auth/change-email', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const { newEmail, currentPassword } = request.body || {}
   if (!newEmail || !currentPassword) {
     return response.status(400).json({ message: 'New email and current password are required.' })
@@ -564,15 +574,15 @@ app.post('/api/auth/change-email', requireAuthenticatedUser, async (request, res
 
   const updatedUser = await db.getUserByEmail(normalizedEmail)
   return response.json({ user: toPublicUser(updatedUser) })
-})
+}))
 
-app.get('/api/embeds', requireAuthenticatedUser, async (request, response) => {
+app.get('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   const embeds = await db.getEmbedsByUser(normalizedEmail)
   return response.json({ embeds })
-})
+}))
 
-app.post('/api/embeds', requireAuthenticatedUser, async (request, response) => {
+app.post('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const { type, sourceUrl, embedCode } = request.body || {}
   const normalizedEmail = normalizeEmail(request.authUser.email)
 
@@ -583,15 +593,15 @@ app.post('/api/embeds', requireAuthenticatedUser, async (request, response) => {
   const embed = await db.addEmbed({ userEmail: normalizedEmail, type, sourceUrl, embedCode })
   const embeds = await db.getEmbedsByUser(normalizedEmail)
   return response.status(201).json({ embed, embeds })
-})
+}))
 
-app.get('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+app.get('/api/subscription', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   const subscription = await db.getSubscriptionByUser(normalizedEmail)
   return response.json({ subscription })
-})
+}))
 
-app.post('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+app.post('/api/subscription', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const { planKey, subscriptionId } = request.body || {}
   const normalizedEmail = normalizeEmail(request.authUser.email)
 
@@ -606,13 +616,13 @@ app.post('/api/subscription', requireAuthenticatedUser, async (request, response
 
   const subscription = await db.upsertSubscription({ userEmail: normalizedEmail, planKey, subscriptionId, status: 'active', activatedAt: new Date().toISOString() })
   return response.status(201).json({ subscription })
-})
+}))
 
-app.delete('/api/subscription', requireAuthenticatedUser, async (request, response) => {
+app.delete('/api/subscription', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   await db.deleteSubscriptionByUser(normalizedEmail)
   return response.json({ ok: true })
-})
+}))
 
 app.get('/robots.txt', (request, response) => {
   const siteUrl = getSiteUrl(request)
@@ -632,6 +642,17 @@ app.get('/sitemap.xml', (request, response) => {
   }
 
   response.type('application/xml').send(buildSitemapXml(siteUrl))
+})
+
+app.use((error, request, response, next) => {
+  if (response.headersSent) {
+    return next(error)
+  }
+
+  console.error('Unhandled API error:', error?.message || error)
+  return response.status(500).json({
+    message: 'Server error. Please verify DATABASE_URL and email provider settings.',
+  })
 })
 
 app.use(express.static(publicPath))
