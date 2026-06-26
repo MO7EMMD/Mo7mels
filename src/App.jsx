@@ -490,6 +490,10 @@ function App() {
     if (typeof window === 'undefined') return ''
     return window.localStorage.getItem('sessionToken') || ''
   })
+  const [isAuthLoading, setIsAuthLoading] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return Boolean(window.localStorage.getItem('sessionToken'))
+  })
   const [userSubscription, setUserSubscription] = useState(null)
   const [subscriptionMessage, setSubscriptionMessage] = useState('')
   const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
@@ -534,6 +538,7 @@ function App() {
     const syncSession = async () => {
       if (!sessionToken) {
         setCurrentUser(null)
+        setIsAuthLoading(false)
         return
       }
 
@@ -542,6 +547,10 @@ function App() {
         setCurrentUser(response.user)
       } catch {
         setCurrentUser(null)
+        setSessionToken('')
+        window.localStorage.removeItem('sessionToken')
+      } finally {
+        setIsAuthLoading(false)
       }
     }
 
@@ -595,13 +604,13 @@ function App() {
   }, [embedCode])
 
   useEffect(() => {
-    if (currentPath.startsWith('/dashboard') && !currentUser) {
+    if (!isAuthLoading && currentPath.startsWith('/dashboard') && !currentUser) {
       setAuthMessageType('error')
       setAuthMessage(content.authMessages.loginRequired)
       window.history.replaceState({}, '', '/login')
       setCurrentPath('/login')
     }
-  }, [content.authMessages.loginRequired, currentPath, currentUser])
+  }, [content.authMessages.loginRequired, currentPath, currentUser, isAuthLoading])
 
   useEffect(() => {
     if (!currentUser) {
