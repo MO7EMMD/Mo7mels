@@ -113,7 +113,7 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/login', '/signup', '/dashboard'].includes(window.location.pathname)
+  return ['/', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
     ? window.location.pathname
     : '/'
 }
@@ -208,6 +208,28 @@ const translations = {
     dashboardBack: 'Back To Generator',
     dashboardChartTitle: 'Platform Usage Chart',
     dashboardChartEmpty: 'No data yet. Start generating embeds to see chart.',
+    dashboardNavOverview: 'Overview',
+    dashboardNavOrders: 'Orders',
+    dashboardNavAnalytics: 'Analytics',
+    dashboardNavCustomers: 'Customers',
+    dashboardNavSettings: 'Settings',
+    dashboardSearch: 'Search orders, links, customers',
+    dashboardPanelOverviewTitle: 'Store Snapshot',
+    dashboardPanelOrdersTitle: 'Recent Orders',
+    dashboardPanelOrdersEmpty: 'No orders yet. Generate embeds to create order history.',
+    dashboardPanelCustomersTitle: 'Customer View',
+    dashboardPanelCustomersSubtitle: 'Primary account owner and engagement indicators.',
+    dashboardPanelAnalyticsTitle: 'Sales & Platform Analytics',
+    dashboardPanelSettingsTitle: 'Account & Security Settings',
+    dashboardKpiConversion: 'Conversion rate',
+    dashboardKpiRevenue: 'Est. revenue',
+    dashboardKpiAov: 'Avg order value',
+    dashboardOrderId: 'Order ID',
+    dashboardOrderSource: 'Source',
+    dashboardOrderType: 'Type',
+    dashboardOrderDate: 'Date',
+    dashboardOrderStatus: 'Status',
+    dashboardOrderStatusDone: 'Completed',
     embedTypes: {
       youtube: 'YouTube',
       tiktok: 'TikTok',
@@ -336,6 +358,28 @@ const translations = {
     dashboardBack: 'العودة إلى المولد',
     dashboardChartTitle: 'مخطط استخدام المنصات',
     dashboardChartEmpty: 'لا توجد بيانات بعد. ابدأ بإنشاء أكواد تضمين لعرض المخطط.',
+    dashboardNavOverview: 'نظرة عامة',
+    dashboardNavOrders: 'الطلبات',
+    dashboardNavAnalytics: 'التحليلات',
+    dashboardNavCustomers: 'العملاء',
+    dashboardNavSettings: 'الإعدادات',
+    dashboardSearch: 'ابحث في الطلبات والروابط والعملاء',
+    dashboardPanelOverviewTitle: 'ملخص المتجر',
+    dashboardPanelOrdersTitle: 'أحدث الطلبات',
+    dashboardPanelOrdersEmpty: 'لا توجد طلبات بعد. ابدأ بإنشاء أكواد التضمين.',
+    dashboardPanelCustomersTitle: 'عرض العملاء',
+    dashboardPanelCustomersSubtitle: 'مالك الحساب الأساسي ومؤشرات التفاعل.',
+    dashboardPanelAnalyticsTitle: 'تحليلات المبيعات والمنصات',
+    dashboardPanelSettingsTitle: 'إعدادات الحساب والأمان',
+    dashboardKpiConversion: 'معدل التحويل',
+    dashboardKpiRevenue: 'إيراد تقديري',
+    dashboardKpiAov: 'متوسط قيمة الطلب',
+    dashboardOrderId: 'رقم الطلب',
+    dashboardOrderSource: 'المصدر',
+    dashboardOrderType: 'النوع',
+    dashboardOrderDate: 'التاريخ',
+    dashboardOrderStatus: 'الحالة',
+    dashboardOrderStatusDone: 'مكتمل',
     embedTypes: {
       youtube: 'يوتيوب',
       tiktok: 'تيك توك',
@@ -555,7 +599,7 @@ function App() {
   }, [embedCode])
 
   useEffect(() => {
-    if (currentPath === '/dashboard' && !currentUser) {
+    if (currentPath.startsWith('/dashboard') && !currentUser) {
       setAuthMessageType('error')
       setAuthMessage(content.authMessages.loginRequired)
       window.history.replaceState({}, '', '/login')
@@ -1076,306 +1120,353 @@ function App() {
     </div>
   )
 
-  const renderDashboardPage = () => (
-    <div className="dashboard-shell">
-      {(() => {
-        const joinedAtTimestamp = new Date(currentUser?.createdAt || Date.now()).getTime()
-        const memberDays = Math.max(1, Math.floor((Date.now() - joinedAtTimestamp) / 86400000) + 1)
-        const weekAgoTimestamp = Date.now() - 7 * 86400000
-        const monthAgoTimestamp = Date.now() - 30 * 86400000
-        const embedsThisWeek = savedEmbeds.filter(
-          (item) => new Date(item.createdAt).getTime() >= weekAgoTimestamp,
-        ).length
-        const embedsThisMonth = savedEmbeds.filter(
-          (item) => new Date(item.createdAt).getTime() >= monthAgoTimestamp,
-        ).length
-        const activityLevel =
-          embedsThisMonth >= 16
-            ? { label: content.dashboardActivityHigh, tone: 'high' }
-            : embedsThisMonth >= 4
-              ? { label: content.dashboardActivityMedium, tone: 'medium' }
-              : { label: content.dashboardActivityLow, tone: 'low' }
-        const typeUsage = savedEmbeds.reduce((accumulator, item) => {
-          const key = item.type || 'general'
-          return {
-            ...accumulator,
-            [key]: (accumulator[key] || 0) + 1,
-          }
-        }, {})
-        const topType = getTopEmbedType(typeUsage)
-        const topTypeLabel = topType
-          ? content.embedTypes[topType] || content.embedTypes.general
-          : content.dashboardNoActivityYet
-        const latestEmbedLabel = savedEmbeds[0]?.createdAt
-          ? new Date(savedEmbeds[0].createdAt).toLocaleString()
-          : content.dashboardNoActivityYet
-        const shortUserId = currentUser?.id ? String(currentUser.id).slice(0, 8) : '--'
+  const renderDashboardPage = () => {
+    const joinedAtTimestamp = new Date(currentUser?.createdAt || Date.now()).getTime()
+    const memberDays = Math.max(1, Math.floor((Date.now() - joinedAtTimestamp) / 86400000) + 1)
+    const weekAgoTimestamp = Date.now() - 7 * 86400000
+    const monthAgoTimestamp = Date.now() - 30 * 86400000
+    const embedsThisWeek = savedEmbeds.filter(
+      (item) => new Date(item.createdAt).getTime() >= weekAgoTimestamp,
+    ).length
+    const embedsThisMonth = savedEmbeds.filter(
+      (item) => new Date(item.createdAt).getTime() >= monthAgoTimestamp,
+    ).length
+    const typeUsage = savedEmbeds.reduce((accumulator, item) => {
+      const key = item.type || 'general'
+      return {
+        ...accumulator,
+        [key]: (accumulator[key] || 0) + 1,
+      }
+    }, {})
 
-        return (
-          <>
-      <header className="auth-page-topbar">
-        <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
-          {content.dashboardBack}
-        </button>
-        <div className="top-bar-actions">
-          <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
-          <button type="button" className="nav-outline-button" onClick={handleLogout}>
-            {content.logout}
-          </button>
+    const topType = getTopEmbedType(typeUsage)
+    const topTypeLabel = topType
+      ? content.embedTypes[topType] || content.embedTypes.general
+      : content.dashboardNoActivityYet
+    const latestEmbedLabel = savedEmbeds[0]?.createdAt
+      ? new Date(savedEmbeds[0].createdAt).toLocaleString()
+      : content.dashboardNoActivityYet
+    const shortUserId = currentUser?.id ? String(currentUser.id).slice(0, 8) : '--'
+    const conversionRate = savedEmbeds.length ? Math.min(98, 27 + savedEmbeds.length * 2) : 0
+    const estimatedRevenue = (savedEmbeds.length * 0.75).toFixed(2)
+    const averageOrderValue = savedEmbeds.length
+      ? (Number(estimatedRevenue) / savedEmbeds.length).toFixed(2)
+      : '0.00'
+
+    const dashboardSection = currentPath === '/dashboard'
+      ? 'overview'
+      : currentPath.replace('/dashboard/', '')
+
+    const navItems = [
+      { key: 'overview', path: '/dashboard', label: content.dashboardNavOverview },
+      { key: 'orders', path: '/dashboard/orders', label: content.dashboardNavOrders },
+      { key: 'analytics', path: '/dashboard/analytics', label: content.dashboardNavAnalytics },
+      { key: 'customers', path: '/dashboard/customers', label: content.dashboardNavCustomers },
+      { key: 'settings', path: '/dashboard/settings', label: content.dashboardNavSettings },
+    ]
+
+    const renderOrdersTable = () => (
+      <div className="dash-panel">
+        <h2>{content.dashboardPanelOrdersTitle}</h2>
+        {savedEmbeds.length === 0 ? (
+          <p className="dashboard-empty">{content.dashboardPanelOrdersEmpty}</p>
+        ) : (
+          <div className="dash-table-wrap">
+            <table className="dash-table">
+              <thead>
+                <tr>
+                  <th>{content.dashboardOrderId}</th>
+                  <th>{content.dashboardOrderType}</th>
+                  <th>{content.dashboardOrderSource}</th>
+                  <th>{content.dashboardOrderDate}</th>
+                  <th>{content.dashboardOrderStatus}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {savedEmbeds.map((item) => (
+                  <tr key={item.id}>
+                    <td>MO7-{String(item.id).padStart(4, '0')}</td>
+                    <td>{content.embedTypes[item.type] || content.embedTypes.general}</td>
+                    <td>
+                      <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+                        {item.sourceUrl}
+                      </a>
+                    </td>
+                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <span className="status-pill done">{content.dashboardOrderStatusDone}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    )
+
+    const renderSettingsPanel = () => (
+      <div className="dash-panel">
+        <h2>{content.dashboardPanelSettingsTitle}</h2>
+        <div className="account-settings">
+          <div className="settings-row">
+            <label>{content.dashboardName}</label>
+            <input value={profileName} onChange={(e) => setProfileName(e.target.value)} />
+            <button
+              type="button"
+              className="nav-primary-button small"
+              onClick={async () => {
+                setSettingsMessage('')
+                try {
+                  const body = await apiRequest('/auth/me', {
+                    method: 'PUT',
+                    body: JSON.stringify({ name: profileName }),
+                  }, sessionToken)
+                  setCurrentUser(body.user)
+                  setSettingsMessage(content.accountUpdated || 'Profile updated')
+                } catch (error) {
+                  setSettingsMessage(error.message || 'Network error')
+                }
+              }}
+            >
+              {content.save || 'Save'}
+            </button>
+          </div>
+
+          <div className="settings-row">
+            <label>{content.email}</label>
+            <input value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} />
+            <button
+              type="button"
+              className="nav-primary-button small"
+              onClick={async () => {
+                setSettingsMessage('')
+                try {
+                  const body = await apiRequest('/auth/change-email', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      newEmail: newEmailInput,
+                      currentPassword: currentPasswordInput,
+                    }),
+                  }, sessionToken)
+                  setCurrentUser(body.user)
+                  setSettingsMessage(content.emailUpdated || 'Email updated successfully')
+                  setCurrentPasswordInput('')
+                } catch (error) {
+                  setSettingsMessage(error.message || 'Network error')
+                }
+              }}
+            >
+              {content.save || 'Save'}
+            </button>
+          </div>
+
+          <div className="settings-row password-row">
+            <label>{content.changePassword || 'Change Password'}</label>
+            <input
+              type="password"
+              placeholder={content.currentPassword || 'Current password'}
+              value={currentPasswordInput}
+              onChange={(e) => setCurrentPasswordInput(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder={content.newPassword || 'New password'}
+              value={newPasswordInput}
+              onChange={(e) => setNewPasswordInput(e.target.value)}
+            />
+            <button
+              type="button"
+              className="nav-outline-button small"
+              onClick={async () => {
+                setSettingsMessage('')
+                try {
+                  const body = await apiRequest('/auth/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      currentPassword: currentPasswordInput,
+                      newPassword: newPasswordInput,
+                    }),
+                  }, sessionToken)
+                  setCurrentPasswordInput('')
+                  setNewPasswordInput('')
+                  setSettingsMessage(body?.message || 'Password updated')
+                } catch (error) {
+                  setSettingsMessage(error.message || 'Network error')
+                }
+              }}
+            >
+              {content.change || 'Change'}
+            </button>
+          </div>
+          {settingsMessage && <p className="auth-feedback">{settingsMessage}</p>}
         </div>
-      </header>
+      </div>
+    )
 
-      <section className="dashboard-hero">
-        <span className="eyebrow-badge">{content.brand}</span>
-        <h1>{content.dashboardTitle}</h1>
-        <p>{content.dashboardSubtitle}</p>
-      </section>
+    const renderOverviewPanel = () => (
+      <>
+        <div className="dash-kpis">
+          <article className="dash-kpi-card">
+            <span>{content.dashboardStats[0]}</span>
+            <strong>{savedEmbeds.length}</strong>
+          </article>
+          <article className="dash-kpi-card">
+            <span>{content.dashboardKpiConversion}</span>
+            <strong>{conversionRate}%</strong>
+          </article>
+          <article className="dash-kpi-card">
+            <span>{content.dashboardKpiRevenue}</span>
+            <strong>${estimatedRevenue}</strong>
+          </article>
+          <article className="dash-kpi-card">
+            <span>{content.dashboardKpiAov}</span>
+            <strong>${averageOrderValue}</strong>
+          </article>
+        </div>
+        {renderOrdersTable()}
+      </>
+    )
 
-      <section className="dashboard-grid">
-        <article className="dashboard-card">
-          <h2>
-            {content.dashboardWelcome} {currentUser?.name}
-          </h2>
-          <div className="dashboard-stats">
-            <div className="dashboard-stat-card">
-              <span>{content.dashboardStats[0]}</span>
-              <strong>{savedEmbeds.length}</strong>
-            </div>
-            <div className="dashboard-stat-card">
-              <span>{content.dashboardStats[1]}</span>
-              <strong>{content.dashboardStatus}</strong>
-            </div>
-            <div className="dashboard-stat-card">
-              <span>{content.dashboardStats[2]}</span>
-              <strong>
-                {userSubscription?.planKey
-                  ? content.plans[content.planKeys.indexOf(userSubscription.planKey)] || content.dashboardPlan
-                  : content.dashboardPlan}
-              </strong>
-            </div>
-          </div>
-        </article>
-
-        <article className="dashboard-card">
-          <h2>{content.dashboardAccount}</h2>
-          <div className="account-meta">
-            <div>
-              <span>{content.dashboardName}</span>
-              <strong>{currentUser?.name}</strong>
-            </div>
-            <div>
-              <span>{content.dashboardEmail}</span>
-              <strong>{currentUser?.email}</strong>
-            </div>
-            <div>
-              <span>{content.dashboardJoined}</span>
-              <strong>{new Date(currentUser?.createdAt || Date.now()).toLocaleDateString()}</strong>
-            </div>
-            <div className="account-settings">
-              <h4>{content.accountSettingsTitle || 'Account Settings'}</h4>
-              <div className="settings-row">
-                <label>{content.dashboardName}</label>
-                <input value={profileName} onChange={(e) => setProfileName(e.target.value)} />
-                <button
-                  type="button"
-                  className="nav-primary-button small"
-                  onClick={async () => {
-                    setSettingsMessage('')
-                    try {
-                      const body = await apiRequest('/auth/me', { method: 'PUT', body: JSON.stringify({ name: profileName }) }, sessionToken)
-                      setCurrentUser(body.user)
-                      setSettingsMessage(content.accountUpdated || 'Profile updated')
-                    } catch (err) {
-                      setSettingsMessage(err.message || 'Network error')
-                    }
-                  }}
-                >
-                  {content.save || 'Save'}
-                </button>
-              </div>
-
-              <div className="settings-row">
-                <label>{content.email}</label>
-                <input value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} />
-                <button
-                  type="button"
-                  className="nav-primary-button small"
-                  onClick={async () => {
-                    setSettingsMessage('')
-                    try {
-                      const body = await apiRequest('/auth/change-email', {
-                        method: 'POST',
-                        body: JSON.stringify({ newEmail: newEmailInput, currentPassword: currentPasswordInput }),
-                      }, sessionToken)
-                      setCurrentUser(body.user)
-                      setSettingsMessage(content.emailUpdated || 'Email updated successfully')
-                      setCurrentPasswordInput('')
-                    } catch (err) {
-                      setSettingsMessage(err.message || 'Network error')
-                    }
-                  }}
-                >
-                  {content.save || 'Save'}
-                </button>
-              </div>
-
-              <div className="settings-row password-row">
-                <label>{content.changePassword || 'Change Password'}</label>
-                <input type="password" placeholder={content.currentPassword || 'Current password'} value={currentPasswordInput} onChange={(e) => setCurrentPasswordInput(e.target.value)} />
-                <input type="password" placeholder={content.newPassword || 'New password'} value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} />
-                <button
-                  type="button"
-                  className="nav-outline-button small"
-                  onClick={async () => {
-                    setSettingsMessage('')
-                    try {
-                      const res = await apiRequest('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: currentPasswordInput, newPassword: newPasswordInput }) }, sessionToken)
-                      const body = await res.json()
-                      if (!res.ok) {
-                        setSettingsMessage(body?.message || 'Password change failed')
-                        return
-                      }
-                      setCurrentPasswordInput('')
-                      setNewPasswordInput('')
-                      setSettingsMessage(content.passwordUpdated || body?.message || 'Password updated')
-                    } catch (err) {
-                      setSettingsMessage('Network error')
-                    }
-                  }}
-                >
-                  {content.change || 'Change'}
-                </button>
-              </div>
-              {settingsMessage && <p className="auth-feedback">{settingsMessage}</p>}
-            </div>
-          </div>
-
-          <h3 className="dashboard-details-title">{content.dashboardInsights}</h3>
-          <div className="dashboard-details-grid">
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardUserId}</span>
-              <strong>{shortUserId}</strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardMemberFor}</span>
-              <strong>
-                {memberDays} {content.dashboardDaysUnit}
-              </strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardLastEmbed}</span>
-              <strong>{latestEmbedLabel}</strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardEmbedsWeek}</span>
-              <strong>{embedsThisWeek}</strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardEmbedsMonth}</span>
-              <strong>{embedsThisMonth}</strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardActivityLevel}</span>
-              <strong className={`dashboard-activity-level ${activityLevel.tone}`}>
-                {activityLevel.label}
-              </strong>
-            </div>
-            <div className="dashboard-detail-item">
-              <span>{content.dashboardPlatformMix}</span>
-              <strong>{Object.keys(typeUsage).length}</strong>
-            </div>
-            <div className="dashboard-detail-item dashboard-detail-wide">
-              <span>{content.dashboardTopPlatform}</span>
-              <strong>{topTypeLabel}</strong>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="dashboard-card dashboard-chart-section">
-        <h2>{content.dashboardChartTitle}</h2>
+    const renderAnalyticsPanel = () => (
+      <div className="dash-panel">
+        <h2>{content.dashboardPanelAnalyticsTitle}</h2>
         {Object.keys(typeUsage).length === 0 ? (
           <p className="dashboard-empty">{content.dashboardChartEmpty}</p>
         ) : (
-          <div>
+          <>
             <div className="platform-chart">
-            {[
-              { key: 'youtube', color: '#ff3b3b' },
-              { key: 'tiktok', color: '#010101' },
-              { key: 'instagram', color: '#e1306c' },
-              { key: 'general', color: '#4a67ff' },
-            ]
-              .filter(({ key }) => typeUsage[key])
-              .sort((a, b) => (typeUsage[b.key] || 0) - (typeUsage[a.key] || 0))
-              .map(({ key, color }) => {
-                const count = typeUsage[key] || 0
-                const pct = Math.round((count / savedEmbeds.length) * 100)
-                return (
-                  <div className="chart-row" key={key}>
-                    <span className="chart-label">{content.embedTypes[key]}</span>
-                    <div className="chart-bar-track">
-                      <div
-                        className="chart-bar-fill"
-                        style={{ width: `${pct}%`, background: color }}
-                      />
+              {[
+                { key: 'youtube', color: '#f59e0b' },
+                { key: 'tiktok', color: '#111827' },
+                { key: 'instagram', color: '#ef4444' },
+                { key: 'general', color: '#2563eb' },
+              ]
+                .filter(({ key }) => typeUsage[key])
+                .sort((a, b) => (typeUsage[b.key] || 0) - (typeUsage[a.key] || 0))
+                .map(({ key, color }) => {
+                  const count = typeUsage[key] || 0
+                  const pct = Math.round((count / savedEmbeds.length) * 100)
+                  return (
+                    <div className="chart-row" key={key}>
+                      <span className="chart-label">{content.embedTypes[key]}</span>
+                      <div className="chart-bar-track">
+                        <div className="chart-bar-fill" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                      <span className="chart-value">{count} ({pct}%)</span>
                     </div>
-                    <span className="chart-value">{count} ({pct}%)</span>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
-            <div style={{ marginTop: 18 }}>
-              {/* Bar chart summary */}
+            <div style={{ marginTop: 20 }}>
               {(() => {
                 const labels = Object.keys(typeUsage).map((k) => content.embedTypes[k] || k)
                 const dataValues = Object.keys(typeUsage).map((k) => typeUsage[k])
-                const colorMap = { youtube: '#ff3b3b', tiktok: '#010101', instagram: '#e1306c', general: '#4a67ff' }
-                const background = Object.keys(typeUsage).map((k) => colorMap[k] || '#7c93ff')
-                const chartData = { labels, datasets: [{ label: content.dashboardChartDatasetLabel || 'Embeds', data: dataValues, backgroundColor: background }] }
-                const chartOptions = { responsive: true, plugins: { legend: { display: false }, title: { display: false } } }
+                const colorMap = { youtube: '#f59e0b', tiktok: '#111827', instagram: '#ef4444', general: '#2563eb' }
+                const background = Object.keys(typeUsage).map((k) => colorMap[k] || '#475569')
+                const chartData = {
+                  labels,
+                  datasets: [{
+                    label: content.dashboardChartDatasetLabel || 'Embeds',
+                    data: dataValues,
+                    backgroundColor: background,
+                  }],
+                }
+                const chartOptions = {
+                  responsive: true,
+                  plugins: { legend: { display: false }, title: { display: false } },
+                }
                 return <Bar data={chartData} options={chartOptions} />
               })()}
             </div>
-          </div>
-        )}
-      </section>
-
-      <section className="dashboard-card dashboard-activity">
-        <h2>{content.dashboardRecent}</h2>
-        {savedEmbeds.length === 0 ? (
-          <p className="dashboard-empty">{content.dashboardEmpty}</p>
-        ) : (
-          <div className="activity-list">
-            {savedEmbeds.map((item) => {
-              const youtubeId = extractYouTubeVideoId(item.sourceUrl || '')
-              const thumbUrl = youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null
-              return (
-                <div className="activity-item" key={item.id}>
-                  <div className="activity-left">
-                    {thumbUrl ? (
-                      <img src={thumbUrl} alt="thumb" className="embed-thumb" />
-                    ) : (
-                      <div className={`embed-icon embed-${item.type}`}>{(item.type || '?').slice(0,2).toUpperCase()}</div>
-                    )}
-                    <div className="activity-meta">
-                      <strong className="activity-title">{content.embedTypes[item.type] || content.embedTypes.general}</strong>
-                      <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="activity-source">{item.sourceUrl}</a>
-                    </div>
-                  </div>
-                  <div className="activity-right">
-                    <span className="activity-time">{new Date(item.createdAt).toLocaleString()}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </section>
           </>
-        )
-      })()}
-    </div>
-  )
+        )}
+      </div>
+    )
+
+    const renderCustomersPanel = () => (
+      <div className="dash-panel">
+        <h2>{content.dashboardPanelCustomersTitle}</h2>
+        <p className="dash-muted">{content.dashboardPanelCustomersSubtitle}</p>
+        <div className="customer-card">
+          <div>
+            <span>{content.dashboardName}</span>
+            <strong>{currentUser?.name}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardEmail}</span>
+            <strong>{currentUser?.email}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardMemberFor}</span>
+            <strong>{memberDays} {content.dashboardDaysUnit}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardTopPlatform}</span>
+            <strong>{topTypeLabel}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardLastEmbed}</span>
+            <strong>{latestEmbedLabel}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardUserId}</span>
+            <strong>{shortUserId}</strong>
+          </div>
+        </div>
+      </div>
+    )
+
+    return (
+      <div className="dashboard-shell marketplace-shell">
+        <header className="dash-header">
+          <div className="dash-header-brand">
+            <span className="brand-mark">{content.brand}</span>
+            <h1>{content.dashboardTitle}</h1>
+          </div>
+          <input className="dash-search" type="text" placeholder={content.dashboardSearch} />
+          <div className="top-bar-actions">
+            <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
+            <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
+              {content.dashboardBack}
+            </button>
+            <button type="button" className="nav-outline-button" onClick={handleLogout}>
+              {content.logout}
+            </button>
+          </div>
+        </header>
+
+        <div className="dash-layout">
+          <aside className="dash-sidebar">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={dashboardSection === item.key ? 'dash-nav active' : 'dash-nav'}
+                onClick={() => navigateTo(item.path)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </aside>
+
+          <main className="dash-main">
+            <section className="dashboard-hero dash-hero-lite">
+              <span className="eyebrow-badge">{content.dashboardWelcome} {currentUser?.name}</span>
+              <h2>{content.dashboardPanelOverviewTitle}</h2>
+              <p>{content.dashboardSubtitle}</p>
+            </section>
+
+            {dashboardSection === 'overview' && renderOverviewPanel()}
+            {dashboardSection === 'orders' && renderOrdersTable()}
+            {dashboardSection === 'analytics' && renderAnalyticsPanel()}
+            {dashboardSection === 'customers' && renderCustomersPanel()}
+            {dashboardSection === 'settings' && renderSettingsPanel()}
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   const renderHomePage = () => (
     <div className="App">

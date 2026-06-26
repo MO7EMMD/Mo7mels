@@ -133,3 +133,18 @@ npm run migrate:json
 This script will attempt to map legacy `username` -> `name`, generate an email when missing (`username@migration.local`), hash plaintext passwords, and insert records into your Postgres database configured by `DATABASE_URL`.
 
 Deployment note: ensure `DATABASE_URL` is set on Render and SMTP variables provided if you want real OTP emails. For quick testing set `OTP_DEBUG=true`.
+
+## OTP Email Provider (Recommended: Resend)
+
+To make verification codes arrive by email in production:
+
+1. Create a Resend account and verify your domain (`mo7mels.com`).
+2. In Render environment variables set:
+   - `RESEND_API_KEY=...`
+   - `EMAIL_FROM=Mo7mels <no-reply@mo7mels.com>`
+   - `OTP_DEBUG=false`
+3. Redeploy the service.
+
+Fallback behavior:
+
+- If delivery fails, the API now returns a temporary `debugOtp` so signup can continue while provider setup is completed.

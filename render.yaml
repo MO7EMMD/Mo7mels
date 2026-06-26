@@ -35,7 +35,7 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: EMAIL_FROM
-        sync: false
+        value: "Mo7mels <no-reply@mo7mels.com>"
       - key: RESEND_API_KEY
         sync: false
     buildCommand: npm install && npm run build
