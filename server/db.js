@@ -302,7 +302,7 @@ export async function addEmbed({ userEmail, type, sourceUrl, embedCode }) {
   return normalizeEmbed(embed)
 }
 
-export async function getEmbedsByUser(userEmail, limit = 200) {
+export async function getEmbedsByUser(userEmail, limit = 200000) {
   if (usePostgres) {
     const res = await pool.query('SELECT * FROM embeds WHERE user_email = $1 ORDER BY created_at DESC LIMIT $2', [userEmail, limit])
     return (res.rows || []).map(normalizeEmbed)
@@ -314,6 +314,19 @@ export async function getEmbedsByUser(userEmail, limit = 200) {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit)
     .map(normalizeEmbed)
+}
+
+export async function deleteEmbedById(embedId, userEmail) {
+  if (usePostgres) {
+    await pool.query('DELETE FROM embeds WHERE id = $1 AND user_email = $2', [embedId, userEmail])
+    return
+  }
+
+  const data = await readJsonDb()
+  data.embeds = data.embeds.filter(
+    (item) => !(String(item.id) === String(embedId) && item.userEmail === userEmail),
+  )
+  await writeJsonDb(data)
 }
 
 export async function getSubscriptionByUser(userEmail) {

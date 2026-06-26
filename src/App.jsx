@@ -164,9 +164,9 @@ const translations = {
     period: '/month',
     plans: ['Basic', 'Pro', 'Business'],
     features: {
-      basic: ['10 embed links', 'YouTube support', 'Basic validation'],
-      pro: ['Unlimited embeds', 'YouTube, TikTok, Instagram', 'Priority support'],
-      business: ['Team access', 'Advanced management', 'Custom branding'],
+      basic: ['1,000 embed links', 'YouTube, TikTok, Instagram', 'Copy & export HTML'],
+      pro: ['200,000 embed links', 'All platforms + bulk import', 'Dark mode & analytics', 'Priority support'],
+      business: ['200,000 embed links', 'Team access', 'White-label branding', 'API access', 'Dedicated support'],
     },
     loginTitle: 'Welcome Back',
     signupTitle: 'Create New Account',
@@ -313,9 +313,9 @@ const translations = {
     period: '/شهريًا',
     plans: ['الأساسية', 'الاحترافية', 'الأعمال'],
     features: {
-      basic: ['10 روابط تضمين', 'دعم يوتيوب', 'تحقق أساسي'],
-      pro: ['تضمين غير محدود', 'يوتيوب وتيك توك وإنستقرام', 'دعم أولوية'],
-      business: ['وصول للفريق', 'إدارة متقدمة', 'هوية مخصصة'],
+      basic: ['١٬٠٠٠ رابط تضمين', 'يوتيوب وتيك توك وإنستقرام', 'نسخ وتصدير HTML'],
+      pro: ['٢٠٠٬٠٠٠ رابط تضمين', 'جميع المنصات + استيراد جماعي', 'وضع ليلي وتحليلات متقدمة', 'دعم أولوية'],
+      business: ['٢٠٠٬٠٠٠ رابط تضمين', 'وصول للفريق', 'هوية بصرية مخصصة', 'واجهة API', 'دعم مخصص'],
     },
     loginTitle: 'مرحبًا بعودتك',
     signupTitle: 'إنشاء حساب جديد',
@@ -494,6 +494,12 @@ function App() {
     if (typeof window === 'undefined') return false
     return Boolean(window.localStorage.getItem('sessionToken'))
   })
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('darkMode') === 'true'
+  })
+  const [orderSearch, setOrderSearch] = useState('')
+  const [copied, setCopied] = useState(false)
   const [userSubscription, setUserSubscription] = useState(null)
   const [subscriptionMessage, setSubscriptionMessage] = useState('')
   const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
@@ -791,6 +797,35 @@ function App() {
     }
   }
 
+  const handleDeleteEmbed = async (embedId) => {
+    try {
+      await apiRequest(`/embeds/${embedId}`, { method: 'DELETE' }, sessionToken)
+      setSavedEmbeds((prev) => prev.filter((e) => e.id !== embedId))
+    } catch {
+      // silent
+    }
+  }
+
+  const handleExportHtml = () => {
+    const rows = savedEmbeds
+      .map((e) => `<section data-type="${e.type}" data-url="${e.sourceUrl}">${e.embedCode}</section>`)
+      .join('\n')
+    const html = `<!DOCTYPE html>\n<html lang="ar">\n<head><meta charset="UTF-8"><title>Mo7mels Embeds</title><style>section{margin:2rem auto;max-width:640px}</style></head>\n<body>\n${rows}\n</body>\n</html>`
+    const blob = new Blob([html], { type: 'text/html' })
+    const objectUrl = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = objectUrl
+    anchor.download = 'mo7mels-embeds.html'
+    anchor.click()
+    URL.revokeObjectURL(objectUrl)
+  }
+
+  const toggleDarkMode = () => {
+    const next = !darkMode
+    setDarkMode(next)
+    localStorage.setItem('darkMode', String(next))
+  }
+
   const saveEmbedToAccount = async (type, sourceUrl, code) => {
     if (!currentUser) {
       return
@@ -1031,45 +1066,83 @@ function App() {
       { key: 'settings', path: '/dashboard/settings', label: content.dashboardNavSettings },
     ]
 
-    const renderOrdersTable = () => (
-      <div className="dash-panel">
-        <h2>{content.dashboardPanelOrdersTitle}</h2>
-        {savedEmbeds.length === 0 ? (
-          <p className="dashboard-empty">{content.dashboardPanelOrdersEmpty}</p>
-        ) : (
-          <div className="dash-table-wrap">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>{content.dashboardOrderId}</th>
-                  <th>{content.dashboardOrderType}</th>
-                  <th>{content.dashboardOrderSource}</th>
-                  <th>{content.dashboardOrderDate}</th>
-                  <th>{content.dashboardOrderStatus}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {savedEmbeds.map((item) => (
-                  <tr key={item.id}>
-                    <td>MO7-{String(item.id).padStart(4, '0')}</td>
-                    <td>{content.embedTypes[item.type] || content.embedTypes.general}</td>
-                    <td>
-                      <a href={item.sourceUrl} target="_blank" rel="noreferrer">
-                        {item.sourceUrl}
-                      </a>
-                    </td>
-                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <span className="status-pill done">{content.dashboardOrderStatusDone}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    const renderOrdersTable = () => {
+      const filteredEmbeds = orderSearch.trim()
+        ? savedEmbeds.filter((item) =>
+            item.sourceUrl?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+            (item.type || '').toLowerCase().includes(orderSearch.toLowerCase()),
+          )
+        : savedEmbeds
+
+      return (
+        <div className="dash-panel">
+          <div className="panel-toolbar">
+            <h2>{content.dashboardPanelOrdersTitle}</h2>
+            <div className="panel-toolbar-right">
+              {savedEmbeds.length > 0 && (
+                <button type="button" className="export-btn" onClick={handleExportHtml}>
+                  {language === 'ar' ? 'تصدير HTML' : 'Export HTML'}
+                </button>
+              )}
+              <input
+                className="orders-search"
+                type="text"
+                placeholder={language === 'ar' ? 'بحث...' : 'Search...'}
+                value={orderSearch}
+                onChange={(e) => setOrderSearch(e.target.value)}
+              />
+            </div>
           </div>
-        )}
-      </div>
-    )
+          {filteredEmbeds.length === 0 ? (
+            <p className="dashboard-empty">
+              {savedEmbeds.length === 0 ? content.dashboardPanelOrdersEmpty : (language === 'ar' ? 'لا توجد نتائج مطابقة.' : 'No matching results.')}
+            </p>
+          ) : (
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>{content.dashboardOrderId}</th>
+                    <th>{content.dashboardOrderType}</th>
+                    <th>{content.dashboardOrderSource}</th>
+                    <th>{content.dashboardOrderDate}</th>
+                    <th>{content.dashboardOrderStatus}</th>
+                    <th>{language === 'ar' ? 'حذف' : 'Delete'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEmbeds.map((item) => (
+                    <tr key={item.id}>
+                      <td>MO7-{String(item.id).padStart(4, '0')}</td>
+                      <td>{content.embedTypes[item.type] || content.embedTypes.general}</td>
+                      <td>
+                        <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="embed-url-link">
+                          {item.sourceUrl.length > 40 ? `${item.sourceUrl.slice(0, 40)}…` : item.sourceUrl}
+                        </a>
+                      </td>
+                      <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <span className="status-pill done">{content.dashboardOrderStatusDone}</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="delete-embed-btn"
+                          onClick={() => handleDeleteEmbed(item.id)}
+                          title={language === 'ar' ? 'حذف' : 'Delete'}
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )
+    }
 
     const renderSettingsPanel = () => (
       <div className="dash-panel">
@@ -1293,6 +1366,9 @@ function App() {
           <input className="dash-search" type="text" placeholder={content.dashboardSearch} />
           <div className="top-bar-actions">
             <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
+            <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
+              {darkMode ? '☀️' : '🌙'}
+            </button>
             <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
               {content.dashboardBack}
             </button>
@@ -1340,6 +1416,9 @@ function App() {
         <div className="brand-mark">{content.brand}</div>
         <div className="top-bar-actions">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
+          <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
+            {darkMode ? '☀️' : '🌙'}
+          </button>
           {currentUser ? (
             <>
               <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
@@ -1390,6 +1469,24 @@ function App() {
         <div className="embed-result-block">
           <h2>{content.embedCode}</h2>
           <textarea value={embedCode} readOnly rows={5} cols={50} />
+          <div className="embed-actions">
+            <button
+              type="button"
+              className="copy-btn"
+              onClick={() => {
+                navigator.clipboard.writeText(embedCode).catch(() => {})
+                setCopied(true)
+                setTimeout(() => setCopied(false), 1800)
+              }}
+            >
+              {copied ? (language === 'ar' ? '✓ تم النسخ' : '✓ Copied!') : (language === 'ar' ? 'نسخ الكود' : 'Copy Code')}
+            </button>
+            {currentUser && (
+              <button type="button" className="export-btn" onClick={handleExportHtml}>
+                {language === 'ar' ? 'تصدير HTML' : 'Export HTML'}
+              </button>
+            )}
+          </div>
           <div ref={previewRef} dangerouslySetInnerHTML={{ __html: embedCode }} />
         </div>
       )}
@@ -1495,8 +1592,8 @@ function App() {
 
   return (
     <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
-      <div className="page-shell" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        {currentPath === '/dashboard'
+      <div className={`page-shell${darkMode ? ' dark-mode' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {currentPath.startsWith('/dashboard')
           ? renderDashboardPage()
           : currentPath === '/'
             ? renderHomePage()

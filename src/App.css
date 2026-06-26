@@ -1,5 +1,126 @@
 .page-shell {
   width: 100%;
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ── Dark Mode ─────────────────────────────────────── */
+.dark-mode {
+  background: #0f1117;
+  color: #e2e8f0;
+}
+.dark-mode .App,
+.dark-mode .auth-form-card,
+.dark-mode .auth-showcase {
+  background: #1a1f2e;
+  border-color: #2d3748;
+  color: #e2e8f0;
+}
+.dark-mode .dash-header { background: #0d1117 !important; }
+.dark-mode .dash-sidebar { background: #161b27 !important; }
+.dark-mode .dash-main { background: #0f1117 !important; }
+.dark-mode .dash-panel { background: #1a1f2e; border-color: #2d3748; }
+.dark-mode .dash-kpi-card { background: #1e2535; border-color: #2d3748; color: #e2e8f0; }
+.dark-mode .dash-table th { background: #1e2535; color: #94a3b8; }
+.dark-mode .dash-table td { border-color: #2d3748; color: #e2e8f0; }
+.dark-mode .dash-table tr:hover { background: #1e2535; }
+.dark-mode input, .dark-mode textarea {
+  background: #1e2535;
+  border-color: #2d3748;
+  color: #e2e8f0;
+}
+.dark-mode .dash-search { background: #1e2535; border-color: #2d3748; color: #e2e8f0; }
+.dark-mode .subscription-card { background: #1a1f2e; border-color: #2d3748; color: #e2e8f0; }
+.dark-mode .customer-card { background: #1e2535; border-color: #2d3748; }
+.dark-mode .nav-link-button { color: #94a3b8; }
+.dark-mode .nav-outline-button { border-color: #4a5568; color: #e2e8f0; }
+
+/* ── Dark mode toggle ──────────────────────────────── */
+.darkmode-toggle {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.3rem 0.55rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+.darkmode-toggle:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Embed actions ─────────────────────────────────── */
+.embed-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0.5rem 0;
+}
+.copy-btn, .export-btn {
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.copy-btn {
+  background: #2563eb;
+  color: #fff;
+}
+.export-btn {
+  background: #059669;
+  color: #fff;
+}
+.copy-btn:hover, .export-btn:hover { opacity: 0.88; }
+.copy-btn:active, .export-btn:active { transform: scale(0.97); }
+
+/* ── Orders panel toolbar ──────────────────────────── */
+.panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.panel-toolbar h2 { margin: 0; }
+.panel-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.orders-search {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  width: 180px;
+}
+
+/* ── Delete embed button ───────────────────────────── */
+.delete-embed-btn {
+  background: none;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, color 0.15s;
+}
+.delete-embed-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ── Embed URL truncate ────────────────────────────── */
+.embed-url-link {
+  max-width: 220px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .maintenance-notice {

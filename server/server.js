@@ -530,6 +530,13 @@ app.post('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, res
   return response.status(201).json({ embed, embeds })
 }))
 
+app.delete('/api/embeds/:id', requireAuthenticatedUser, asyncRoute(async (request, response) => {
+  const embedId = request.params.id
+  const normalizedEmail = normalizeEmail(request.authUser.email)
+  await db.deleteEmbedById(embedId, normalizedEmail)
+  return response.json({ ok: true })
+}))
+
 app.get('/api/subscription', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   const subscription = await db.getSubscriptionByUser(normalizedEmail)
