@@ -1,0 +1,62 @@
+Project: Mo7mels
+Repository: https://github.com/MO7EMMD/Mo7mels.git
+Branch: main
+Latest commit: e565265 (Add custom OTP and maintenance notification updates)
+
+Deployment service: Vercel (preferred)
+Vercel project: mo7mels
+Primary URL: https://mo7mels.com
+Plan: free
+
+Frontend framework: React + Vite
+Backend: Express API server in server/server.js
+Database/storage: file-based JSON in server/data/db.json
+
+Main features:
+- Embed generator for YouTube, Shorts, TikTok, Instagram, and generic URLs
+- Signup and login with email OTP verification
+- Custom OTP email branding with logo and support links
+- Dashboard to review saved embeds and subscription status
+- Maintenance mode support via environment variables
+- Vercel deployment configuration in vercel.json
+- Render deployment configuration in render.yaml (optional fallback)
+
+Important files:
+- src/App.jsx: main React UI and auth flow
+- src/App.css: app styling and maintenance UI
+- server/server.js: API endpoints, OTP, email sending, auth/session handling
+- render.yaml: Render deployment config and env var defaults
+- README.md: setup, scripts, deployment notes
+
+NPM scripts:
+- npm run dev: start Vite frontend
+- npm run server: start Express backend
+- npm run dev:full: run frontend and backend together
+- npm run build: build production frontend assets
+- npm start: run the production server
+
+Vercel environment variables used:
+- SITE_URL=https://mo7mels.com
+- SITE_NAME=Mo7mels
+- SITE_LOGO_URL=https://mo7mels.onrender.com/site-logo.svg
+- ENABLE_CANONICAL_REDIRECT=true
+- VITE_MAINTENANCE_MODE=false
+- VITE_MAINTENANCE_TITLE="نعتذر لإزعاجك"
+- VITE_MAINTENANCE_MESSAGE="الموقع حالياً يخضع لرفع تحديثات. سنعود قريباً بخدمة أفضل. شكراً لصبرك."
+- VITE_LINKEDIN_URL=https://www.linkedin.com/company/mo7mels
+- SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, EMAIL_FROM (sensitive credentials)
+
+Notes:
+- The project uses a custom auth/OTP flow instead of Supabase.
+- The live site URL is configured in Render and the React app reads VITE_LINKEDIN_URL for the LinkedIn button.
+- I cannot send email directly from this editor, but the file is ready in the project.
+
+Identifiers:
+- GitHub owner: MO7EMMD
+- GitHub repository: Mo7mels
+- Repository URL: https://github.com/MO7EMMD/Mo7mels.git
+- NPM package/name: mo7mels
+- Vercel project: mo7mels
+- Site URL: https://mo7mels.com
+- Latest commit hash: e565265
+ 

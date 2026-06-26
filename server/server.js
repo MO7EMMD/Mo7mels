@@ -5,6 +5,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import * as db from './db.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -14,8 +15,9 @@ const publicPath = path.join(__dirname, '..', 'public')
 const distPath = path.join(__dirname, '..', 'dist')
 const app = express()
 const port = process.env.PORT || 3001
+const isVercel = Boolean(process.env.VERCEL)
 const configuredSiteUrl = normalizeSiteUrl(process.env.SITE_URL)
-const primarySiteUrl = 'https://mo7mels.onrender.com'
+const primarySiteUrl = 'https://mo7mels.com'
 const effectiveSiteUrl = configuredSiteUrl || primarySiteUrl
 const canonicalRedirectEnabled = process.env.ENABLE_CANONICAL_REDIRECT === 'true'
 const isProduction = process.env.NODE_ENV === 'production'
@@ -28,7 +30,10 @@ const SMTP_PORT = Number(process.env.SMTP_PORT) || 587
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true'
 const SMTP_USER = process.env.SMTP_USER || ''
 const SMTP_PASS = process.env.SMTP_PASS || ''
+const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
+const OTP_DEBUG = process.env.OTP_DEBUG === 'true'
 const smtpConfigured = Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
+const resendConfigured = Boolean(RESEND_API_KEY)
 const mailTransporter = smtpConfigured
   ? nodemailer.createTransport({
       host: SMTP_HOST,
@@ -159,22 +164,67 @@ function buildOtpHtml(email, code) {
   `
 }
 
+function buildOtpText(code) {
+  return `رمز التحقق الخاص بك في ${SITE_NAME}: ${code}\n\nإذا لم تطلب هذا الرمز، يمكنك تجاهل هذه الرسالة.`
+}
+
+async function sendOtpByResend(email, code) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [email],
+      subject: `${SITE_NAME} - رمز التحقق`,
+      html: buildOtpHtml(email, code),
+      text: buildOtpText(code),
+    }),
+  })
+
+  if (!response.ok) {
+    const responseBody = await response.text().catch(() => '')
+    throw new Error(`Resend API failed (${response.status}) ${responseBody}`)
+  }
+}
+
 async function sendOtpEmail(email, code) {
-  if (!mailTransporter) {
-    console.warn('SMTP is not configured. OTP email not sent to', email)
+  if (mailTransporter) {
+    try {
+      await mailTransporter.sendMail({
+        from: EMAIL_FROM,
+        to: email,
+        subject: `${SITE_NAME} - رمز التحقق`,
+        html: buildOtpHtml(email, code),
+        text: buildOtpText(code),
+      })
+      return
+    } catch (error) {
+      console.error('SMTP delivery failed:', error?.message || error)
+      if (!resendConfigured) {
+        throw new Error('Failed to send OTP email via SMTP. تأكد من إعداد SMTP بشكل صحيح.')
+      }
+    }
+  }
+
+  if (resendConfigured) {
+    await sendOtpByResend(email, code)
     return
   }
 
-  await mailTransporter.sendMail({
-    from: EMAIL_FROM,
-    to: email,
-    subject: `${SITE_NAME} - رمز التحقق`,
-    html: buildOtpHtml(email, code),
-  })
+  if (OTP_DEBUG) {
+    console.warn('OTP_DEBUG is enabled. Email delivery skipped and OTP code sent back in API response for', email)
+    return
+  }
+
+  throw new Error('No email provider configured. Configure SMTP or RESEND_API_KEY.')
 }
 
 function isOtpExpired(user) {
-  return !user.otpExpiresAt || new Date(user.otpExpiresAt) < new Date()
+  const expiresAt = user?.otpExpiresAt || user?.otp_expires_at
+  return !expiresAt || new Date(expiresAt) < new Date()
 }
 
 async function requireAuthenticatedUser(request, response, next) {
@@ -184,16 +234,15 @@ async function requireAuthenticatedUser(request, response, next) {
     return response.status(401).json({ message: 'Missing authorization token.' })
   }
 
-  const database = await readDatabase()
-  const session = (database.sessions || []).find((item) => item.token === accessToken)
+  const session = await db.getSession(accessToken)
 
-  if (!session || new Date(session.expiresAt) < new Date()) {
+  if (!session || new Date(session.expires_at || session.expiresAt) < new Date()) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
-  const user = database.users.find((item) => item.email === session.userEmail && item.verified)
+  const user = await db.getUserByEmail(session.user_email || session.userEmail)
 
-  if (!user) {
+  if (!user || !user.verified) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
@@ -300,8 +349,7 @@ app.post('/api/auth/signup', async (request, response) => {
     return response.status(400).json({ message: 'Password confirmation does not match.' })
   }
 
-  const database = await readDatabase()
-  let existingUser = database.users.find((user) => user.email === normalizedEmail)
+  let existingUser = await db.getUserByEmail(normalizedEmail)
 
   if (existingUser && existingUser.verified) {
     return response.status(409).json({ message: 'This email is already registered.' })
@@ -311,29 +359,31 @@ app.post('/api/auth/signup', async (request, response) => {
   const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
 
   if (existingUser) {
-    existingUser.name = trimmedName
-    existingUser.passwordHash = hashPassword(normalizedPassword)
-    existingUser.otpCode = otpCode
-    existingUser.otpExpiresAt = otpExpiresAt
-    existingUser.verified = false
+    await db.updateUserByEmail(normalizedEmail, {
+      name: trimmedName,
+      password_hash: hashPassword(normalizedPassword),
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+      verified: false,
+    })
   } else {
-    existingUser = {
-      id: Date.now(),
+    await db.createUser({
       name: trimmedName,
       email: normalizedEmail,
-      passwordHash: hashPassword(normalizedPassword),
-      verified: false,
-      otpCode,
-      otpExpiresAt,
-      createdAt: new Date().toISOString(),
-    }
-    database.users.push(existingUser)
+      password_hash: hashPassword(normalizedPassword),
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+    })
   }
 
-  await writeDatabase(database)
-  await sendOtpEmail(normalizedEmail, otpCode)
+  try {
+    await sendOtpEmail(normalizedEmail, otpCode)
+  } catch (error) {
+    console.error('Failed to send OTP email:', error?.message || error)
+    return response.status(500).json({ message: 'Failed to send OTP email. تأكد من إعداد SMTP بشكل صحيح.' })
+  }
 
-  return response.status(200).json({ message: 'OTP sent to your email.' })
+  return response.status(200).json({ message: 'OTP sent to your email.', debugOtp: OTP_DEBUG ? otpCode : undefined })
 })
 
 app.post('/api/auth/verify-otp', async (request, response) => {
@@ -345,47 +395,48 @@ app.post('/api/auth/verify-otp', async (request, response) => {
     return response.status(400).json({ message: 'OTP token is required.' })
   }
 
-  const database = await readDatabase()
-  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+  const existingUser = await db.getUserByEmail(normalizedEmail)
 
   if (!existingUser || existingUser.verified) {
     return response.status(400).json({ message: 'No pending verification found for this email.' })
   }
 
-  if (isOtpExpired(existingUser) || existingUser.otpCode !== trimmedToken) {
+  if (isOtpExpired(existingUser) || String(existingUser.otp_code || existingUser.otpCode) !== trimmedToken) {
     return response.status(400).json({ message: 'Invalid or expired OTP code.' })
   }
 
-  existingUser.verified = true
-  existingUser.otpCode = null
-  existingUser.otpExpiresAt = null
-  await writeDatabase(database)
+  await db.updateUserByEmail(normalizedEmail, { verified: true, otp_code: null, otp_expires_at: null })
 
   const tokenValue = createSessionToken()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-  database.sessions.push({ token: tokenValue, userEmail: normalizedEmail, expiresAt })
-  await writeDatabase(database)
+  await db.createSession(tokenValue, normalizedEmail, expiresAt)
 
-  return response.json({ user: toPublicUser(existingUser), token: tokenValue })
+  const user = await db.getUserByEmail(normalizedEmail)
+  return response.json({ user: toPublicUser(user), token: tokenValue })
 })
 
 app.post('/api/auth/resend-otp', async (request, response) => {
   const { email } = request.body || {}
   const normalizedEmail = normalizeEmail(email)
 
-  const database = await readDatabase()
-  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+  const existingUser = await db.getUserByEmail(normalizedEmail)
 
   if (!existingUser || existingUser.verified) {
     return response.status(400).json({ message: 'No pending verification found for this email.' })
   }
 
-  existingUser.otpCode = generateOtpCode()
-  existingUser.otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-  await writeDatabase(database)
-  await sendOtpEmail(normalizedEmail, existingUser.otpCode)
+  const newCode = generateOtpCode()
+  const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+  await db.updateUserByEmail(normalizedEmail, { otp_code: newCode, otp_expires_at: otpExpiresAt })
 
-  return response.json({ message: 'OTP resent to your email.' })
+  try {
+    await sendOtpEmail(normalizedEmail, newCode)
+  } catch (error) {
+    console.error('Failed to resend OTP email:', error?.message || error)
+    return response.status(500).json({ message: 'Failed to resend OTP email. تأكد من إعداد SMTP بشكل صحيح.' })
+  }
+
+  return response.json({ message: 'OTP resent to your email.', debugOtp: OTP_DEBUG ? newCode : undefined })
 })
 
 app.post('/api/auth/login', async (request, response) => {
@@ -393,8 +444,7 @@ app.post('/api/auth/login', async (request, response) => {
   const normalizedEmail = normalizeEmail(email)
   const normalizedPassword = String(password || '').trim()
 
-  const database = await readDatabase()
-  const existingUser = database.users.find((user) => user.email === normalizedEmail)
+  const existingUser = await db.getUserByEmail(normalizedEmail)
 
   if (!existingUser) {
     return response.status(404).json({ message: 'No account was found with this email.' })
@@ -404,14 +454,13 @@ app.post('/api/auth/login', async (request, response) => {
     return response.status(403).json({ message: 'Please verify your email before logging in.' })
   }
 
-  if (existingUser.passwordHash !== hashPassword(normalizedPassword)) {
+  if ((existingUser.password_hash || existingUser.passwordHash) !== hashPassword(normalizedPassword)) {
     return response.status(401).json({ message: 'Incorrect password.' })
   }
 
   const tokenValue = createSessionToken()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-  database.sessions.push({ token: tokenValue, userEmail: normalizedEmail, expiresAt })
-  await writeDatabase(database)
+  await db.createSession(tokenValue, normalizedEmail, expiresAt)
 
   return response.json({ user: toPublicUser(existingUser), token: tokenValue })
 })
@@ -423,29 +472,103 @@ app.get('/api/auth/me', async (request, response) => {
     return response.status(401).json({ message: 'Missing authorization token.' })
   }
 
-  const database = await readDatabase()
-  const session = (database.sessions || []).find((item) => item.token === accessToken)
+  const session = await db.getSession(accessToken)
 
-  if (!session || new Date(session.expiresAt) < new Date()) {
+  if (!session || new Date(session.expires_at || session.expiresAt) < new Date()) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
-  const user = database.users.find((item) => item.email === session.userEmail && item.verified)
+  const user = await db.getUserByEmail(session.user_email || session.userEmail)
 
-  if (!user) {
+  if (!user || !user.verified) {
     return response.status(401).json({ message: 'Invalid or expired authorization token.' })
   }
 
   return response.json({ user: toPublicUser(user) })
 })
 
+app.put('/api/auth/me', requireAuthenticatedUser, async (request, response) => {
+  const { name } = request.body || {}
+  if (!name || String(name).trim().length < 1) {
+    return response.status(400).json({ message: 'Name is required.' })
+  }
+
+  const email = normalizeEmail(request.authUser.email)
+  const updated = await db.updateUserByEmail(email, { name: String(name).trim() })
+  return response.json({ user: toPublicUser(updated) })
+})
+
+app.post('/api/auth/change-password', requireAuthenticatedUser, async (request, response) => {
+  const { currentPassword, newPassword } = request.body || {}
+  if (!currentPassword || !newPassword) {
+    return response.status(400).json({ message: 'Current and new passwords are required.' })
+  }
+
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(String(newPassword))) {
+    return response.status(400).json({ message: 'New password must be at least 8 characters and include letters and numbers.' })
+  }
+
+  const email = normalizeEmail(request.authUser.email)
+  const user = await db.getUserByEmail(email)
+  if (!user) return response.status(404).json({ message: 'User not found.' })
+
+  if ((user.password_hash || user.passwordHash) !== hashPassword(String(currentPassword))) {
+    return response.status(401).json({ message: 'Current password is incorrect.' })
+  }
+
+  await db.updateUserByEmail(email, { password_hash: hashPassword(String(newPassword)) })
+  return response.json({ message: 'Password updated.' })
+})
+
+app.post('/api/auth/change-email', requireAuthenticatedUser, async (request, response) => {
+  const { newEmail, currentPassword } = request.body || {}
+  if (!newEmail || !currentPassword) {
+    return response.status(400).json({ message: 'New email and current password are required.' })
+  }
+
+  const normalizedEmail = normalizeEmail(newEmail)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return response.status(400).json({ message: 'A valid email address is required.' })
+  }
+
+  const oldEmail = normalizeEmail(request.authUser.email)
+  if (normalizedEmail === oldEmail) {
+    return response.status(400).json({ message: 'This email is already your current email.' })
+  }
+
+  const existingUser = await db.getUserByEmail(normalizedEmail)
+  if (existingUser) {
+    return response.status(409).json({ message: 'This email is already in use.' })
+  }
+
+  const user = await db.getUserByEmail(oldEmail)
+  if (!user) {
+    return response.status(404).json({ message: 'User not found.' })
+  }
+
+  if ((user.password_hash || user.passwordHash) !== hashPassword(String(currentPassword))) {
+    return response.status(401).json({ message: 'Current password is incorrect.' })
+  }
+
+  const newUser = await db.createUser({
+    name: user.name,
+    email: normalizedEmail,
+    password_hash: user.password_hash || user.passwordHash,
+    otp_code: null,
+    otp_expires_at: null,
+    verified: true,
+  })
+
+  await db.updateEmailsForUser(oldEmail, normalizedEmail)
+  await db.deleteUserByEmail(oldEmail)
+
+  const updatedUser = await db.getUserByEmail(normalizedEmail)
+  return response.json({ user: toPublicUser(updatedUser) })
+})
+
 app.get('/api/embeds', requireAuthenticatedUser, async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
-  const database = await readDatabase()
-  const embeds = database.embeds
-    .filter((embed) => embed.userEmail === normalizedEmail)
-    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
-
+  const embeds = await db.getEmbedsByUser(normalizedEmail)
   return response.json({ embeds })
 })
 
@@ -457,32 +580,14 @@ app.post('/api/embeds', requireAuthenticatedUser, async (request, response) => {
     return response.status(400).json({ message: 'Missing embed payload.' })
   }
 
-  const database = await readDatabase()
-
-  const embed = {
-    id: Date.now(),
-    userEmail: normalizedEmail,
-    type,
-    sourceUrl,
-    embedCode,
-    createdAt: new Date().toISOString(),
-  }
-
-  database.embeds.unshift(embed)
-  database.embeds = database.embeds.slice(0, 200)
-  await writeDatabase(database)
-
-  const embeds = database.embeds
-    .filter((item) => item.userEmail === normalizedEmail)
-    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
-
+  const embed = await db.addEmbed({ userEmail: normalizedEmail, type, sourceUrl, embedCode })
+  const embeds = await db.getEmbedsByUser(normalizedEmail)
   return response.status(201).json({ embed, embeds })
 })
 
 app.get('/api/subscription', requireAuthenticatedUser, async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
-  const database = await readDatabase()
-  const subscription = database.subscriptions?.find((sub) => sub.userEmail === normalizedEmail) || null
+  const subscription = await db.getSubscriptionByUser(normalizedEmail)
   return response.json({ subscription })
 })
 
@@ -499,38 +604,13 @@ app.post('/api/subscription', requireAuthenticatedUser, async (request, response
     return response.status(400).json({ message: 'Missing PayPal subscription ID.' })
   }
 
-  const database = await readDatabase()
-  if (!Array.isArray(database.subscriptions)) {
-    database.subscriptions = []
-  }
-
-  const existingIndex = database.subscriptions.findIndex((sub) => sub.userEmail === normalizedEmail)
-  const subscription = {
-    userEmail: normalizedEmail,
-    planKey,
-    subscriptionId,
-    status: 'active',
-    activatedAt: new Date().toISOString(),
-  }
-
-  if (existingIndex >= 0) {
-    database.subscriptions[existingIndex] = subscription
-  } else {
-    database.subscriptions.push(subscription)
-  }
-
-  await writeDatabase(database)
+  const subscription = await db.upsertSubscription({ userEmail: normalizedEmail, planKey, subscriptionId, status: 'active', activatedAt: new Date().toISOString() })
   return response.status(201).json({ subscription })
 })
 
 app.delete('/api/subscription', requireAuthenticatedUser, async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
-  const database = await readDatabase()
-  if (!Array.isArray(database.subscriptions)) {
-    database.subscriptions = []
-  }
-  database.subscriptions = database.subscriptions.filter((sub) => sub.userEmail !== normalizedEmail)
-  await writeDatabase(database)
+  await db.deleteSubscriptionByUser(normalizedEmail)
   return response.json({ ok: true })
 })
 
@@ -576,21 +656,27 @@ app.get('*', async (_request, response, next) => {
   }
 })
 
-ensureDatabase()
-  .then(() => {
-    if (isProduction && !configuredSiteUrl) {
-      console.warn(`SITE_URL is not set; using default domain ${primarySiteUrl}.`)
-    }
+if (!isVercel) {
+  ensureDatabase()
+    .then(() => {
+      if (isProduction && !configuredSiteUrl) {
+        console.warn(`SITE_URL is not set; using default domain ${primarySiteUrl}.`)
+      }
 
-    if (isProduction && !smtpConfigured) {
-      console.warn('SMTP is not configured; OTP email delivery will be disabled.')
-    }
+      if (isProduction && !smtpConfigured) {
+        if (!resendConfigured) {
+          console.warn('No email provider configured; OTP email delivery will be disabled.')
+        }
+      }
 
-    app.listen(port, () => {
-      console.log(`Mo7mels server running on http://localhost:${port}`)
+      app.listen(port, () => {
+        console.log(`Mo7mels server running on http://localhost:${port}`)
+      })
     })
-  })
-  .catch((error) => {
-    console.error('Failed to start API server', error)
-    process.exit(1)
-  })
+    .catch((error) => {
+      console.error('Failed to start API server', error)
+      process.exit(1)
+    })
+}
+
+export default app

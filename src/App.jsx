@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { PayPalScriptProvider, PayPalButtons, FUNDING } from '@paypal/react-paypal-js'
+import { Bar } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 // Replace these with your actual PayPal Plan IDs from the PayPal Developer Dashboard
 const PAYPAL_CLIENT_ID = 'AQduOnVI3FTIp2aBlgqMnCiLhY8dO3nWxGYudLWlN57vzCbydKTs88S7UpI6M2GXzMYbFj8xJYjgYw-x'
@@ -11,6 +23,7 @@ const PAYPAL_PLAN_IDS = {
 }
 
 const API_BASE = '/api'
+const LINKEDIN_URL = import.meta.env.VITE_LINKEDIN_URL || 'https://www.linkedin.com/company/mo7mels'
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 const MAINTENANCE_TITLE = import.meta.env.VITE_MAINTENANCE_TITLE || 'نعتذر لإزعاجك'
 const MAINTENANCE_MESSAGE =
@@ -137,6 +150,7 @@ const translations = {
     language: 'Language',
     arabic: 'Arabic',
     english: 'English',
+    linkedin: 'LinkedIn',
     pageTitle: 'Mo7mels',
     pageSubtitle: 'Create embeds for YouTube, Shorts, TikTok, Instagram, and general links.',
     inputPlaceholder: 'Enter YouTube, YouTube Shorts, TikTok, Instagram, or any URL',
@@ -214,6 +228,14 @@ const translations = {
       otpInvalid: 'Invalid or expired code. Please try again.',
       otpResent: 'Verification code resent to your email.',
     },
+    accountSettingsTitle: 'Account Settings',
+    accountUpdated: 'Profile updated successfully.',
+    emailUpdated: 'Email updated successfully.',
+    save: 'Save',
+    change: 'Change',
+    changePassword: 'Change Password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
     otp: {
       title: 'Verify Your Email',
       subtitle: 'Enter the 6-digit code sent to your email address.',
@@ -221,6 +243,7 @@ const translations = {
       submit: 'Verify',
       resend: 'Resend Code',
       back: 'Back',
+      debugHint: 'Your OTP code (debug mode)',
     },
     subscription: {
       loginRequired: 'Please log in to subscribe.',
@@ -289,6 +312,7 @@ const translations = {
     dashboardStats: ['الأكواد المحفوظة', 'حالة الحساب', 'الخطة الحالية'],
     dashboardStatus: 'نشط',
     dashboardPlan: 'الابتدائية',
+    linkedin: 'لينكدإن',
     dashboardAccount: 'بيانات الحساب',
     dashboardRecent: 'آخر أكواد التضمين المحفوظة',
     dashboardEmpty: 'لا توجد أكواد محفوظة بعد. أنشئ إيمبد من الصفحة الرئيسية وأنت مسجل الدخول.',
@@ -332,6 +356,14 @@ const translations = {
       otpInvalid: 'الرمز غير صالح أو منتهي الصلاحية. يرجى المحاولة مجددًا.',
       otpResent: 'تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني.',
     },
+    accountSettingsTitle: 'إعدادات الحساب',
+    accountUpdated: 'تم تحديث الملف الشخصي بنجاح.',
+    emailUpdated: 'تم تحديث البريد الإلكتروني بنجاح.',
+    save: 'حفظ',
+    change: 'تغيير',
+    changePassword: 'تغيير كلمة المرور',
+    currentPassword: 'كلمة المرور الحالية',
+    newPassword: 'كلمة المرور الجديدة',
     otp: {
       title: 'تحقق من بريدك الإلكتروني',
       subtitle: 'أدخل رمز التحقق المكون من 6 أرقام الذي أُرسل إلى بريدك.',
@@ -339,6 +371,7 @@ const translations = {
       submit: 'تحقق',
       resend: 'إعادة الإرسال',
       back: 'رجوع',
+      debugHint: 'رمز التحقق (وضع التصحيح)',
     },
     subscription: {
       loginRequired: 'يرجى تسجيل الدخول أولاً للاشتراك.',
@@ -407,6 +440,12 @@ function App() {
   const [otpPending, setOtpPending] = useState(false)
   const [otpEmail, setOtpEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
+  const [otpDebugCode, setOtpDebugCode] = useState('')
+  const [profileName, setProfileName] = useState(currentUser?.name || '')
+  const [newEmailInput, setNewEmailInput] = useState(currentUser?.email || '')
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('')
+  const [newPasswordInput, setNewPasswordInput] = useState('')
+  const [settingsMessage, setSettingsMessage] = useState('')
   const [sessionToken, setSessionToken] = useState(() => {
     if (typeof window === 'undefined') return ''
     return window.localStorage.getItem('sessionToken') || ''
@@ -468,6 +507,13 @@ function App() {
 
     syncSession()
   }, [sessionToken])
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileName(currentUser.name || '')
+      setNewEmailInput(currentUser.email || '')
+    }
+  }, [currentUser])
 
   useEffect(() => {
     if (!previewRef.current || !embedCode) {
@@ -627,6 +673,7 @@ function App() {
         setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
         setOtpEmail(trimmedEmail)
         setOtpCode('')
+        setOtpDebugCode(data.debugOtp || '')
         setOtpPending(true)
         setAuthMessageType('success')
         setAuthMessage(content.authMessages.otpSent)
@@ -689,6 +736,7 @@ function App() {
       setOtpPending(false)
       setOtpCode('')
       setOtpEmail('')
+      setOtpDebugCode('')
       setAuthMessageType('success')
       setAuthMessage(content.authMessages.otpSuccess)
       navigateTo('/dashboard')
@@ -712,6 +760,7 @@ function App() {
         throw new Error(data.message || content.errors.serverUnavailable)
       }
 
+      setOtpDebugCode(data.debugOtp || '')
       setAuthMessageType('success')
       setAuthMessage(content.authMessages.otpResent)
     } catch (error) {
@@ -855,6 +904,7 @@ function App() {
           onClick={() => {
             setOtpPending(false)
             setOtpCode('')
+            setOtpDebugCode('')
             setAuthMessage('')
             setAuthMessageType('')
           }}
@@ -883,6 +933,11 @@ function App() {
             <h2>{content.otp.title}</h2>
             <p>{content.otp.subtitle}</p>
             <p className="otp-email-hint">{otpEmail}</p>
+            {otpDebugCode && (
+              <p className="otp-debug-hint">
+                {content.otp.debugHint}: <strong>{otpDebugCode}</strong>
+              </p>
+            )}
           </div>
 
           <div className="auth-fields">
@@ -1116,6 +1171,83 @@ function App() {
               <span>{content.dashboardJoined}</span>
               <strong>{new Date(currentUser?.createdAt || Date.now()).toLocaleDateString()}</strong>
             </div>
+            <div className="account-settings">
+              <h4>{content.accountSettingsTitle || 'Account Settings'}</h4>
+              <div className="settings-row">
+                <label>{content.dashboardName}</label>
+                <input value={profileName} onChange={(e) => setProfileName(e.target.value)} />
+                <button
+                  type="button"
+                  className="nav-primary-button small"
+                  onClick={async () => {
+                    setSettingsMessage('')
+                    try {
+                      const body = await apiRequest('/auth/me', { method: 'PUT', body: JSON.stringify({ name: profileName }) }, sessionToken)
+                      setCurrentUser(body.user)
+                      setSettingsMessage(content.accountUpdated || 'Profile updated')
+                    } catch (err) {
+                      setSettingsMessage(err.message || 'Network error')
+                    }
+                  }}
+                >
+                  {content.save || 'Save'}
+                </button>
+              </div>
+
+              <div className="settings-row">
+                <label>{content.email}</label>
+                <input value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} />
+                <button
+                  type="button"
+                  className="nav-primary-button small"
+                  onClick={async () => {
+                    setSettingsMessage('')
+                    try {
+                      const body = await apiRequest('/auth/change-email', {
+                        method: 'POST',
+                        body: JSON.stringify({ newEmail: newEmailInput, currentPassword: currentPasswordInput }),
+                      }, sessionToken)
+                      setCurrentUser(body.user)
+                      setSettingsMessage(content.emailUpdated || 'Email updated successfully')
+                      setCurrentPasswordInput('')
+                    } catch (err) {
+                      setSettingsMessage(err.message || 'Network error')
+                    }
+                  }}
+                >
+                  {content.save || 'Save'}
+                </button>
+              </div>
+
+              <div className="settings-row password-row">
+                <label>{content.changePassword || 'Change Password'}</label>
+                <input type="password" placeholder={content.currentPassword || 'Current password'} value={currentPasswordInput} onChange={(e) => setCurrentPasswordInput(e.target.value)} />
+                <input type="password" placeholder={content.newPassword || 'New password'} value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} />
+                <button
+                  type="button"
+                  className="nav-outline-button small"
+                  onClick={async () => {
+                    setSettingsMessage('')
+                    try {
+                      const res = await apiRequest('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: currentPasswordInput, newPassword: newPasswordInput }) }, sessionToken)
+                      const body = await res.json()
+                      if (!res.ok) {
+                        setSettingsMessage(body?.message || 'Password change failed')
+                        return
+                      }
+                      setCurrentPasswordInput('')
+                      setNewPasswordInput('')
+                      setSettingsMessage(content.passwordUpdated || body?.message || 'Password updated')
+                    } catch (err) {
+                      setSettingsMessage('Network error')
+                    }
+                  }}
+                >
+                  {content.change || 'Change'}
+                </button>
+              </div>
+              {settingsMessage && <p className="auth-feedback">{settingsMessage}</p>}
+            </div>
           </div>
 
           <h3 className="dashboard-details-title">{content.dashboardInsights}</h3>
@@ -1165,7 +1297,8 @@ function App() {
         {Object.keys(typeUsage).length === 0 ? (
           <p className="dashboard-empty">{content.dashboardChartEmpty}</p>
         ) : (
-          <div className="platform-chart">
+          <div>
+            <div className="platform-chart">
             {[
               { key: 'youtube', color: '#ff3b3b' },
               { key: 'tiktok', color: '#010101' },
@@ -1190,6 +1323,19 @@ function App() {
                   </div>
                 )
               })}
+            </div>
+            <div style={{ marginTop: 18 }}>
+              {/* Bar chart summary */}
+              {(() => {
+                const labels = Object.keys(typeUsage).map((k) => content.embedTypes[k] || k)
+                const dataValues = Object.keys(typeUsage).map((k) => typeUsage[k])
+                const colorMap = { youtube: '#ff3b3b', tiktok: '#010101', instagram: '#e1306c', general: '#4a67ff' }
+                const background = Object.keys(typeUsage).map((k) => colorMap[k] || '#7c93ff')
+                const chartData = { labels, datasets: [{ label: content.dashboardChartDatasetLabel || 'Embeds', data: dataValues, backgroundColor: background }] }
+                const chartOptions = { responsive: true, plugins: { legend: { display: false }, title: { display: false } } }
+                return <Bar data={chartData} options={chartOptions} />
+              })()}
+            </div>
           </div>
         )}
       </section>
@@ -1200,15 +1346,28 @@ function App() {
           <p className="dashboard-empty">{content.dashboardEmpty}</p>
         ) : (
           <div className="activity-list">
-            {savedEmbeds.map((item) => (
-              <div className="activity-item" key={item.id}>
-                <div>
-                  <strong>{content.embedTypes[item.type]}</strong>
-                  <p>{item.sourceUrl}</p>
+            {savedEmbeds.map((item) => {
+              const youtubeId = extractYouTubeVideoId(item.sourceUrl || '')
+              const thumbUrl = youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null
+              return (
+                <div className="activity-item" key={item.id}>
+                  <div className="activity-left">
+                    {thumbUrl ? (
+                      <img src={thumbUrl} alt="thumb" className="embed-thumb" />
+                    ) : (
+                      <div className={`embed-icon embed-${item.type}`}>{(item.type || '?').slice(0,2).toUpperCase()}</div>
+                    )}
+                    <div className="activity-meta">
+                      <strong className="activity-title">{content.embedTypes[item.type] || content.embedTypes.general}</strong>
+                      <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="activity-source">{item.sourceUrl}</a>
+                    </div>
+                  </div>
+                  <div className="activity-right">
+                    <span className="activity-time">{new Date(item.createdAt).toLocaleString()}</span>
+                  </div>
                 </div>
-                <span>{new Date(item.createdAt).toLocaleString()}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
@@ -1226,6 +1385,9 @@ function App() {
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
           {currentUser ? (
             <>
+              <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
+                {content.linkedin}
+              </a>
               <button type="button" className="nav-outline-button" onClick={() => navigateTo('/dashboard')}>
                 {content.dashboard}
               </button>
@@ -1235,6 +1397,9 @@ function App() {
             </>
           ) : (
             <>
+              <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
+                {content.linkedin}
+              </a>
               <button type="button" className="nav-outline-button" onClick={() => navigateTo('/login')}>
                 {content.login}
               </button>

@@ -18,6 +18,12 @@ services:
         value: "نعتذر لإزعاجك"
       - key: VITE_MAINTENANCE_MESSAGE
         value: "الموقع حالياً يخضع لرفع تحديثات. سنعود قريباً بخدمة أفضل. شكراً لصبرك."
+      - key: VITE_LINKEDIN_URL
+        value: "https://www.linkedin.com/company/mo7mels"
+      - key: DATABASE_URL
+        sync: false
+      - key: OTP_DEBUG
+        value: "false"
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

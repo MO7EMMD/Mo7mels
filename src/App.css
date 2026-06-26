@@ -151,6 +151,16 @@
   border: 1px solid #cfd9ee;
 }
 
+.linkedin-link {
+  background: rgba(10, 102, 194, 0.08);
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+.linkedin-link:hover {
+  background: rgba(10, 102, 194, 0.16);
+}
+
 .page-subtitle {
   margin-top: -0.25rem;
   margin-bottom: 0.25rem;
@@ -199,6 +209,12 @@
   color: #6b7280;
   margin: 0;
   word-break: break-all;
+}
+
+.otp-debug-hint {
+  margin: 0.85rem 0 0;
+  font-size: 0.95rem;
+  color: #1f4c8b;
 }
 
 .subscriptions-section {
@@ -599,6 +615,14 @@
   color: #122033;
 }
 
+.activity-left { display:flex; gap:0.75rem; align-items:center; }
+.embed-thumb { width: 96px; height: 54px; object-fit: cover; border-radius: 8px; }
+.embed-icon { width: 64px; height: 44px; display:flex; align-items:center; justify-content:center; border-radius:8px; background:#eef4ff; color:#1f4d9b; font-weight:700; }
+.activity-meta { max-width: 540px; }
+.activity-title { display:block; font-size:0.98rem; }
+.activity-source { display:block; font-size:0.85rem; color:#4b5563; text-decoration:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:420px; }
+.activity-time { color:#7b8794; font-size:0.85rem; }
+
 .auth-fields input,
 .App input,
 .App textarea {
@@ -690,3 +714,11 @@ button:hover {
     
   }
 }
+
+.account-settings { margin-top: 0.75rem; }
+.settings-row { display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem; }
+.settings-row input { padding:0.4rem 0.5rem; border-radius:6px; border:1px solid #e6eef6; min-width:180px }
+.settings-row label { min-width:110px; color:#334155 }
+.settings-row.password-row { flex-direction:column; align-items:flex-start }
+.settings-row.password-row input { width:320px }
+.nav-primary-button.small, .nav-outline-button.small { padding:0.35rem 0.6rem; font-size:0.86rem }

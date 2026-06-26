@@ -36,41 +36,54 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 
 ## Deployment
 
-The project is prepared for deployment on platforms like Render.
+Recommended simple/free deployment: **Vercel** (frontend + API in one project).
 
-Render setup:
+### Vercel setup
 
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
-- Port: provided automatically by Render through `PORT`
-- Required environment variable: `SITE_URL=https://mo7mels.onrender.com`
-- Canonical redirect: `ENABLE_CANONICAL_REDIRECT=true` to force traffic onto the primary domain
-- Optional environment variables for OTP email branding and SMTP delivery:
-  - `SITE_NAME`
-  - `SITE_LOGO_URL`
-  - `EMAIL_FROM`
-  - `SMTP_HOST`
-  - `SMTP_PORT`
-  - `SMTP_SECURE`
-  - `SMTP_USER`
-  - `SMTP_PASS`
-- Maintenance notification variables for site update mode:
-  - `VITE_MAINTENANCE_MODE` = `true` or `false`
-  - `VITE_MAINTENANCE_TITLE`
-  - `VITE_MAINTENANCE_MESSAGE`
+1. Import the repository into Vercel.
+2. Framework preset: `Other` (the repo includes `vercel.json` to handle build/routes).
+3. Set these required environment variables in Vercel:
+   - `SITE_URL=https://<your-vercel-domain>`
+   - `DATABASE_URL=postgres://...`
+4. Set optional variables as needed:
+   - `SITE_NAME`
+   - `SITE_LOGO_URL`
+   - `EMAIL_FROM`
+   - `SMTP_HOST`
+   - `SMTP_PORT`
+   - `SMTP_SECURE`
+   - `SMTP_USER`
+   - `SMTP_PASS`
+   - `RESEND_API_KEY` (optional alternative to SMTP)
+   - `OTP_DEBUG` = `true` (debug mode only)
+   - `ENABLE_CANONICAL_REDIRECT`
+   - `VITE_MAINTENANCE_MODE`
+   - `VITE_MAINTENANCE_TITLE`
+   - `VITE_MAINTENANCE_MESSAGE`
+   - `VITE_LINKEDIN_URL`
+5. Deploy.
 
-The included `render.yaml` can be used to create the service quickly after connecting the repository.
+Notes:
+
+- `vercel.json` routes `/api/*`, `/robots.txt`, and `/sitemap.xml` to the serverless API.
+- SPA routes are redirected to `index.html`.
+- Keep a hosted Postgres database (for example Neon/Supabase/Render Postgres).
+- For OTP email delivery, configure either SMTP settings or `RESEND_API_KEY`.
+
+### Render (optional)
+
+You can still deploy on Render using the existing `render.yaml` if needed.
 
 ## Custom Domain
 
-To connect a custom domain on Render:
+To connect a custom domain on Vercel:
 
-1. Open your Render service and add the domain under `Settings > Custom Domains`.
-2. Add the DNS records exactly as Render shows for your domain or subdomain.
-3. Set `SITE_URL` to your final primary URL: `https://mo7mels.onrender.com`.
-4. If you want the Render default URL or secondary hostnames to redirect to the main domain, set `ENABLE_CANONICAL_REDIRECT=true`.
-5. Add email branding and SMTP environment variables if you want OTP delivery to work automatically.
-6. Redeploy the service after saving the environment variables.
+1. Open your Vercel project and go to `Settings > Domains`.
+2. Add your domain and follow Vercel DNS instructions.
+3. Set `SITE_URL` to your final primary URL.
+4. Set `ENABLE_CANONICAL_REDIRECT=true` if you want non-primary hostnames redirected.
+5. Add SMTP and branding environment variables if you want production OTP emails.
+6. Redeploy after saving variables.
 
 If `SITE_URL` is missing in production, the server now refuses to generate canonical metadata, `robots.txt`, and `sitemap.xml` from request headers.
 
@@ -82,3 +95,45 @@ After deployment, the app now generates these URLs from the live domain automati
 - `sitemap.xml`
 
 Last deployment trigger: 2026-04-09
+
+## Account Settings & Dashboard Charts
+
+- The dashboard includes an "Account Settings" section where users can update their name, change their email, and change their password.
+- Password rules: at least 8 characters and include letters and numbers.
+- Changing email requires the current password for security.
+- A small Chart.js bar chart summarizes embed counts by platform. The frontend depends on `chart.js` and `react-chartjs-2`.
+
+## Local testing checklist
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create a `.env` with at minimum:
+
+```
+DATABASE_URL=postgres://user:pass@host:5432/dbname
+OTP_DEBUG=true
+```
+
+3. Start server and frontend:
+
+```bash
+npm run dev:full
+```
+
+4. Open `http://localhost:5173`, sign in, then visit the Dashboard to use Account Settings and see charts.
+
+## Data migration from legacy JSON
+
+If you have an existing `server/data/db.json` file and want to migrate users, embeds, and subscriptions into Postgres, run:
+
+```bash
+npm run migrate:json
+```
+
+This script will attempt to map legacy `username` -> `name`, generate an email when missing (`username@migration.local`), hash plaintext passwords, and insert records into your Postgres database configured by `DATABASE_URL`.
+
+Deployment note: ensure `DATABASE_URL` is set on Render and SMTP variables provided if you want real OTP emails. For quick testing set `OTP_DEBUG=true`.
