@@ -17,7 +17,8 @@ const client = new Client({
   },
 })
 
-let whatsappConfig = await db.getWhatsappBotConfig()
+let whatsappConfig = null
+let reloadTimer = null
 
 async function syncConfig() {
   whatsappConfig = await db.getWhatsappBotConfig()
@@ -28,9 +29,9 @@ function normalizeCommand(text, prefix) {
 }
 
 function buildStatusMessage(chatName) {
-  const groupCount = whatsappConfig.allowedGroups.length
+  const groupCount = whatsappConfig?.allowedGroups?.length || 0
   const scope = chatName ? `في ${chatName}` : 'في هذه المحادثة'
-  return `${whatsappConfig.welcomeMessage}\n\n${scope}.\nالحالة: ${whatsappConfig.lastStatus}\nالمجموعات المفعلة: ${groupCount}`
+  return `${whatsappConfig?.welcomeMessage || ''}\n\n${scope}.\nالحالة: ${whatsappConfig?.lastStatus || 'idle'}\nالمجموعات المفعلة: ${groupCount}`
 }
 
 client.on('qr', async (qr) => {
@@ -136,22 +137,26 @@ client.on('message', async (message) => {
   }
 })
 
-await syncConfig()
-fs.watchFile(dbPath, { interval: 2000 }, async () => {
-  try {
-    await syncConfig()
-  } catch (error) {
-    console.error('Failed to sync WhatsApp bot config:', error)
-  }
-})
+async function main() {
+  await syncConfig()
 
-await db.updateWhatsappBotConfig({
-  lastStatus: 'starting',
-  lastSeenAt: new Date().toISOString(),
-  lastError: '',
-})
+  fs.watch(dbPath, { persistent: true }, () => {
+    clearTimeout(reloadTimer)
+    reloadTimer = setTimeout(() => {
+      syncConfig().catch((error) => {
+        console.error('Failed to sync WhatsApp bot config:', error)
+      })
+    }, 250)
+  })
 
-await client.initialize()
+  await db.updateWhatsappBotConfig({
+    lastStatus: 'starting',
+    lastSeenAt: new Date().toISOString(),
+    lastError: '',
+  })
+
+  await client.initialize()
+}
 
 process.on('SIGINT', async () => {
   try {
@@ -164,4 +169,9 @@ process.on('SIGINT', async () => {
     // ignore shutdown issues
   }
   process.exit(0)
+})
+
+main().catch((error) => {
+  console.error('Failed to start WhatsApp bot:', error)
+  process.exit(1)
 })

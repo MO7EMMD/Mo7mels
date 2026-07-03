@@ -249,6 +249,13 @@ const translations = {
     dashboardWhatsAppNoGroups: 'No groups added yet.',
     dashboardWhatsAppRunBot: 'Run: npm run whatsapp:bot',
     dashboardWhatsAppHint: 'Add the bot to a WhatsApp group, then paste that group ID here to allow replies.',
+    dashboardWhatsAppGroupAdded: 'Group added.',
+    dashboardWhatsAppGroupRemoved: 'Group removed.',
+    dashboardWhatsAppStatusLabel: 'Status',
+    dashboardWhatsAppLastUpdate: 'Last update',
+    dashboardWhatsAppGroupIdLabel: 'Group ID',
+    dashboardWhatsAppGroupLabel: 'Group',
+    dashboardWhatsAppNone: 'None',
     embedTypes: {
       youtube: 'YouTube',
       tiktok: 'TikTok',
@@ -418,6 +425,13 @@ const translations = {
     dashboardWhatsAppNoGroups: 'لم تتم إضافة مجموعات بعد.',
     dashboardWhatsAppRunBot: 'شغّل: npm run whatsapp:bot',
     dashboardWhatsAppHint: 'أضف البوت إلى مجموعة واتساب ثم انسخ معرّف المجموعة هنا للسماح له بالرد.',
+    dashboardWhatsAppGroupAdded: 'تمت إضافة المجموعة.',
+    dashboardWhatsAppGroupRemoved: 'تم حذف المجموعة.',
+    dashboardWhatsAppStatusLabel: 'الحالة',
+    dashboardWhatsAppLastUpdate: 'آخر تحديث',
+    dashboardWhatsAppGroupIdLabel: 'معرّف المجموعة',
+    dashboardWhatsAppGroupLabel: 'المجموعة',
+    dashboardWhatsAppNone: 'لا يوجد',
     embedTypes: {
       youtube: 'يوتيوب',
       tiktok: 'تيك توك',
@@ -927,7 +941,7 @@ function App() {
       setWhatsappBot(response.bot)
       setWhatsappGroupInput('')
       setWhatsappMessageType('success')
-      setWhatsappMessage(language === 'ar' ? 'تمت إضافة المجموعة.' : 'Group added.')
+      setWhatsappMessage(content.dashboardWhatsAppGroupAdded)
       setWhatsappBotForm((current) => ({
         ...current,
         ...(response.bot || {}),
@@ -945,7 +959,7 @@ function App() {
       }, sessionToken)
       setWhatsappBot(response.bot)
       setWhatsappMessageType('success')
-      setWhatsappMessage(language === 'ar' ? 'تم حذف المجموعة.' : 'Group removed.')
+      setWhatsappMessage(content.dashboardWhatsAppGroupRemoved)
       setWhatsappBotForm((current) => ({
         ...current,
         ...(response.bot || {}),
@@ -1526,7 +1540,7 @@ function App() {
 
       const lastSeenLabel = bot.lastSeenAt
         ? new Date(bot.lastSeenAt).toLocaleString()
-        : (language === 'ar' ? 'لا يوجد' : 'None')
+        : content.dashboardWhatsAppNone
 
       return (
         <div className="dash-panel">
@@ -1550,7 +1564,7 @@ function App() {
               <strong>{bot.enabled ? content.dashboardWhatsAppActive : content.dashboardWhatsAppDisabled}</strong>
             </div>
             <div className="dashboard-detail-item">
-              <span>{language === 'ar' ? 'الحالة' : 'Status'}</span>
+              <span>{content.dashboardWhatsAppStatusLabel}</span>
               <strong>{bot.lastStatus || 'idle'}</strong>
             </div>
             <div className="dashboard-detail-item">
@@ -1558,7 +1572,7 @@ function App() {
               <strong>{bot.allowedGroups?.length || 0}</strong>
             </div>
             <div className="dashboard-detail-item">
-              <span>{language === 'ar' ? 'آخر تحديث' : 'Last update'}</span>
+              <span>{content.dashboardWhatsAppLastUpdate}</span>
               <strong>{lastSeenLabel}</strong>
             </div>
           </div>
@@ -1617,7 +1631,7 @@ function App() {
           <div className="account-settings" style={{ marginTop: '1.25rem' }}>
             <h3 style={{ marginTop: 0 }}>{content.dashboardWhatsAppGroupsTitle}</h3>
             <div className="settings-row">
-              <label>{language === 'ar' ? 'معرّف المجموعة' : 'Group ID'}</label>
+              <label>{content.dashboardWhatsAppGroupIdLabel}</label>
               <input
                 value={whatsappGroupInput}
                 placeholder={content.dashboardWhatsAppGroupIdPlaceholder}
@@ -1637,7 +1651,7 @@ function App() {
               ) : (
                 bot.allowedGroups.map((groupId) => (
                   <div className="dashboard-detail-item" key={groupId}>
-                    <span>{language === 'ar' ? 'المجموعة' : 'Group'}</span>
+                    <span>{content.dashboardWhatsAppGroupLabel}</span>
                     <strong>{groupId}</strong>
                     <button
                       type="button"
