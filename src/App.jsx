@@ -113,7 +113,7 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+  return ['/', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings', '/dashboard/whatsapp'].includes(window.location.pathname)
     ? window.location.pathname
     : '/'
 }
@@ -221,6 +221,8 @@ const translations = {
     dashboardPanelCustomersSubtitle: 'Primary account owner and engagement indicators.',
     dashboardPanelAnalyticsTitle: 'Sales & Platform Analytics',
     dashboardPanelSettingsTitle: 'Account & Security Settings',
+    dashboardPanelWhatsAppTitle: 'WhatsApp Bot Control',
+    dashboardPanelWhatsAppSubtitle: 'Manage group access, automatic replies, and the bot’s active state.',
     dashboardKpiConversion: 'Conversion rate',
     dashboardKpiRevenue: 'Est. revenue',
     dashboardKpiAov: 'Avg order value',
@@ -230,6 +232,23 @@ const translations = {
     dashboardOrderDate: 'Date',
     dashboardOrderStatus: 'Status',
     dashboardOrderStatusDone: 'Completed',
+    dashboardWhatsAppEnabled: 'Bot enabled',
+    dashboardWhatsAppDisabled: 'Disabled',
+    dashboardWhatsAppActive: 'Enabled',
+    dashboardWhatsAppBotName: 'Bot name',
+    dashboardWhatsAppWelcomeMessage: 'Auto reply',
+    dashboardWhatsAppCommandPrefix: 'Command prefix',
+    dashboardWhatsAppReplyInGroups: 'Reply in groups',
+    dashboardWhatsAppReplyInPrivate: 'Reply in private chats',
+    dashboardWhatsAppGroupsTitle: 'Allowed groups',
+    dashboardWhatsAppGroupIdPlaceholder: 'Enter group ID like 1234567890@g.us',
+    dashboardWhatsAppAddGroup: 'Add group',
+    dashboardWhatsAppRemoveGroup: 'Remove',
+    dashboardWhatsAppSave: 'Save bot settings',
+    dashboardWhatsAppSaved: 'Bot settings saved.',
+    dashboardWhatsAppNoGroups: 'No groups added yet.',
+    dashboardWhatsAppRunBot: 'Run: npm run whatsapp:bot',
+    dashboardWhatsAppHint: 'Add the bot to a WhatsApp group, then paste that group ID here to allow replies.',
     embedTypes: {
       youtube: 'YouTube',
       tiktok: 'TikTok',
@@ -371,6 +390,8 @@ const translations = {
     dashboardPanelCustomersSubtitle: 'مالك الحساب الأساسي ومؤشرات التفاعل.',
     dashboardPanelAnalyticsTitle: 'تحليلات المبيعات والمنصات',
     dashboardPanelSettingsTitle: 'إعدادات الحساب والأمان',
+    dashboardPanelWhatsAppTitle: 'لوحة تحكم بوت واتساب',
+    dashboardPanelWhatsAppSubtitle: 'أدر المجموعات المسموح لها والردود التلقائية وحالة البوت.',
     dashboardKpiConversion: 'معدل التحويل',
     dashboardKpiRevenue: 'إيراد تقديري',
     dashboardKpiAov: 'متوسط قيمة الطلب',
@@ -380,6 +401,23 @@ const translations = {
     dashboardOrderDate: 'التاريخ',
     dashboardOrderStatus: 'الحالة',
     dashboardOrderStatusDone: 'مكتمل',
+    dashboardWhatsAppEnabled: 'البوت مفعل',
+    dashboardWhatsAppDisabled: 'متوقف',
+    dashboardWhatsAppActive: 'مفعل',
+    dashboardWhatsAppBotName: 'اسم البوت',
+    dashboardWhatsAppWelcomeMessage: 'الرد التلقائي',
+    dashboardWhatsAppCommandPrefix: 'بادئة الأمر',
+    dashboardWhatsAppReplyInGroups: 'الرد داخل المجموعات',
+    dashboardWhatsAppReplyInPrivate: 'الرد في المحادثات الخاصة',
+    dashboardWhatsAppGroupsTitle: 'المجموعات المسموح بها',
+    dashboardWhatsAppGroupIdPlaceholder: 'أدخل معرّف المجموعة مثل 1234567890@g.us',
+    dashboardWhatsAppAddGroup: 'إضافة مجموعة',
+    dashboardWhatsAppRemoveGroup: 'حذف',
+    dashboardWhatsAppSave: 'حفظ إعدادات البوت',
+    dashboardWhatsAppSaved: 'تم حفظ إعدادات البوت.',
+    dashboardWhatsAppNoGroups: 'لم تتم إضافة مجموعات بعد.',
+    dashboardWhatsAppRunBot: 'شغّل: npm run whatsapp:bot',
+    dashboardWhatsAppHint: 'أضف البوت إلى مجموعة واتساب ثم انسخ معرّف المجموعة هنا للسماح له بالرد.',
     embedTypes: {
       youtube: 'يوتيوب',
       tiktok: 'تيك توك',
@@ -503,6 +541,18 @@ function App() {
   const [userSubscription, setUserSubscription] = useState(null)
   const [subscriptionMessage, setSubscriptionMessage] = useState('')
   const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
+  const [whatsappBot, setWhatsappBot] = useState(null)
+  const [whatsappBotForm, setWhatsappBotForm] = useState({
+    enabled: false,
+    botName: 'Mo7mels Bot',
+    welcomeMessage: 'أهلًا! أنا بوت Mo7mels. أرسل !bot للمساعدة داخل المجموعات.',
+    replyInPrivate: true,
+    replyInGroups: true,
+    commandPrefix: '!bot',
+  })
+  const [whatsappGroupInput, setWhatsappGroupInput] = useState('')
+  const [whatsappMessage, setWhatsappMessage] = useState('')
+  const [whatsappMessageType, setWhatsappMessageType] = useState('')
   const previewRef = useRef(null)
 
   const content = translations[language]
@@ -622,6 +672,7 @@ function App() {
     if (!currentUser) {
       setSavedEmbeds([])
       setUserSubscription(null)
+      setWhatsappBot(null)
       return
     }
 
@@ -647,6 +698,32 @@ function App() {
     fetchSubscription()
   }, [currentUser])
 
+  useEffect(() => {
+    if (!currentUser) {
+      return
+    }
+
+    const fetchWhatsappBot = async () => {
+      try {
+        const response = await apiRequest('/whatsapp/bot', {}, sessionToken)
+        const bot = response.bot || null
+        setWhatsappBot(bot)
+        setWhatsappBotForm({
+          enabled: Boolean(bot?.enabled),
+          botName: bot?.botName || 'Mo7mels Bot',
+          welcomeMessage: bot?.welcomeMessage || 'أهلًا! أنا بوت Mo7mels. أرسل !bot للمساعدة داخل المجموعات.',
+          replyInPrivate: bot?.replyInPrivate !== false,
+          replyInGroups: bot?.replyInGroups !== false,
+          commandPrefix: bot?.commandPrefix || '!bot',
+        })
+      } catch {
+        setWhatsappBot(null)
+      }
+    }
+
+    fetchWhatsappBot()
+  }, [currentUser, sessionToken])
+
   const navigateTo = (path) => {
     window.history.pushState({}, '', path)
     setCurrentPath(path)
@@ -665,6 +742,10 @@ function App() {
     window.localStorage.removeItem('sessionToken')
     setSavedEmbeds([])
     setUserSubscription(null)
+    setWhatsappBot(null)
+    setWhatsappGroupInput('')
+    setWhatsappMessage('')
+    setWhatsappMessageType('')
     navigateTo('/')
   }
 
@@ -803,6 +884,75 @@ function App() {
       setSavedEmbeds((prev) => prev.filter((e) => e.id !== embedId))
     } catch {
       // silent
+    }
+  }
+
+  const saveWhatsappBot = async (overrides = {}) => {
+    try {
+      setWhatsappMessage('')
+      setWhatsappMessageType('')
+      const response = await apiRequest('/whatsapp/bot', {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...whatsappBotForm,
+          ...overrides,
+        }),
+      }, sessionToken)
+      setWhatsappBot(response.bot)
+      setWhatsappBotForm((current) => ({
+        ...current,
+        ...(response.bot || {}),
+      }))
+      setWhatsappMessageType('success')
+      setWhatsappMessage(content.dashboardWhatsAppSaved)
+    } catch (error) {
+      setWhatsappMessageType('error')
+      setWhatsappMessage(error.message || content.errors.serverUnavailable)
+    }
+  }
+
+  const addWhatsappGroup = async () => {
+    const groupId = whatsappGroupInput.trim()
+    if (!groupId) {
+      setWhatsappMessageType('error')
+      setWhatsappMessage(content.dashboardWhatsAppHint)
+      return
+    }
+
+    try {
+      const response = await apiRequest('/whatsapp/bot/groups', {
+        method: 'POST',
+        body: JSON.stringify({ groupId }),
+      }, sessionToken)
+      setWhatsappBot(response.bot)
+      setWhatsappGroupInput('')
+      setWhatsappMessageType('success')
+      setWhatsappMessage(language === 'ar' ? 'تمت إضافة المجموعة.' : 'Group added.')
+      setWhatsappBotForm((current) => ({
+        ...current,
+        ...(response.bot || {}),
+      }))
+    } catch (error) {
+      setWhatsappMessageType('error')
+      setWhatsappMessage(error.message || content.errors.serverUnavailable)
+    }
+  }
+
+  const removeWhatsappGroup = async (groupId) => {
+    try {
+      const response = await apiRequest(`/whatsapp/bot/groups/${encodeURIComponent(groupId)}`, {
+        method: 'DELETE',
+      }, sessionToken)
+      setWhatsappBot(response.bot)
+      setWhatsappMessageType('success')
+      setWhatsappMessage(language === 'ar' ? 'تم حذف المجموعة.' : 'Group removed.')
+      setWhatsappBotForm((current) => ({
+        ...current,
+        ...(response.bot || {}),
+      }))
+    } catch (error) {
+      setWhatsappMessageType('error')
+      setWhatsappMessage(error.message || content.errors.serverUnavailable)
     }
   }
 
@@ -1063,6 +1213,7 @@ function App() {
       { key: 'orders', path: '/dashboard/orders', label: content.dashboardNavOrders },
       { key: 'analytics', path: '/dashboard/analytics', label: content.dashboardNavAnalytics },
       { key: 'customers', path: '/dashboard/customers', label: content.dashboardNavCustomers },
+      { key: 'whatsapp', path: '/dashboard/whatsapp', label: content.dashboardPanelWhatsAppTitle },
       { key: 'settings', path: '/dashboard/settings', label: content.dashboardNavSettings },
     ]
 
@@ -1356,6 +1507,146 @@ function App() {
       </div>
     )
 
+    const renderWhatsAppPanel = () => {
+      const bot = whatsappBot || {
+        enabled: whatsappBotForm.enabled,
+        lastStatus: 'idle',
+        lastSeenAt: null,
+        lastError: '',
+        allowedGroups: [],
+      }
+
+      const lastSeenLabel = bot.lastSeenAt
+        ? new Date(bot.lastSeenAt).toLocaleString()
+        : (language === 'ar' ? 'لا يوجد' : 'None')
+
+      return (
+        <div className="dash-panel">
+          <div className="panel-toolbar">
+            <h2>{content.dashboardPanelWhatsAppTitle}</h2>
+            <button
+              type="button"
+              className="nav-outline-button small"
+              onClick={() => saveWhatsappBot({ enabled: !whatsappBotForm.enabled })}
+            >
+              {whatsappBotForm.enabled ? content.dashboardWhatsAppDisabled : content.dashboardWhatsAppActive}
+            </button>
+          </div>
+          <p className="dash-muted">{content.dashboardPanelWhatsAppSubtitle}</p>
+          <p className="dash-muted">{content.dashboardWhatsAppRunBot}</p>
+          <p className="dash-muted">{content.dashboardWhatsAppHint}</p>
+
+          <div className="dashboard-details-grid">
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardWhatsAppEnabled}</span>
+              <strong>{bot.enabled ? content.dashboardWhatsAppActive : content.dashboardWhatsAppDisabled}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{language === 'ar' ? 'الحالة' : 'Status'}</span>
+              <strong>{bot.lastStatus || 'idle'}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{content.dashboardWhatsAppGroupsTitle}</span>
+              <strong>{bot.allowedGroups?.length || 0}</strong>
+            </div>
+            <div className="dashboard-detail-item">
+              <span>{language === 'ar' ? 'آخر تحديث' : 'Last update'}</span>
+              <strong>{lastSeenLabel}</strong>
+            </div>
+          </div>
+          {bot.lastError && <p className="auth-feedback error">{bot.lastError}</p>}
+
+          <div className="account-settings">
+            <div className="settings-row">
+              <label>{content.dashboardWhatsAppBotName}</label>
+              <input
+                value={whatsappBotForm.botName}
+                onChange={(event) => setWhatsappBotForm((current) => ({ ...current, botName: event.target.value }))}
+              />
+            </div>
+            <div className="settings-row">
+              <label>{content.dashboardWhatsAppCommandPrefix}</label>
+              <input
+                value={whatsappBotForm.commandPrefix}
+                onChange={(event) => setWhatsappBotForm((current) => ({ ...current, commandPrefix: event.target.value }))}
+              />
+            </div>
+            <div className="settings-row">
+              <label>{content.dashboardWhatsAppReplyInGroups}</label>
+              <button
+                type="button"
+                className={whatsappBotForm.replyInGroups ? 'nav-primary-button small' : 'nav-outline-button small'}
+                onClick={() => setWhatsappBotForm((current) => ({ ...current, replyInGroups: !current.replyInGroups }))}
+              >
+                {whatsappBotForm.replyInGroups ? content.dashboardWhatsAppActive : content.dashboardWhatsAppDisabled}
+              </button>
+            </div>
+            <div className="settings-row">
+              <label>{content.dashboardWhatsAppReplyInPrivate}</label>
+              <button
+                type="button"
+                className={whatsappBotForm.replyInPrivate ? 'nav-primary-button small' : 'nav-outline-button small'}
+                onClick={() => setWhatsappBotForm((current) => ({ ...current, replyInPrivate: !current.replyInPrivate }))}
+              >
+                {whatsappBotForm.replyInPrivate ? content.dashboardWhatsAppActive : content.dashboardWhatsAppDisabled}
+              </button>
+            </div>
+            <div className="settings-row password-row">
+              <label>{content.dashboardWhatsAppWelcomeMessage}</label>
+              <textarea
+                value={whatsappBotForm.welcomeMessage}
+                onChange={(event) => setWhatsappBotForm((current) => ({ ...current, welcomeMessage: event.target.value }))}
+              />
+            </div>
+            <button type="button" className="nav-primary-button" onClick={() => saveWhatsappBot()}>
+              {content.dashboardWhatsAppSave}
+            </button>
+            {whatsappMessage && (
+              <p className={`auth-feedback ${whatsappMessageType}`}>{whatsappMessage}</p>
+            )}
+          </div>
+
+          <div className="account-settings" style={{ marginTop: '1.25rem' }}>
+            <h3 style={{ marginTop: 0 }}>{content.dashboardWhatsAppGroupsTitle}</h3>
+            <div className="settings-row">
+              <label>{language === 'ar' ? 'معرّف المجموعة' : 'Group ID'}</label>
+              <input
+                value={whatsappGroupInput}
+                placeholder={content.dashboardWhatsAppGroupIdPlaceholder}
+                onChange={(event) => setWhatsappGroupInput(event.target.value)}
+              />
+              <button type="button" className="nav-outline-button small" onClick={addWhatsappGroup}>
+                {content.dashboardWhatsAppAddGroup}
+              </button>
+            </div>
+
+            <div className="dashboard-details-grid">
+              {(bot.allowedGroups || []).length === 0 ? (
+                <div className="dashboard-detail-item dashboard-detail-wide">
+                  <span>{content.dashboardWhatsAppGroupsTitle}</span>
+                  <strong>{content.dashboardWhatsAppNoGroups}</strong>
+                </div>
+              ) : (
+                bot.allowedGroups.map((groupId) => (
+                  <div className="dashboard-detail-item" key={groupId}>
+                    <span>{language === 'ar' ? 'المجموعة' : 'Group'}</span>
+                    <strong>{groupId}</strong>
+                    <button
+                      type="button"
+                      className="delete-embed-btn"
+                      onClick={() => removeWhatsappGroup(groupId)}
+                    >
+                      {content.dashboardWhatsAppRemoveGroup}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="dashboard-shell marketplace-shell">
         <header className="dash-header">
@@ -1395,14 +1686,23 @@ function App() {
           <main className="dash-main">
             <section className="dashboard-hero dash-hero-lite">
               <span className="eyebrow-badge">{content.dashboardWelcome} {currentUser?.name}</span>
-              <h2>{content.dashboardPanelOverviewTitle}</h2>
-              <p>{content.dashboardSubtitle}</p>
+              <h2>
+                {dashboardSection === 'whatsapp'
+                  ? content.dashboardPanelWhatsAppTitle
+                  : content.dashboardPanelOverviewTitle}
+              </h2>
+              <p>
+                {dashboardSection === 'whatsapp'
+                  ? content.dashboardPanelWhatsAppSubtitle
+                  : content.dashboardSubtitle}
+              </p>
             </section>
 
             {dashboardSection === 'overview' && renderOverviewPanel()}
             {dashboardSection === 'orders' && renderOrdersTable()}
             {dashboardSection === 'analytics' && renderAnalyticsPanel()}
             {dashboardSection === 'customers' && renderCustomersPanel()}
+            {dashboardSection === 'whatsapp' && renderWhatsAppPanel()}
             {dashboardSection === 'settings' && renderSettingsPanel()}
           </main>
         </div>

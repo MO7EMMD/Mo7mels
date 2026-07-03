@@ -566,6 +566,57 @@ app.delete('/api/subscription', requireAuthenticatedUser, asyncRoute(async (requ
   return response.json({ ok: true })
 }))
 
+app.get('/api/whatsapp/bot', requireAuthenticatedUser, asyncRoute(async (_request, response) => {
+  const bot = await db.getWhatsappBotConfig()
+  return response.json({
+    bot,
+    summary: {
+      enabled: bot.enabled,
+      groupCount: bot.allowedGroups.length,
+      status: bot.lastStatus,
+      lastSeenAt: bot.lastSeenAt,
+      lastError: bot.lastError,
+    },
+  })
+}))
+
+app.put('/api/whatsapp/bot', requireAuthenticatedUser, asyncRoute(async (request, response) => {
+  const { enabled, botName, welcomeMessage, replyInPrivate, replyInGroups, commandPrefix } = request.body || {}
+
+  const updates = {}
+  if (enabled !== undefined) updates.enabled = Boolean(enabled)
+  if (typeof botName === 'string') updates.botName = botName.trim() || 'Mo7mels Bot'
+  if (typeof welcomeMessage === 'string') updates.welcomeMessage = welcomeMessage.trim()
+  if (replyInPrivate !== undefined) updates.replyInPrivate = Boolean(replyInPrivate)
+  if (replyInGroups !== undefined) updates.replyInGroups = Boolean(replyInGroups)
+  if (typeof commandPrefix === 'string' && commandPrefix.trim()) updates.commandPrefix = commandPrefix.trim()
+
+  const bot = await db.updateWhatsappBotConfig(updates)
+  return response.json({ bot })
+}))
+
+app.post('/api/whatsapp/bot/groups', requireAuthenticatedUser, asyncRoute(async (request, response) => {
+  const { groupId } = request.body || {}
+  const sanitizedGroupId = String(groupId || '').trim()
+
+  if (!sanitizedGroupId) {
+    return response.status(400).json({ message: 'Group ID is required.' })
+  }
+
+  const bot = await db.getWhatsappBotConfig()
+  const allowedGroups = Array.from(new Set([...bot.allowedGroups, sanitizedGroupId]))
+  const updated = await db.updateWhatsappBotConfig({ allowedGroups })
+  return response.status(201).json({ bot: updated })
+}))
+
+app.delete('/api/whatsapp/bot/groups/:groupId', requireAuthenticatedUser, asyncRoute(async (request, response) => {
+  const groupId = String(request.params.groupId || '').trim()
+  const bot = await db.getWhatsappBotConfig()
+  const allowedGroups = bot.allowedGroups.filter((item) => item !== groupId)
+  const updated = await db.updateWhatsappBotConfig({ allowedGroups })
+  return response.json({ bot: updated })
+}))
+
 app.get('/robots.txt', (request, response) => {
   const siteUrl = getSiteUrl(request)
 
