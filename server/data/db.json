@@ -7,5 +7,17 @@
     }
   ],
   "embeds": [],
-  "subscriptions": []
+  "subscriptions": [],
+  "whatsappBot": {
+    "enabled": false,
+    "botName": "Mo7mels Bot",
+    "welcomeMessage": "أهلًا! أنا بوت Mo7mels. أرسل !bot للمساعدة داخل المجموعات.",
+    "allowedGroups": [],
+    "replyInPrivate": true,
+    "replyInGroups": true,
+    "commandPrefix": "!bot",
+    "lastStatus": "idle",
+    "lastSeenAt": null,
+    "lastError": ""
+  }
 }
