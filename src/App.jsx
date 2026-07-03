@@ -618,7 +618,7 @@ function App() {
       setProfileName(currentUser.name || '')
       setNewEmailInput(currentUser.email || '')
     }
-  }, [currentUser])
+  }, [currentUser, sessionToken])
 
   useEffect(() => {
     if (!previewRef.current || !embedCode) {
@@ -696,7 +696,7 @@ function App() {
 
     fetchSavedEmbeds()
     fetchSubscription()
-  }, [currentUser])
+  }, [currentUser, sessionToken])
 
   useEffect(() => {
     if (!currentUser) {
@@ -1494,6 +1494,14 @@ function App() {
           <div>
             <span>{content.dashboardTopPlatform}</span>
             <strong>{topTypeLabel}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardEmbedsWeek}</span>
+            <strong>{embedsThisWeek}</strong>
+          </div>
+          <div>
+            <span>{content.dashboardEmbedsMonth}</span>
+            <strong>{embedsThisMonth}</strong>
           </div>
           <div>
             <span>{content.dashboardLastEmbed}</span>
