@@ -113,7 +113,7 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+  return ['/', '/login', '/signup', '/forgot-password', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
     ? window.location.pathname
     : '/'
 }
@@ -289,6 +289,26 @@ const translations = {
       instagram: 'Valid Instagram link. Embed code generated successfully.',
       general: 'Valid general link. Iframe embed generated successfully.',
     },
+    embedTitlePlaceholder: 'Optional label for this embed (e.g. Homepage hero)',
+    dashboardOrderTitle: 'Title',
+    dashboardCopyCode: 'Copy',
+    dashboardCopied: '✓',
+    planUsageLabel: 'Plan usage',
+    planUsageOf: 'of',
+    planUsageEmbeds: 'embeds',
+    planUnlimited: 'Unlimited',
+    forgotPassword: {
+      link: 'Forgot password?',
+      title: 'Reset Password',
+      subtitle: 'Enter your email to receive a 6-digit reset code.',
+      emailLabel: 'Send Reset Code',
+      codePlaceholder: 'Enter 6-digit reset code',
+      newPasswordPlaceholder: 'New password (min 8 chars, letters + numbers)',
+      submit: 'Set New Password',
+      success: 'Password updated successfully. You can now log in.',
+      backToLogin: 'Back to Login',
+      sent: 'A reset code has been sent to your email address.',
+    },
   },
   ar: {
     brand: 'Mo7mels',
@@ -439,6 +459,26 @@ const translations = {
       instagram: 'تم التحقق من رابط إنستقرام وإنشاء كود التضمين بنجاح.',
       general: 'تم التحقق من الرابط العام وإنشاء iframe بنجاح.',
     },
+    embedTitlePlaceholder: 'تسمية اختيارية لهذا الإيمبد (مثال: بانر الرئيسية)',
+    dashboardOrderTitle: 'التسمية',
+    dashboardCopyCode: 'نسخ',
+    dashboardCopied: '✓',
+    planUsageLabel: 'استخدام الخطة',
+    planUsageOf: 'من',
+    planUsageEmbeds: 'إيمبد',
+    planUnlimited: 'غير محدود',
+    forgotPassword: {
+      link: 'نسيت كلمة المرور؟',
+      title: 'إعادة تعيين كلمة المرور',
+      subtitle: 'أدخل بريدك الإلكتروني لاستلام رمز إعادة التعيين.',
+      emailLabel: 'إرسال رمز الاستعادة',
+      codePlaceholder: 'أدخل رمز الاستعادة المكون من 6 أرقام',
+      newPasswordPlaceholder: 'كلمة المرور الجديدة (8 أحرف على الأقل + أرقام)',
+      submit: 'تعيين كلمة المرور الجديدة',
+      success: 'تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.',
+      backToLogin: 'العودة إلى تسجيل الدخول',
+      sent: 'تم إرسال رمز الاستعادة إلى بريدك الإلكتروني.',
+    },
   },
 }
 
@@ -500,6 +540,14 @@ function App() {
   })
   const [orderSearch, setOrderSearch] = useState('')
   const [copied, setCopied] = useState(false)
+  const [copiedEmbedId, setCopiedEmbedId] = useState(null)
+  const [embedTitle, setEmbedTitle] = useState('')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotCode, setForgotCode] = useState('')
+  const [forgotNewPassword, setForgotNewPassword] = useState('')
+  const [forgotStep, setForgotStep] = useState(1)
+  const [forgotMessage, setForgotMessage] = useState('')
+  const [forgotMessageType, setForgotMessageType] = useState('')
   const [userSubscription, setUserSubscription] = useState(null)
   const [subscriptionMessage, setSubscriptionMessage] = useState('')
   const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
@@ -826,7 +874,7 @@ function App() {
     localStorage.setItem('darkMode', String(next))
   }
 
-  const saveEmbedToAccount = async (type, sourceUrl, code) => {
+  const saveEmbedToAccount = async (type, sourceUrl, code, title) => {
     if (!currentUser) {
       return
     }
@@ -838,6 +886,7 @@ function App() {
           type,
           sourceUrl,
           embedCode: code,
+          title: title || '',
         }),
       }, sessionToken)
 
@@ -915,7 +964,156 @@ function App() {
     setEmbedCode(nextCode)
     setValidationType('success')
     setValidationMessage(nextMessage)
-    await saveEmbedToAccount(nextType, normalizedUrl, nextCode)
+    await saveEmbedToAccount(nextType, normalizedUrl, nextCode, embedTitle)
+  }
+
+  const renderForgotPasswordPage = () => {
+    const handleSendCode = async () => {
+      setForgotMessage('')
+      try {
+        const data = await apiRequest('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+        })
+        setForgotStep(2)
+        setForgotMessageType('success')
+        setForgotMessage(data.message || content.forgotPassword.sent)
+        if (data.otpCode) {
+          setForgotMessage(`${content.forgotPassword.sent} (debug: ${data.otpCode})`)
+        }
+      } catch (error) {
+        setForgotMessageType('error')
+        setForgotMessage(error.message || content.errors.serverUnavailable)
+      }
+    }
+
+    const handleResetPassword = async () => {
+      setForgotMessage('')
+      try {
+        await apiRequest('/auth/reset-password', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: forgotEmail.trim().toLowerCase(),
+            code: forgotCode.trim(),
+            newPassword: forgotNewPassword,
+          }),
+        })
+        setForgotStep(3)
+        setForgotMessageType('success')
+        setForgotMessage(content.forgotPassword.success)
+      } catch (error) {
+        setForgotMessageType('error')
+        setForgotMessage(error.message || content.errors.serverUnavailable)
+      }
+    }
+
+    return (
+      <div className="auth-page-shell">
+        <header className="auth-page-topbar">
+          <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
+            {content.home}
+          </button>
+          <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
+        </header>
+
+        <section className="auth-layout">
+          <aside className="auth-showcase">
+            <span className="eyebrow-badge">{content.brand}</span>
+            <h1>{content.forgotPassword.title}</h1>
+            <p>{content.authAsideText}</p>
+            <div className="showcase-stats">
+              {content.authStats.map((item) => (
+                <div className="showcase-stat" key={item}>{item}</div>
+              ))}
+            </div>
+          </aside>
+
+          <div className="auth-form-card">
+            <div className="auth-form-header">
+              <h2>{content.forgotPassword.title}</h2>
+              <p>{content.forgotPassword.subtitle}</p>
+            </div>
+
+            <div className="auth-fields">
+              {forgotStep === 3 ? (
+                <>
+                  {forgotMessage && <p className="auth-feedback success">{forgotMessage}</p>}
+                  <button
+                    type="button"
+                    className="auth-submit-button"
+                    onClick={() => {
+                      setForgotStep(1)
+                      setForgotEmail('')
+                      setForgotCode('')
+                      setForgotNewPassword('')
+                      setForgotMessage('')
+                      navigateTo('/login')
+                    }}
+                  >
+                    {content.forgotPassword.backToLogin}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="email"
+                    placeholder={content.email}
+                    value={forgotEmail}
+                    disabled={forgotStep === 2}
+                    onChange={(e) => {
+                      setForgotEmail(e.target.value)
+                      setForgotMessage('')
+                    }}
+                  />
+                  {forgotStep === 2 && (
+                    <>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={content.forgotPassword.codePlaceholder}
+                        value={forgotCode}
+                        onChange={(e) => {
+                          setForgotCode(e.target.value)
+                          setForgotMessage('')
+                        }}
+                      />
+                      <input
+                        type="password"
+                        placeholder={content.forgotPassword.newPasswordPlaceholder}
+                        value={forgotNewPassword}
+                        onChange={(e) => {
+                          setForgotNewPassword(e.target.value)
+                          setForgotMessage('')
+                        }}
+                      />
+                    </>
+                  )}
+                  {forgotMessage && <p className={`auth-feedback ${forgotMessageType}`}>{forgotMessage}</p>}
+                  <button
+                    type="button"
+                    className="auth-submit-button"
+                    onClick={forgotStep === 1 ? handleSendCode : handleResetPassword}
+                  >
+                    {forgotStep === 1 ? content.forgotPassword.emailLabel : content.forgotPassword.submit}
+                  </button>
+                  <button
+                    type="button"
+                    className="auth-link-button"
+                    onClick={() => {
+                      setForgotStep(1)
+                      setForgotMessage('')
+                      navigateTo('/login')
+                    }}
+                  >
+                    {content.forgotPassword.backToLogin}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    )
   }
 
   const renderAuthPage = () => (
@@ -1015,6 +1213,21 @@ function App() {
             <button type="button" className="auth-submit-button" onClick={handleAuthSubmit}>
               {isSignupPage ? content.signUp : content.login}
             </button>
+            {!isSignupPage && (
+              <button
+                type="button"
+                className="auth-link-button"
+                onClick={() => {
+                  clearAuthMessage()
+                  setForgotEmail(authForm.email)
+                  setForgotStep(1)
+                  setForgotMessage('')
+                  navigateTo('/forgot-password')
+                }}
+              >
+                {content.forgotPassword.link}
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -1048,6 +1261,10 @@ function App() {
       ? new Date(savedEmbeds[0].createdAt).toLocaleString()
       : content.dashboardNoActivityYet
     const shortUserId = currentUser?.id ? String(currentUser.id).slice(0, 8) : '--'
+    const planLimits = { basic: 1000, pro: 200000, business: 200000 }
+    const activePlanKey = userSubscription?.planKey
+    const planLimit = activePlanKey ? (planLimits[activePlanKey] ?? 0) : 0
+    const planUsagePct = planLimit > 0 ? Math.min(100, Math.round((savedEmbeds.length / planLimit) * 100)) : 0
     const conversionRate = savedEmbeds.length ? Math.min(98, 27 + savedEmbeds.length * 2) : 0
     const estimatedRevenue = (savedEmbeds.length * 0.75).toFixed(2)
     const averageOrderValue = savedEmbeds.length
@@ -1103,10 +1320,12 @@ function App() {
                 <thead>
                   <tr>
                     <th>{content.dashboardOrderId}</th>
+                    <th>{content.dashboardOrderTitle}</th>
                     <th>{content.dashboardOrderType}</th>
                     <th>{content.dashboardOrderSource}</th>
                     <th>{content.dashboardOrderDate}</th>
                     <th>{content.dashboardOrderStatus}</th>
+                    <th>{content.dashboardCopyCode}</th>
                     <th>{language === 'ar' ? 'حذف' : 'Delete'}</th>
                   </tr>
                 </thead>
@@ -1114,6 +1333,7 @@ function App() {
                   {filteredEmbeds.map((item) => (
                     <tr key={item.id}>
                       <td>MO7-{String(item.id).padStart(4, '0')}</td>
+                      <td className="embed-title-cell">{item.title || <span className="dash-muted">—</span>}</td>
                       <td>{content.embedTypes[item.type] || content.embedTypes.general}</td>
                       <td>
                         <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="embed-url-link">
@@ -1123,6 +1343,20 @@ function App() {
                       <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                       <td>
                         <span className="status-pill done">{content.dashboardOrderStatusDone}</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="copy-btn small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.embedCode).catch(() => {})
+                            setCopiedEmbedId(item.id)
+                            setTimeout(() => setCopiedEmbedId(null), 1800)
+                          }}
+                          title={language === 'ar' ? 'نسخ الكود' : 'Copy embed code'}
+                        >
+                          {copiedEmbedId === item.id ? content.dashboardCopied : content.dashboardCopyCode}
+                        </button>
                       </td>
                       <td>
                         <button
@@ -1263,6 +1497,20 @@ function App() {
             <strong>${averageOrderValue}</strong>
           </article>
         </div>
+        {activePlanKey && (
+          <div className="plan-usage-bar-wrap">
+            <div className="plan-usage-bar-header">
+              <span>{content.planUsageLabel} — {content.plans[content.planKeys.indexOf(activePlanKey)] || activePlanKey}</span>
+              <span>{savedEmbeds.length} {content.planUsageOf} {planLimit.toLocaleString()} {content.planUsageEmbeds}</span>
+            </div>
+            <div className="plan-usage-track">
+              <div
+                className={`plan-usage-fill${planUsagePct >= 90 ? ' danger' : planUsagePct >= 70 ? ' warning' : ''}`}
+                style={{ width: `${planUsagePct}%` }}
+              />
+            </div>
+          </div>
+        )}
         {renderOrdersTable()}
       </>
     )
@@ -1461,6 +1709,13 @@ function App() {
           }
         }}
       />
+      <input
+        type="text"
+        placeholder={content.embedTitlePlaceholder}
+        value={embedTitle}
+        onChange={(event) => setEmbedTitle(event.target.value)}
+        className="embed-title-input"
+      />
       <button onClick={generateEmbed}>{content.generate}</button>
       {validationMessage && (
         <p className={`validation-message ${validationType}`}>{validationMessage}</p>
@@ -1597,7 +1852,9 @@ function App() {
           ? renderDashboardPage()
           : currentPath === '/'
             ? renderHomePage()
-            : renderAuthPage()}
+            : currentPath === '/forgot-password'
+              ? renderForgotPasswordPage()
+              : renderAuthPage()}
       </div>
     </PayPalScriptProvider>
   )
