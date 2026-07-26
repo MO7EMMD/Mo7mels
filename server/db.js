@@ -12,6 +12,11 @@ const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL ||
 const usePostgres = Boolean(connectionString)
 const pool = usePostgres ? new Pool({ connectionString }) : null
 
+/**
+ * Normalizes a user row from either backend into a consistent camelCase shape.
+ * Postgres returns snake_case columns; the JSON fallback stores camelCase keys directly.
+ * Both field names are preserved so callers work regardless of which backend is active.
+ */
 function normalizeUser(row) {
   if (!row) return null
   return {
@@ -23,6 +28,7 @@ function normalizeUser(row) {
   }
 }
 
+/** Normalizes a session row to camelCase, bridging snake_case Postgres columns and JSON keys. */
 function normalizeSession(row) {
   if (!row) return null
   return {
@@ -32,6 +38,7 @@ function normalizeSession(row) {
   }
 }
 
+/** Normalizes an embed row to camelCase, bridging snake_case Postgres columns and JSON keys. */
 function normalizeEmbed(row) {
   if (!row) return null
   return {
@@ -43,6 +50,7 @@ function normalizeEmbed(row) {
   }
 }
 
+/** Normalizes a subscription row to camelCase, bridging snake_case Postgres columns and JSON keys. */
 function normalizeSubscription(row) {
   if (!row) return null
   return {
@@ -54,6 +62,10 @@ function normalizeSubscription(row) {
   }
 }
 
+/**
+ * Creates all Postgres tables using CREATE TABLE IF NOT EXISTS, so it is idempotent
+ * and safe to call on every process startup without risking data loss.
+ */
 async function initPostgres() {
   if (!usePostgres) {
     return
@@ -132,6 +144,7 @@ async function writeJsonDb(data) {
   await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8')
 }
 
+/** Returns max(existing ids) + 1. Safer than .length + 1 because IDs may have gaps after deletions. */
 function nextId(collection) {
   return collection.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1
 }
@@ -177,6 +190,11 @@ export async function createUser({ name, email, password_hash, otp_code, otp_exp
   return normalizeUser(user)
 }
 
+/**
+ * Updates arbitrary fields on a user row. The Postgres path builds a dynamic SET clause
+ * so callers can update any subset of columns without separate helper functions.
+ * The JSON path maps snake_case update keys to camelCase storage keys for compatibility.
+ */
 export async function updateUserByEmail(email, updates = {}) {
   if (usePostgres) {
     const fields = []
