@@ -51,12 +51,17 @@ app.set('trust proxy', true)
 app.use(cors())
 app.use(express.json())
 
+/**
+ * Wraps an async Express handler so that rejected promises are forwarded to the
+ * next error handler. Express 4 does not catch async exceptions automatically.
+ */
 function asyncRoute(handler) {
   return (request, response, next) => {
     Promise.resolve(handler(request, response, next)).catch(next)
   }
 }
 
+/** Strips path, query, and fragment from a URL string, returning only the scheme+host origin. */
 function normalizeSiteUrl(rawUrl) {
   if (!rawUrl) {
     return ''
@@ -125,6 +130,7 @@ function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
 }
 
+/** SHA-256 one-way hash. Deterministic, so identical passwords produce the same digest. */
 function hashPassword(password) {
   return createHash('sha256').update(password).digest('hex')
 }
@@ -196,6 +202,13 @@ async function sendOtpByResend(email, code) {
   }
 }
 
+/**
+ * Delivers an OTP code by email, trying providers in priority order:
+ * 1. SMTP (if configured) — falls through to Resend on failure when Resend is also configured.
+ * 2. Resend API (if RESEND_API_KEY is set).
+ * 3. OTP_DEBUG mode — skips delivery and logs the code to stdout for local development.
+ * Throws if no provider is available and OTP_DEBUG is off.
+ */
 async function sendOtpEmail(email, code) {
   if (mailTransporter) {
     try {
@@ -233,6 +246,11 @@ function isOtpExpired(user) {
   return !expiresAt || new Date(expiresAt) < new Date()
 }
 
+/**
+ * Express middleware that validates the Bearer token and attaches the resolved user
+ * object to `request.authUser` for downstream route handlers.
+ * Returns 401 for missing, expired, or invalid tokens without calling next().
+ */
 async function requireAuthenticatedUser(request, response, next) {
   try {
     const accessToken = getBearerToken(request)
@@ -299,6 +317,7 @@ async function writeDatabase(data) {
   await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8')
 }
 
+/** Strips password_hash, otp_code, and otp_expires_at before sending user data to the client. */
 function toPublicUser(user) {
   return {
     id: user.id,
@@ -325,7 +344,7 @@ app.use((request, response, next) => {
 
   const requestOrigin = `${request.protocol}://${host}`
 
-  // Avoid redirect loops when registrar forwarding points the custom domain to *.onrender.com.
+  // *.onrender.com hosts the app itself; redirecting there would loop back to the same server.
   if (host.endsWith('.onrender.com')) {
     return next()
   }
