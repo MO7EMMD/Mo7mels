@@ -511,6 +511,55 @@ app.post('/api/auth/change-email', requireAuthenticatedUser, asyncRoute(async (r
   return response.json({ user: toPublicUser(updatedUser) })
 }))
 
+app.post('/api/auth/forgot-password', asyncRoute(async (request, response) => {
+  const { email } = request.body || {}
+  const normalizedEmail = normalizeEmail(email)
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return response.status(400).json({ message: 'A valid email is required.' })
+  }
+
+  const user = await db.getUserByEmail(normalizedEmail)
+  const code = generateOtpCode()
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+
+  if (user) {
+    await db.updateUserByEmail(normalizedEmail, { otp_code: code, otp_expires_at: expiresAt })
+    try {
+      await sendOtpEmail(normalizedEmail, code)
+    } catch (error) {
+      if (!OTP_DEBUG) throw error
+    }
+  }
+
+  const debugPayload = OTP_DEBUG && user ? { otpCode: code } : {}
+  return response.json({ message: 'If this email is registered, you will receive a reset code.', ...debugPayload })
+}))
+
+app.post('/api/auth/reset-password', asyncRoute(async (request, response) => {
+  const { email, code, newPassword } = request.body || {}
+  const normalizedEmail = normalizeEmail(email)
+
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(String(newPassword || ''))) {
+    return response.status(400).json({ message: 'Password must be at least 8 characters and include letters and numbers.' })
+  }
+
+  const user = await db.getUserByEmail(normalizedEmail)
+  const storedCode = user?.otpCode || user?.otp_code
+
+  if (!user || isOtpExpired(user) || storedCode !== String(code || '').trim()) {
+    return response.status(400).json({ message: 'Invalid or expired reset code.' })
+  }
+
+  await db.updateUserByEmail(normalizedEmail, {
+    password_hash: hashPassword(String(newPassword)),
+    otp_code: null,
+    otp_expires_at: null,
+  })
+
+  return response.json({ message: 'Password updated successfully.' })
+}))
+
 app.get('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, response) => {
   const normalizedEmail = normalizeEmail(request.authUser.email)
   const embeds = await db.getEmbedsByUser(normalizedEmail)
@@ -518,14 +567,14 @@ app.get('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, resp
 }))
 
 app.post('/api/embeds', requireAuthenticatedUser, asyncRoute(async (request, response) => {
-  const { type, sourceUrl, embedCode } = request.body || {}
+  const { type, sourceUrl, embedCode, title } = request.body || {}
   const normalizedEmail = normalizeEmail(request.authUser.email)
 
   if (!type || !sourceUrl || !embedCode) {
     return response.status(400).json({ message: 'Missing embed payload.' })
   }
 
-  const embed = await db.addEmbed({ userEmail: normalizedEmail, type, sourceUrl, embedCode })
+  const embed = await db.addEmbed({ userEmail: normalizedEmail, type, sourceUrl, embedCode, title: String(title || '').trim() })
   const embeds = await db.getEmbedsByUser(normalizedEmail)
   return response.status(201).json({ embed, embeds })
 }))
