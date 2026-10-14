@@ -39,6 +39,7 @@ function normalizeEmbed(row) {
     userEmail: row.user_email || row.userEmail,
     sourceUrl: row.source_url || row.sourceUrl,
     embedCode: row.embed_code || row.embedCode,
+    title: row.title || '',
     createdAt: row.created_at || row.createdAt,
   }
 }
@@ -83,8 +84,10 @@ async function initPostgres() {
       type TEXT,
       source_url TEXT,
       embed_code TEXT,
+      title TEXT,
       created_at TIMESTAMPTZ DEFAULT now()
     );
+    ALTER TABLE embeds ADD COLUMN IF NOT EXISTS title TEXT;
 
     CREATE TABLE IF NOT EXISTS subscriptions (
       id SERIAL PRIMARY KEY,
@@ -279,11 +282,11 @@ export async function getSession(token) {
   return normalizeSession(session || null)
 }
 
-export async function addEmbed({ userEmail, type, sourceUrl, embedCode }) {
+export async function addEmbed({ userEmail, type, sourceUrl, embedCode, title = '' }) {
   if (usePostgres) {
     const res = await pool.query(
-      `INSERT INTO embeds (user_email, type, source_url, embed_code) VALUES ($1, $2, $3, $4) RETURNING *`,
-      [userEmail, type, sourceUrl, embedCode],
+      `INSERT INTO embeds (user_email, type, source_url, embed_code, title) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [userEmail, type, sourceUrl, embedCode, title || null],
     )
     return normalizeEmbed(res.rows[0])
   }
@@ -295,6 +298,7 @@ export async function addEmbed({ userEmail, type, sourceUrl, embedCode }) {
     type,
     sourceUrl,
     embedCode,
+    title: title || '',
     createdAt: new Date().toISOString(),
   }
   data.embeds.push(embed)

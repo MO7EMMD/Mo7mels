@@ -1049,3 +1049,78 @@ button:hover {
 .settings-row.password-row { flex-direction:column; align-items:flex-start }
 .settings-row.password-row input { width:320px }
 .nav-primary-button.small, .nav-outline-button.small { padding:0.35rem 0.6rem; font-size:0.86rem }
+
+/* ── Embed title input ─────────────────────────────── */
+.embed-title-input {
+  width: 100%;
+  max-width: 560px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e6eef6;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #334155;
+  background: #f8fafc;
+  margin-top: 0.5rem;
+  display: block;
+}
+.embed-title-input:focus { outline: none; border-color: #2563eb; background: #fff; }
+.embed-title-cell { color: #334155; font-size: 0.88rem; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Copy code small button ────────────────────────── */
+.copy-btn.small {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.82rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.copy-btn.small:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* ── Plan usage bar ────────────────────────────────── */
+.plan-usage-bar-wrap {
+  background: #fff;
+  border: 1px solid #e6eef6;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.plan-usage-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+.plan-usage-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.plan-usage-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+.plan-usage-fill.warning { background: #f59e0b; }
+.plan-usage-fill.danger { background: #ef4444; }
+
+/* ── Forgot password link button ───────────────────── */
+.auth-link-button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-top: 0.25rem;
+}
+.auth-link-button:hover { color: #1d4ed8; }
