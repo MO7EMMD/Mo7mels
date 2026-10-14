@@ -30,6 +30,10 @@ const MAINTENANCE_MESSAGE =
   import.meta.env.VITE_MAINTENANCE_MESSAGE ||
   'الموقع الآن يخضع لعملية تحديث سريعة لتحسين التجربة. نشكرك على صبرك، وسيعود للعمل خلال دقائق.'
 
+/**
+ * Extracts a YouTube video ID from watch, youtu.be short-link, Shorts, and embed URL formats.
+ * Returns an empty string when no valid ID is found so callers can treat it as a falsy error.
+ */
 function extractYouTubeVideoId(rawUrl) {
   try {
     const parsedUrl = new URL(rawUrl)
@@ -59,6 +63,7 @@ function extractYouTubeVideoId(rawUrl) {
   }
 }
 
+/** Extracts the numeric video ID from a TikTok /video/<id> URL. Returns '' on failure. */
 function extractTikTokVideoId(rawUrl) {
   try {
     const parsedUrl = new URL(rawUrl)
@@ -75,6 +80,10 @@ function extractTikTokVideoId(rawUrl) {
   }
 }
 
+/**
+ * Returns { permalink, shortcode } for public Instagram posts, reels, and TV links.
+ * Returns null for stories, profile URLs, or anything that can't be embedded.
+ */
 function extractInstagramData(rawUrl) {
   try {
     const parsedUrl = new URL(rawUrl)
@@ -108,6 +117,10 @@ function getTopEmbedType(typeUsage) {
   return Object.entries(typeUsage).sort((left, right) => right[1] - left[1])[0]?.[0] || ''
 }
 
+/**
+ * Reads the current browser path on mount and falls back to '/' for any unknown route,
+ * preventing the SPA shell from rendering against an unrecognised pathname on hard reload.
+ */
 function getInitialPath() {
   if (typeof window === 'undefined') {
     return '/'
@@ -118,6 +131,11 @@ function getInitialPath() {
     : '/'
 }
 
+/**
+ * Thin fetch wrapper that attaches a Bearer token when provided and parses JSON.
+ * Throws an Error with the server's message text on any non-2xx response so callers
+ * can catch a single error type regardless of HTTP status code.
+ */
 async function apiRequest(path, options = {}, token = '') {
   const authorizationHeader = token ? { Authorization: `Bearer ${token}` } : {}
 
@@ -826,6 +844,7 @@ function App() {
     localStorage.setItem('darkMode', String(next))
   }
 
+  // Silently skips when the user is not logged in; only shows an error if the save call itself fails.
   const saveEmbedToAccount = async (type, sourceUrl, code) => {
     if (!currentUser) {
       return
