@@ -25,6 +25,7 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 - Login and signup pages with email OTP verification
 - Confirm password field for new accounts
 - Dashboard page for reviewing saved embed history
+- WhatsApp bot control panel with group allow-list support
 - File-based API server with JSON storage in `server/data/db.json`
 
 ## Available Scripts
@@ -32,6 +33,7 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 - `npm run dev`: run the Vite frontend only
 - `npm run server`: run the API server only
 - `npm run dev:full`: run frontend and API together
+- `npm run whatsapp:bot`: run the WhatsApp bot worker
 - `npm start`: run the production server that serves the built app and API
 
 ## Deployment
@@ -121,6 +123,13 @@ npm run dev:full
 ```
 
 4. Open `http://localhost:5173`, sign in, then visit the Dashboard to use Account Settings and see charts.
+
+## WhatsApp bot
+
+- The dashboard now includes a WhatsApp bot section for group allow-list management and auto-reply settings.
+- Use `npm run whatsapp:bot` in a separate terminal to start the bot worker.
+- Add the bot to a WhatsApp group, copy the group ID (`...@g.us`), and add it in the dashboard to allow group replies.
+- The bot responds to commands that start with `!bot` by default.
 
 ## Data migration from legacy JSON
 

@@ -54,6 +54,47 @@ function normalizeSubscription(row) {
   }
 }
 
+function defaultWhatsappBotConfig() {
+  return {
+    enabled: false,
+    botName: 'Mo7mels Bot',
+    welcomeMessage: 'أهلًا! أنا بوت Mo7mels. أرسل !bot للمساعدة داخل المجموعات.',
+    allowedGroups: [],
+    replyInPrivate: true,
+    replyInGroups: true,
+    commandPrefix: '!bot',
+    lastStatus: 'idle',
+    lastSeenAt: null,
+    lastError: '',
+  }
+}
+
+function normalizeWhatsappBot(row) {
+  const defaults = defaultWhatsappBotConfig()
+  if (!row) return defaults
+
+  const allowedGroups = Array.isArray(row.allowedGroups)
+    ? row.allowedGroups.filter(Boolean).map((groupId) => String(groupId).trim())
+    : Array.isArray(row.allowed_groups)
+      ? row.allowed_groups.filter(Boolean).map((groupId) => String(groupId).trim())
+      : defaults.allowedGroups
+
+  return {
+    ...defaults,
+    ...row,
+    allowedGroups,
+    enabled: Boolean(row.enabled ?? row.isEnabled ?? defaults.enabled),
+    replyInPrivate: Boolean(row.replyInPrivate ?? row.reply_in_private ?? defaults.replyInPrivate),
+    replyInGroups: Boolean(row.replyInGroups ?? row.reply_in_groups ?? defaults.replyInGroups),
+    botName: String(row.botName || row.bot_name || defaults.botName),
+    welcomeMessage: String(row.welcomeMessage || row.welcome_message || defaults.welcomeMessage),
+    commandPrefix: String(row.commandPrefix || row.command_prefix || defaults.commandPrefix),
+    lastStatus: String(row.lastStatus || row.last_status || defaults.lastStatus),
+    lastSeenAt: row.lastSeenAt || row.last_seen_at || defaults.lastSeenAt,
+    lastError: String(row.lastError || row.last_error || defaults.lastError),
+  }
+}
+
 async function initPostgres() {
   if (!usePostgres) {
     return
@@ -105,7 +146,7 @@ async function ensureJsonDb() {
   } catch {
     await fs.writeFile(
       dbPath,
-      JSON.stringify({ users: [], sessions: [], embeds: [], subscriptions: [] }, null, 2),
+      JSON.stringify({ users: [], sessions: [], embeds: [], subscriptions: [], whatsappBot: defaultWhatsappBotConfig() }, null, 2),
       'utf8',
     )
   }
@@ -122,9 +163,10 @@ async function readJsonDb() {
       sessions: Array.isArray(data.sessions) ? data.sessions : [],
       embeds: Array.isArray(data.embeds) ? data.embeds : [],
       subscriptions: Array.isArray(data.subscriptions) ? data.subscriptions : [],
+      whatsappBot: normalizeWhatsappBot(data.whatsappBot),
     }
   } catch {
-    return { users: [], sessions: [], embeds: [], subscriptions: [] }
+    return { users: [], sessions: [], embeds: [], subscriptions: [], whatsappBot: defaultWhatsappBotConfig() }
   }
 }
 
@@ -375,4 +417,23 @@ export async function deleteSubscriptionByUser(userEmail) {
   data.subscriptions = data.subscriptions.filter((item) => item.userEmail !== userEmail)
   await writeJsonDb(data)
   return true
+}
+
+export async function getWhatsappBotConfig() {
+  const data = await readJsonDb()
+  return normalizeWhatsappBot(data.whatsappBot)
+}
+
+export async function updateWhatsappBotConfig(updates = {}) {
+  const data = await readJsonDb()
+  const current = normalizeWhatsappBot(data.whatsappBot)
+  const next = normalizeWhatsappBot({
+    ...current,
+    ...updates,
+    allowedGroups: Array.isArray(updates.allowedGroups) ? updates.allowedGroups : current.allowedGroups,
+  })
+
+  data.whatsappBot = next
+  await writeJsonDb(data)
+  return next
 }
