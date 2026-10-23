@@ -161,6 +161,8 @@ const translations = {
     language: 'Language',
     arabic: 'Arabic',
     english: 'English',
+    nightMode: 'Night',
+    lightMode: 'Light',
     linkedin: 'LinkedIn',
     pageTitle: 'Mo7mels',
     homeHeadline: 'Turn links into ready-to-share embeds.',
@@ -368,6 +370,8 @@ const translations = {
     language: 'اللغة',
     arabic: 'العربية',
     english: 'الإنجليزية',
+    nightMode: 'ليلي',
+    lightMode: 'نهاري',
     pageTitle: 'Mo7mels',
     homeHeadline: 'حوّل روابطك إلى تضمينات جاهزة للمشاركة.',
     pageSubtitle: 'أنشئ أكواد تضمين ليوتيوب وشورتس وتيك توك وإنستقرام والروابط العامة.',
@@ -567,23 +571,40 @@ const translations = {
 
 function LanguageSwitcher({ content, language, setLanguage }) {
   return (
-    <div className="language-switcher">
-      <span className="language-label">{content.language}</span>
+    <div className="language-switcher" role="group" aria-label={content.language}>
       <button
         type="button"
-        className={language === 'ar' ? 'toggle-chip active' : 'toggle-chip'}
-        onClick={() => setLanguage('ar')}
-      >
-        {content.arabic}
-      </button>
-      <button
-        type="button"
-        className={language === 'en' ? 'toggle-chip active' : 'toggle-chip'}
+        className={language === 'en' ? 'language-option active' : 'language-option'}
+        aria-pressed={language === 'en'}
         onClick={() => setLanguage('en')}
       >
-        {content.english}
+        EN
+      </button>
+      <button
+        type="button"
+        className={language === 'ar' ? 'language-option active' : 'language-option'}
+        aria-pressed={language === 'ar'}
+        onClick={() => setLanguage('ar')}
+      >
+        عربي
       </button>
     </div>
+  )
+}
+
+function ThemeSwitcher({ content, darkMode, onToggle }) {
+  const nextMode = darkMode ? content.lightMode : content.nightMode
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={onToggle}
+      aria-label={`${content.language}: ${nextMode}`}
+      title={nextMode}
+    >
+      <span className="theme-toggle-icon" aria-hidden="true">{darkMode ? '☀' : '☾'}</span>
+      <span>{nextMode}</span>
+    </button>
   )
 }
 
@@ -1476,9 +1497,7 @@ function App() {
           <input className="dash-search" type="text" placeholder={content.dashboardSearch} />
           <div className="top-bar-actions">
             <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
-            <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
-              {darkMode ? '☀️' : '🌙'}
-            </button>
+            <ThemeSwitcher content={content} darkMode={darkMode} onToggle={toggleDarkMode} />
             <button type="button" className="nav-link-button" onClick={() => navigateTo('/')}>
               {content.dashboardBack}
             </button>
@@ -1536,9 +1555,7 @@ function App() {
         </nav>
         <div className="top-bar-actions">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
-          <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
-            {darkMode ? '☀️' : '🌙'}
-          </button>
+          <ThemeSwitcher content={content} darkMode={darkMode} onToggle={toggleDarkMode} />
           {currentUser ? (
             <>
               <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
