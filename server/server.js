@@ -1,7 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import nodemailer from 'nodemailer'
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,6 +25,9 @@ const SITE_NAME = process.env.SITE_NAME || 'Mo7mels'
 const SITE_LOGO_URL = process.env.SITE_LOGO_URL || `${effectiveSiteUrl}/site-logo.svg`
 const SITE_IMAGE_URL = process.env.SITE_IMAGE_URL || SITE_LOGO_URL
 const EMAIL_FROM = process.env.EMAIL_FROM || `no-reply@${new URL(effectiveSiteUrl).hostname}`
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${effectiveSiteUrl}/api/auth/google/callback`
 const SMTP_HOST = process.env.SMTP_HOST || ''
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 587
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true'
@@ -97,19 +100,9 @@ function buildSitemapXml(siteUrl) {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${siteUrl}/login</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>${siteUrl}/signup</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>${siteUrl}/dashboard</loc>
+    <loc>${siteUrl}/portfolio/</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
 </urlset>`
 }
@@ -117,6 +110,9 @@ function buildSitemapXml(siteUrl) {
 function buildRobotsTxt(siteUrl) {
   return `User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /signup
 
 Sitemap: ${siteUrl}/sitemap.xml`
 }
@@ -137,6 +133,25 @@ function getBearerToken(request) {
   }
 
   return authorizationHeader.slice(7).trim()
+}
+
+function getCookie(request, name) {
+  const cookies = String(request.get('cookie') || '').split(';')
+  const matchingCookie = cookies.map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))
+  return matchingCookie ? decodeURIComponent(matchingCookie.slice(name.length + 1)) : ''
+}
+
+function getSessionToken(request) {
+  return getBearerToken(request) || getCookie(request, 'mo7mels_session')
+}
+
+function setCookie(response, name, value, maxAge, request) {
+  const secure = request.secure || isProduction ? '; Secure' : ''
+  response.append('Set-Cookie', `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`)
+}
+
+function clearCookie(response, name, request) {
+  setCookie(response, name, '', 0, request)
 }
 
 function generateOtpCode() {
@@ -235,7 +250,7 @@ function isOtpExpired(user) {
 
 async function requireAuthenticatedUser(request, response, next) {
   try {
-    const accessToken = getBearerToken(request)
+    const accessToken = getSessionToken(request)
 
     if (!accessToken) {
       return response.status(401).json({ message: 'Missing authorization token.' })
@@ -313,7 +328,7 @@ app.get('/p', (_request, response) => {
 })
 
 app.get('/api/health', (_request, response) => {
-  response.json({ ok: true })
+  response.json({ ok: true, storage: db.getStorageMode() })
 })
 
 app.use((request, response, next) => {
@@ -349,6 +364,94 @@ app.use((request, response, next) => {
 
   return response.redirect(301, new URL(request.originalUrl, configuredSiteUrl).toString())
 })
+
+app.get('/api/auth/google', (request, response) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return response.status(503).type('text/plain').send('Google sign-in has not been configured yet.')
+  }
+
+  const state = randomBytes(24).toString('hex')
+  setCookie(response, 'mo7mels_oauth_state', state, 600, request)
+  const authorizationUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+  authorizationUrl.search = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    prompt: 'select_account',
+  }).toString()
+  return response.redirect(302, authorizationUrl.toString())
+})
+
+app.get('/api/auth/google/callback', asyncRoute(async (request, response) => {
+  const savedState = getCookie(request, 'mo7mels_oauth_state')
+  clearCookie(response, 'mo7mels_oauth_state', request)
+
+  if (request.query.error) {
+    return response.redirect(303, `${effectiveSiteUrl}/login?auth=google_cancelled`)
+  }
+
+  const returnedState = String(request.query.state || '')
+  const savedStateBytes = Buffer.from(savedState)
+  const returnedStateBytes = Buffer.from(returnedState)
+  if (!savedState || savedStateBytes.length !== returnedStateBytes.length || !timingSafeEqual(savedStateBytes, returnedStateBytes)) {
+    return response.status(400).type('text/plain').send('Google sign-in could not be verified. Please try again.')
+  }
+
+  if (!request.query.code || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return response.redirect(303, `${effectiveSiteUrl}/login?auth=google_unavailable`)
+  }
+
+  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code: String(request.query.code),
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      grant_type: 'authorization_code',
+    }),
+  })
+  const tokenData = await tokenResponse.json().catch(() => ({}))
+  if (!tokenResponse.ok || !tokenData.access_token) {
+    console.error('Google token exchange failed:', tokenData.error || tokenResponse.status)
+    return response.redirect(303, `${effectiveSiteUrl}/login?auth=google_failed`)
+  }
+
+  const profileResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+    headers: { Authorization: `Bearer ${tokenData.access_token}` },
+  })
+  const profile = await profileResponse.json().catch(() => ({}))
+  const normalizedEmail = normalizeEmail(profile.email)
+  if (!profileResponse.ok || profile.email_verified !== true || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return response.redirect(303, `${effectiveSiteUrl}/login?auth=google_email_unverified`)
+  }
+
+  let user = await db.getUserByEmail(normalizedEmail)
+  if (!user) {
+    user = await db.createUser({
+      name: String(profile.name || normalizedEmail.split('@')[0]).trim().slice(0, 120),
+      email: normalizedEmail,
+      password_hash: null,
+      verified: true,
+    })
+  }
+
+  const sessionToken = createSessionToken()
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  await db.createSession(sessionToken, normalizedEmail, expiresAt)
+  setCookie(response, 'mo7mels_session', sessionToken, 7 * 24 * 60 * 60, request)
+  return response.redirect(303, `${effectiveSiteUrl}/?auth=google_connected`)
+}))
+
+app.post('/api/auth/logout', asyncRoute(async (request, response) => {
+  const token = getSessionToken(request)
+  if (token) await db.deleteSession(token)
+  clearCookie(response, 'mo7mels_session', request)
+  return response.json({ ok: true })
+}))
 
 app.post('/api/auth/signup', asyncRoute(async (request, response) => {
   const { name, email, password, confirmPassword } = request.body || {}
@@ -424,7 +527,7 @@ app.post('/api/auth/login', asyncRoute(async (request, response) => {
 }))
 
 app.get('/api/auth/me', asyncRoute(async (request, response) => {
-  const accessToken = getBearerToken(request)
+  const accessToken = getSessionToken(request)
 
   if (!accessToken) {
     return response.status(401).json({ message: 'Missing authorization token.' })

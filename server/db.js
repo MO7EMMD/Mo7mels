@@ -12,6 +12,10 @@ const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL ||
 const usePostgres = Boolean(connectionString)
 const pool = usePostgres ? new Pool({ connectionString }) : null
 
+export function getStorageMode() {
+  return usePostgres ? 'postgres' : 'json-file'
+}
+
 function normalizeUser(row) {
   if (!row) return null
   return {
@@ -277,6 +281,21 @@ export async function getSession(token) {
   const data = await readJsonDb()
   const session = data.sessions.find((item) => item.token === token)
   return normalizeSession(session || null)
+}
+
+export async function deleteSession(token) {
+  if (!token) return false
+
+  if (usePostgres) {
+    const result = await pool.query('DELETE FROM sessions WHERE token = $1', [token])
+    return result.rowCount > 0
+  }
+
+  const data = await readJsonDb()
+  const previousCount = data.sessions.length
+  data.sessions = data.sessions.filter((session) => session.token !== token)
+  if (data.sessions.length !== previousCount) await writeJsonDb(data)
+  return data.sessions.length !== previousCount
 }
 
 export async function addEmbed({ userEmail, type, sourceUrl, embedCode }) {

@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /signup
 
-Sitemap: https://mo7mels.onrender.com/sitemap.xml
+Sitemap: https://www.mo7mels.com/sitemap.xml

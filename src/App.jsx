@@ -16,6 +16,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const API_BASE = '/api'
 const LINKEDIN_URL = import.meta.env.VITE_LINKEDIN_URL || 'https://www.linkedin.com/company/mo7mels'
+const GOOGLE_AUTH_ENABLED = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === 'true'
+const SOCIAL_LINKS = [
+  { label: 'Instagram', href: 'https://www.instagram.com/ku.i44/' },
+  { label: 'GitHub', href: 'https://github.com/MO7EMMD' },
+  { label: 'X', href: 'https://x.com/Mo7_4l6' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@ku.i25' },
+]
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 const MAINTENANCE_TITLE = import.meta.env.VITE_MAINTENANCE_TITLE || 'نعتذر لإزعاجك'
 const MAINTENANCE_MESSAGE =
@@ -149,6 +156,8 @@ const translations = {
     logout: 'Logout',
     login: 'Login',
     signUp: 'Create Account',
+    googleSignIn: 'Continue with Google',
+    googleSignInUnavailable: 'Google sign-in could not be completed. Please try again.',
     language: 'Language',
     arabic: 'Arabic',
     english: 'English',
@@ -207,7 +216,17 @@ const translations = {
       ['02 / FLEXIBLE', 'Choose responsive or custom dimensions.'],
       ['03 / READY', 'Preview, copy, and save your embed snippets.'],
     ],
+    workflowTitle: 'From link to live embed in three steps',
+    ctaTitle: 'Make your next embed the easy part.',
+    ctaCopy: 'Try the generator with a public link. No account is needed to get started.',
+    workflowSteps: [
+      ['01', 'Paste a link', 'Use a public link from a supported platform or a page that allows embeds.'],
+      ['02', 'Choose your layout', 'Pick a responsive embed or set the dimensions that fit your page.'],
+      ['03', 'Copy and publish', 'Preview the result, copy the snippet, and add it to your website.'],
+    ],
     footerTitle: 'Usage rules & terms',
+    privacyTitle: 'Privacy & data',
+    privacyCopy: 'If you choose Google sign-in, Mo7mels receives your verified name and email. Account details, login sessions, and embed snippets you save are stored in the site database to provide the service. Google passwords are never shared with or stored by Mo7mels. Contact the developer for data or account requests.',
     footerRules: [
       'Only embed public content that you have permission to share.',
       'Respect each platform’s terms, copyright, and creator attribution.',
@@ -344,6 +363,8 @@ const translations = {
     logout: 'تسجيل الخروج',
     login: 'تسجيل الدخول',
     signUp: 'إنشاء حساب',
+    googleSignIn: 'المتابعة باستخدام Google',
+    googleSignInUnavailable: 'تعذر تسجيل الدخول باستخدام Google. حاول مرة أخرى.',
     language: 'اللغة',
     arabic: 'العربية',
     english: 'الإنجليزية',
@@ -401,7 +422,17 @@ const translations = {
       ['٠٢ / مرن', 'اختر أبعادًا متجاوبة أو مخصصة.'],
       ['٠٣ / جاهز', 'عاين أكواد التضمين وانسخها واحفظها.'],
     ],
+    workflowTitle: 'من الرابط إلى التضمين في ثلاث خطوات',
+    ctaTitle: 'اجعل التضمين أسهل خطوة في مشروعك.',
+    ctaCopy: 'جرّب أداة التضمين برابط عام. لا تحتاج إلى حساب للبدء.',
+    workflowSteps: [
+      ['٠١', 'أضف الرابط', 'استخدم رابطًا عامًا من منصة مدعومة أو صفحة تسمح بالتضمين.'],
+      ['٠٢', 'اختر التصميم', 'استخدم تضمينًا متجاوبًا أو حدد الأبعاد المناسبة لصفحتك.'],
+      ['٠٣', 'انسخ وانشر', 'عاين النتيجة وانسخ الكود وأضفه إلى موقعك.'],
+    ],
     footerTitle: 'قواعد الاستخدام والشروط',
+    privacyTitle: 'الخصوصية والبيانات',
+    privacyCopy: 'عند اختيار تسجيل الدخول عبر Google، يستقبل Mo7mels اسمك وبريدك الإلكتروني بعد التحقق منهما. تُحفظ بيانات الحساب وجلسات الدخول وأكواد التضمين التي تختار حفظها في قاعدة بيانات الموقع لتقديم الخدمة. لا يشارك Mo7mels كلمات مرور Google ولا يخزنها. تواصل مع المطور لطلبات البيانات أو الحساب.',
     footerRules: [
       'ضمّن المحتوى العام الذي تملك إذنًا بمشاركته فقط.',
       'احترم شروط كل منصة وحقوق النشر ونسب المحتوى إلى صاحبه.',
@@ -596,6 +627,9 @@ function App() {
   const [orderSearch, setOrderSearch] = useState('')
   const [copied, setCopied] = useState(false)
   const previewRef = useRef(null)
+  const googleCallbackRef = useRef(
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth') === 'google_connected',
+  )
 
   const content = translations[language]
   const isSignupPage = currentPath === '/signup'
@@ -613,6 +647,11 @@ function App() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.lang = language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+  }, [language])
+
+  useEffect(() => {
     if (currentPath === '/pricing') {
       window.requestAnimationFrame(() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' }))
     }
@@ -620,18 +659,31 @@ function App() {
 
   useEffect(() => {
     const syncSession = async () => {
-      if (!sessionToken) {
+      const isGoogleCallback = googleCallbackRef.current
+      const hasGoogleSession = window.localStorage.getItem('googleSession') === 'true'
+      if (!sessionToken && !isGoogleCallback && !hasGoogleSession) {
         setCurrentUser(null)
         setIsAuthLoading(false)
         return
       }
 
       try {
-        const response = await apiRequest('/auth/me', {}, sessionToken)
+        const accessToken = isGoogleCallback ? '' : sessionToken
+        const response = await apiRequest('/auth/me', {}, accessToken)
         setCurrentUser(response.user)
+        if (isGoogleCallback || hasGoogleSession) {
+          window.localStorage.setItem('googleSession', 'true')
+        }
+        if (isGoogleCallback) {
+          window.localStorage.removeItem('sessionToken')
+          setSessionToken('')
+          googleCallbackRef.current = false
+          window.history.replaceState({}, '', window.location.pathname)
+        }
       } catch {
         setCurrentUser(null)
         setSessionToken('')
+        window.localStorage.removeItem('googleSession')
         window.localStorage.removeItem('sessionToken')
       } finally {
         setIsAuthLoading(false)
@@ -640,6 +692,18 @@ function App() {
 
     syncSession()
   }, [sessionToken])
+
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search)
+    const authResult = search.get('auth')
+    if (authResult && authResult !== 'google_connected') {
+      setAuthMessageType('error')
+      setAuthMessage(content.googleSignInUnavailable)
+      search.delete('auth')
+      const nextSearch = search.toString()
+      window.history.replaceState({}, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`)
+    }
+  }, [content.googleSignInUnavailable])
 
   useEffect(() => {
     if (currentUser) {
@@ -727,9 +791,15 @@ function App() {
   }
 
   const handleLogout = async () => {
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' }, sessionToken)
+    } catch {
+      // Clear the local session even when the server is temporarily offline.
+    }
     setCurrentUser(null)
     setSessionToken('')
     window.localStorage.removeItem('sessionToken')
+    window.localStorage.removeItem('googleSession')
     setSavedEmbeds([])
     navigateTo('/')
   }
@@ -796,6 +866,7 @@ function App() {
         setAuthMessage(content.authMessages.signupSuccess)
         setCurrentUser(data.user)
         setSessionToken(data.token || '')
+        window.localStorage.removeItem('googleSession')
         window.localStorage.setItem('sessionToken', data.token || '')
         navigateTo('/dashboard')
         return
@@ -817,6 +888,7 @@ function App() {
 
         setCurrentUser(data.user)
         setSessionToken(data.token || '')
+        window.localStorage.removeItem('googleSession')
         window.localStorage.setItem('sessionToken', data.token || '')
         setAuthForm({ name: '', email: '', password: '', confirmPassword: '' })
         setAuthMessageType('success')
@@ -1001,6 +1073,12 @@ function App() {
               {content.signUp}
             </button>
           </div>
+
+          {GOOGLE_AUTH_ENABLED && (
+            <a className="google-signin-button" href="/api/auth/google">
+              <span aria-hidden="true">G</span>{content.googleSignIn}
+            </a>
+          )}
 
           <div className="auth-fields">
             {isSignupPage && (
@@ -1529,6 +1607,20 @@ function App() {
           </div>
         </section>
 
+        <section className="workflow-section">
+          <div className="reference-section-heading">
+            <span>{language === 'ar' ? 'خطوات العمل' : 'HOW IT WORKS'}</span>
+            <h2>{content.workflowTitle}</h2>
+          </div>
+          <div className="workflow-grid">
+            {content.workflowSteps.map(([number, title, description]) => (
+              <article className="workflow-card" key={number}>
+                <span>{number}</span><h3>{title}</h3><p>{description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="generator-panel" id="embed-tool" aria-label={content.generate}>
           <div className="generator-heading">
               <div><span className="generator-step">01 <i>/</i> {content.embedGeneratorLabel}</span><h2>{content.generate}</h2></div>
@@ -1638,6 +1730,11 @@ function App() {
         </div>
       </section>
 
+      <section className="conversion-section">
+        <div><h2>{content.ctaTitle}</h2><p>{content.ctaCopy}</p></div>
+        <a className="get-started-button" href="#embed-tool">{content.getStarted}<span>↗</span></a>
+      </section>
+
       </main>
       <footer className="site-footer">
         <div className="footer-topline">
@@ -1647,6 +1744,7 @@ function App() {
             <a href="#features">{content.navFeatures}</a>
             <a href="#plans">{content.navPricing}</a>
             <a href="#faq">FAQ</a>
+          <a href="#privacy">{language === 'ar' ? 'الخصوصية' : 'Privacy'}</a>
             <a href="#rules">{content.navRules}</a>
             <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram ↗</a>
           </nav>
@@ -1656,8 +1754,15 @@ function App() {
           <ul>{content.footerRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
           <p>{content.footerNote}</p>
         </section>
+        <section className="terms-section privacy-section" id="privacy">
+          <h2>{content.privacyTitle}</h2>
+          <p>{content.privacyCopy}</p>
+        </section>
         <div className="footer-bottom" id="contact">
           <span>{content.copyright}</span>
+          <div className="footer-socials" aria-label="Social media">
+            {SOCIAL_LINKS.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}</a>)}
+          </div>
           <a className="telegram-contact" href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">
             <span>{content.developerContact}</span><strong>@Nozvxa ↗</strong>
           </a>
