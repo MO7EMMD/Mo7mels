@@ -14,7 +14,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@paypal/react-paypal-js": "^9.1.1",
     "chart.js": "^4.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

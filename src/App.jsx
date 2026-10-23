@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import './modern.css'
-import { PayPalScriptProvider, PayPalButtons, FUNDING } from '@paypal/react-paypal-js'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -14,14 +13,6 @@ import {
 } from 'chart.js'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
-
-// Replace these with your actual PayPal Plan IDs from the PayPal Developer Dashboard
-const PAYPAL_CLIENT_ID = 'AQduOnVI3FTIp2aBlgqMnCiLhY8dO3nWxGYudLWlN57vzCbydKTs88S7UpI6M2GXzMYbFj8xJYjgYw-x'
-const PAYPAL_PLAN_IDS = {
-  basic: 'YOUR_BASIC_PLAN_ID',
-  pro: 'YOUR_PRO_PLAN_ID',
-  business: 'YOUR_BUSINESS_PLAN_ID',
-}
 
 const API_BASE = '/api'
 const LINKEDIN_URL = import.meta.env.VITE_LINKEDIN_URL || 'https://www.linkedin.com/company/mo7mels'
@@ -105,6 +96,16 @@ function isValidHttpUrl(rawUrl) {
   }
 }
 
+function createIframeEmbed(sourceUrl, responsive, width, height) {
+  const size = responsive
+    ? 'width:100%; aspect-ratio:16/9;'
+    : `width:${width}px; height:${height}px;`
+  const frameStyle = responsive
+    ? 'display:block; width:100%; height:100%; border:0;'
+    : 'display:block; width:100%; height:100%; border:0;'
+  return `<div style="${size} position:relative; overflow:hidden;"><iframe src="${sourceUrl}" title="Embedded content" loading="lazy" style="${frameStyle}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
+}
+
 function getTopEmbedType(typeUsage) {
   return Object.entries(typeUsage).sort((left, right) => right[1] - left[1])[0]?.[0] || ''
 }
@@ -158,27 +159,21 @@ const translations = {
     homeKicker: 'Create once. Share everywhere.',
     embedGeneratorLabel: 'EMBED GENERATOR',
     generatorHint: 'Paste a URL from a supported platform or any public page.',
+    embedOptions: 'EMBED OPTIONS',
+    responsiveEmbed: 'Responsive width',
+    fixedSize: 'Fixed dimensions',
+    embedWidth: 'Width (px)',
+    embedHeight: 'Height (px)',
+    responsiveHint: 'Responsive embeds adapt to the available space.',
     ready: 'READY',
     anyLink: 'Any link',
     inputPlaceholder: 'Enter YouTube, YouTube Shorts, TikTok, Instagram, or any URL',
     generate: 'Generate Embed',
     embedCode: 'Embed Code',
-    subscriptions: 'Subscriptions',
-    choosePlan: 'Subscribe',
-    currentPlan: 'Current Plan',
-    cancelPlan: 'Cancel Subscription',
-    planKeys: ['basic', 'pro', 'business'],
-    period: '/month',
-    plans: ['Basic', 'Pro', 'Business'],
-    features: {
-      basic: ['1,000 embed links', 'YouTube, TikTok, Instagram', 'Copy & export HTML'],
-      pro: ['200,000 embed links', 'All platforms + bulk import', 'Dark mode & analytics', 'Priority support'],
-      business: ['200,000 embed links', 'Team access', 'White-label branding', 'API access', 'Dedicated support'],
-    },
     loginTitle: 'Welcome Back',
     signupTitle: 'Create New Account',
     loginSubtitle: 'Sign in to manage your embed library and account settings.',
-    signupSubtitle: 'Create an account to save your generated embeds and plans.',
+    signupSubtitle: 'Create an account to save your generated embeds.',
     authAsideTitle: 'Professional Access',
     authAsideText: 'A streamlined workspace for links, saved embeds, and account control.',
     authStats: ['Saved embeds', 'Secure access', 'Fast workflow'],
@@ -189,9 +184,9 @@ const translations = {
     dashboardTitle: 'Control Center',
     dashboardSubtitle: 'Review your account, recent embed activity, and saved code snippets.',
     dashboardWelcome: 'Welcome',
-    dashboardStats: ['Saved embeds', 'Account status', 'Current plan'],
+    dashboardStats: ['Saved embeds', 'Account status', 'Account type'],
     dashboardStatus: 'Active',
-    dashboardPlan: 'Starter',
+    dashboardPlan: 'Standard',
     dashboardAccount: 'Account Details',
     dashboardRecent: 'Recent Saved Embeds',
     dashboardEmpty: 'No embeds saved yet. Generate one from the home page while logged in.',
@@ -274,13 +269,6 @@ const translations = {
       back: 'Back',
       debugHint: 'Your OTP code (debug mode)',
     },
-    subscription: {
-      loginRequired: 'Please log in to subscribe.',
-      success: 'Subscription activated successfully.',
-      cancelled: 'Subscription cancelled.',
-      error: 'Failed to activate subscription. Please try again.',
-      cancelError: 'Failed to cancel subscription. Please try again.',
-    },
     errors: {
       empty: 'Please enter a link first.',
       invalid: 'The link is invalid. Use a full link starting with http or https.',
@@ -313,27 +301,21 @@ const translations = {
     homeKicker: 'أنشئ مرة، وشارك في كل مكان.',
     embedGeneratorLabel: 'مولد التضمين',
     generatorHint: 'ألصق رابطاً من منصة مدعومة أو أي صفحة عامة.',
+    embedOptions: 'خيارات التضمين',
+    responsiveEmbed: 'عرض متجاوب',
+    fixedSize: 'أبعاد ثابتة',
+    embedWidth: 'العرض (بكسل)',
+    embedHeight: 'الارتفاع (بكسل)',
+    responsiveHint: 'تتكيّف التضمينات المتجاوبة مع المساحة المتاحة.',
     ready: 'جاهز',
     anyLink: 'أي رابط',
     inputPlaceholder: 'أدخل رابط يوتيوب أو شورتس أو تيك توك أو إنستقرام أو أي رابط',
     generate: 'إنشاء الإيمبد',
     embedCode: 'كود الإيمبد',
-    subscriptions: 'الاشتراكات',
-    choosePlan: 'اشترك الآن',
-    currentPlan: 'الخطة الحالية',
-    cancelPlan: 'إلغاء الاشتراك',
-    planKeys: ['basic', 'pro', 'business'],
-    period: '/شهريًا',
-    plans: ['الأساسية', 'الاحترافية', 'الأعمال'],
-    features: {
-      basic: ['١٬٠٠٠ رابط تضمين', 'يوتيوب وتيك توك وإنستقرام', 'نسخ وتصدير HTML'],
-      pro: ['٢٠٠٬٠٠٠ رابط تضمين', 'جميع المنصات + استيراد جماعي', 'وضع ليلي وتحليلات متقدمة', 'دعم أولوية'],
-      business: ['٢٠٠٬٠٠٠ رابط تضمين', 'وصول للفريق', 'هوية بصرية مخصصة', 'واجهة API', 'دعم مخصص'],
-    },
     loginTitle: 'مرحبًا بعودتك',
     signupTitle: 'إنشاء حساب جديد',
     loginSubtitle: 'سجل الدخول لإدارة مكتبة الإيمبد وإعدادات الحساب.',
-    signupSubtitle: 'أنشئ حسابًا لحفظ الأكواد المولدة وخطط الاشتراك.',
+    signupSubtitle: 'أنشئ حسابًا لحفظ أكواد التضمين التي تنشئها.',
     authAsideTitle: 'وصول احترافي',
     authAsideText: 'مساحة عمل منظمة للروابط والأكواد المحفوظة والتحكم في الحساب.',
     authStats: ['أكواد محفوظة', 'دخول آمن', 'عمل أسرع'],
@@ -344,9 +326,9 @@ const translations = {
     dashboardTitle: 'لوحة التحكم',
     dashboardSubtitle: 'راجع حسابك وآخر نشاطات التضمين والأكواد المحفوظة.',
     dashboardWelcome: 'مرحبًا',
-    dashboardStats: ['الأكواد المحفوظة', 'حالة الحساب', 'الخطة الحالية'],
+    dashboardStats: ['الأكواد المحفوظة', 'حالة الحساب', 'نوع الحساب'],
     dashboardStatus: 'نشط',
-    dashboardPlan: 'الابتدائية',
+    dashboardPlan: 'قياسي',
     linkedin: 'لينكدإن',
     dashboardAccount: 'بيانات الحساب',
     dashboardRecent: 'آخر أكواد التضمين المحفوظة',
@@ -430,13 +412,6 @@ const translations = {
       back: 'رجوع',
       debugHint: 'رمز التحقق (وضع التصحيح)',
     },
-    subscription: {
-      loginRequired: 'يرجى تسجيل الدخول أولاً للاشتراك.',
-      success: 'تم تفعيل الاشتراك بنجاح.',
-      cancelled: 'تم إلغاء الاشتراك.',
-      error: 'فشل تفعيل الاشتراك. يرجى المحاولة مجددًا.',
-      cancelError: 'فشل إلغاء الاشتراك. يرجى المحاولة مجددًا.',
-    },
     errors: {
       empty: 'يرجى إدخال رابط أولاً.',
       invalid: 'الرابط غير صالح. استخدم رابطًا كاملًا يبدأ بـ http أو https.',
@@ -491,6 +466,9 @@ function App() {
     confirmPassword: '',
   })
   const [url, setUrl] = useState('')
+  const [responsiveEmbed, setResponsiveEmbed] = useState(true)
+  const [embedWidth, setEmbedWidth] = useState(560)
+  const [embedHeight, setEmbedHeight] = useState(315)
   const [embedCode, setEmbedCode] = useState('')
   const [validationMessage, setValidationMessage] = useState('')
   const [validationType, setValidationType] = useState('')
@@ -513,32 +491,9 @@ function App() {
   })
   const [orderSearch, setOrderSearch] = useState('')
   const [copied, setCopied] = useState(false)
-  const [userSubscription, setUserSubscription] = useState(null)
-  const [subscriptionMessage, setSubscriptionMessage] = useState('')
-  const [subscriptionMessageType, setSubscriptionMessageType] = useState('')
   const previewRef = useRef(null)
 
   const content = translations[language]
-  const localizedPlans = [
-    {
-      name: content.plans[0],
-      price: '$0.25',
-      period: content.period,
-      features: content.features.basic,
-    },
-    {
-      name: content.plans[1],
-      price: '$0.75',
-      period: content.period,
-      features: content.features.pro,
-    },
-    {
-      name: content.plans[2],
-      price: '$1.00',
-      period: content.period,
-      features: content.features.business,
-    },
-  ]
   const isSignupPage = currentPath === '/signup'
 
   useEffect(() => {
@@ -634,7 +589,6 @@ function App() {
   useEffect(() => {
     if (!currentUser) {
       setSavedEmbeds([])
-      setUserSubscription(null)
       return
     }
 
@@ -647,17 +601,7 @@ function App() {
       }
     }
 
-    const fetchSubscription = async () => {
-      try {
-        const response = await apiRequest('/subscription', {}, sessionToken)
-        setUserSubscription(response.subscription || null)
-      } catch {
-        setUserSubscription(null)
-      }
-    }
-
     fetchSavedEmbeds()
-    fetchSubscription()
   }, [currentUser])
 
   const navigateTo = (path) => {
@@ -677,7 +621,6 @@ function App() {
     setSessionToken('')
     window.localStorage.removeItem('sessionToken')
     setSavedEmbeds([])
-    setUserSubscription(null)
     navigateTo('/')
   }
 
@@ -776,40 +719,6 @@ function App() {
     }
   }
 
-  const handleSubscribe = async (planKey, subscriptionId) => {
-    if (!currentUser) {
-      setSubscriptionMessageType('error')
-      setSubscriptionMessage(content.subscription.loginRequired)
-      navigateTo('/login')
-      return
-    }
-
-    try {
-      const response = await apiRequest('/subscription', {
-        method: 'POST',
-        body: JSON.stringify({ planKey, subscriptionId }),
-      }, sessionToken)
-      setUserSubscription(response.subscription)
-      setSubscriptionMessageType('success')
-      setSubscriptionMessage(content.subscription.success)
-    } catch {
-      setSubscriptionMessageType('error')
-      setSubscriptionMessage(content.subscription.error)
-    }
-  }
-
-  const handleCancelSubscription = async () => {
-    try {
-      await apiRequest('/subscription', { method: 'DELETE' }, sessionToken)
-      setUserSubscription(null)
-      setSubscriptionMessageType('success')
-      setSubscriptionMessage(content.subscription.cancelled)
-    } catch {
-      setSubscriptionMessageType('error')
-      setSubscriptionMessage(content.subscription.cancelError)
-    }
-  }
-
   const handleDeleteEmbed = async (embedId) => {
     try {
       await apiRequest(`/embeds/${embedId}`, { method: 'DELETE' }, sessionToken)
@@ -894,7 +803,7 @@ function App() {
 
       nextType = 'youtube'
       nextMessage = content.success.youtube
-      nextCode = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+      nextCode = createIframeEmbed(`https://www.youtube.com/embed/${videoId}`, responsiveEmbed, embedWidth, embedHeight)
     } else if (normalizedUrl.includes('tiktok.com')) {
       const videoId = extractTikTokVideoId(normalizedUrl)
 
@@ -907,7 +816,7 @@ function App() {
 
       nextType = 'tiktok'
       nextMessage = content.success.tiktok
-      nextCode = `<blockquote class="tiktok-embed" cite="${normalizedUrl}" data-video-id="${videoId}" style="max-width: 605px; min-width: 325px;"><section></section></blockquote>`
+      nextCode = `<blockquote class="tiktok-embed" cite="${normalizedUrl}" data-video-id="${videoId}" style="max-width: 605px; min-width: 325px;"><section></section></blockquote>\n<script async src="https://www.tiktok.com/embed.js"></script>`
     } else if (normalizedUrl.includes('instagram.com')) {
       const instagramData = extractInstagramData(normalizedUrl)
 
@@ -920,9 +829,9 @@ function App() {
 
       nextType = 'instagram'
       nextMessage = content.success.instagram
-      nextCode = `<blockquote class="instagram-media" data-instgrm-permalink="${instagramData.permalink}?utm_source=ig_embed&amp;utm_campaign=loading" data-instgrm-version="14" style="background:#FFF; border:0; margin: 1px; max-width:540px; min-width:326px; padding:0; width:100%;"></blockquote>`
+      nextCode = `<blockquote class="instagram-media" data-instgrm-permalink="${instagramData.permalink}?utm_source=ig_embed&amp;utm_campaign=loading" data-instgrm-version="14" style="background:#FFF; border:0; margin: 1px; max-width:540px; min-width:326px; padding:0; width:100%;"></blockquote>\n<script async src="https://www.instagram.com/embed.js"></script>`
     } else {
-      nextCode = `<iframe src="${normalizedUrl}" width="600" height="400"></iframe>`
+      nextCode = createIframeEmbed(new URL(normalizedUrl).href, responsiveEmbed, embedWidth, embedHeight)
     }
 
     setEmbedCode(nextCode)
@@ -1427,8 +1336,8 @@ function App() {
     <div className="App home-app">
       <div className="top-bar">
         <a className="brand-lockup" href="/" onClick={(event) => { event.preventDefault(); navigateTo('/') }} aria-label={content.brand}>
-          <span className="brand-mark">m<span>7</span></span>
-          <span className="brand-name">{content.brand}<small>EMBED WORKSPACE</small></span>
+          <span className="brand-mark">mo7mels</span>
+          <span className="brand-name"><small>EMBED WORKSPACE</small></span>
         </a>
         <div className="top-bar-actions">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
@@ -1507,7 +1416,18 @@ function App() {
             />
             <button type="button" className="generate-button" onClick={generateEmbed}>{content.generate}<span>↗</span></button>
           </div>
-          <p className="generator-footnote"><span>↳</span> {content.generatorHint}</p>
+          <div className="embed-options">
+            <span className="embed-options-title">{content.embedOptions}</span>
+            <label className="embed-toggle">
+              <input type="checkbox" checked={responsiveEmbed} onChange={(event) => setResponsiveEmbed(event.target.checked)} />
+              <span>{content.responsiveEmbed}</span>
+            </label>
+            {!responsiveEmbed && <>
+              <label className="embed-dimension">{content.embedWidth}<input type="number" min="240" max="1920" value={embedWidth} onChange={(event) => setEmbedWidth(Math.min(1920, Math.max(240, Number(event.target.value) || 240)))} /></label>
+              <label className="embed-dimension">{content.embedHeight}<input type="number" min="160" max="1080" value={embedHeight} onChange={(event) => setEmbedHeight(Math.min(1080, Math.max(160, Number(event.target.value) || 160)))} /></label>
+            </>}
+          </div>
+          <p className="generator-footnote"><span>↳</span> {content.generatorHint} {responsiveEmbed ? content.responsiveHint : ''}</p>
         </section>
       {validationMessage && (
         <p className={`validation-message ${validationType}`}>{validationMessage}</p>
@@ -1538,94 +1458,12 @@ function App() {
         </div>
       )}
 
-      <div className="subscriptions-section">
-        <h2>{content.subscriptions}</h2>
-        {subscriptionMessage && (
-          <p className={`auth-feedback ${subscriptionMessageType}`}>{subscriptionMessage}</p>
-        )}
-        <div className="subscriptions-grid">
-          {localizedPlans.map((plan, index) => {
-            const planKey = content.planKeys[index]
-            const isActive = userSubscription?.planKey === planKey && userSubscription?.status === 'active'
-            return (
-              <div className={`subscription-card${isActive ? ' subscription-card--active' : ''}`} key={plan.name}>
-                {isActive && <span className="subscription-badge">{content.currentPlan}</span>}
-                <h3>{plan.name}</h3>
-                <p className="subscription-price">
-                  {plan.price}
-                  <span>{plan.period}</span>
-                </p>
-                <ul>
-                  {plan.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
-                  ))}
-                </ul>
-                {isActive ? (
-                  <button
-                    type="button"
-                    className="subscription-cancel-button"
-                    onClick={handleCancelSubscription}
-                  >
-                    {content.cancelPlan}
-                  </button>
-                ) : (
-                  <div className="subscription-payment-buttons">
-                    <PayPalButtons
-                      fundingSource={FUNDING.PAYPAL}
-                      style={{ layout: 'vertical', label: 'subscribe', height: 40 }}
-                      createSubscription={(_data, actions) =>
-                        actions.subscription.create({ plan_id: PAYPAL_PLAN_IDS[planKey] })
-                      }
-                      onApprove={(data) => handleSubscribe(planKey, data.subscriptionID)}
-                      onError={() => {
-                        setSubscriptionMessageType('error')
-                        setSubscriptionMessage(content.subscription.error)
-                      }}
-                      onClick={(_data, actions) => {
-                        if (!currentUser) {
-                          setSubscriptionMessageType('error')
-                          setSubscriptionMessage(content.subscription.loginRequired)
-                          navigateTo('/login')
-                          return actions.reject()
-                        }
-                        return actions.resolve()
-                      }}
-                    />
-                    <PayPalButtons
-                      fundingSource={FUNDING.CARD}
-                      style={{ layout: 'vertical', height: 40 }}
-                      createSubscription={(_data, actions) =>
-                        actions.subscription.create({ plan_id: PAYPAL_PLAN_IDS[planKey] })
-                      }
-                      onApprove={(data) => handleSubscribe(planKey, data.subscriptionID)}
-                      onError={() => {
-                        setSubscriptionMessageType('error')
-                        setSubscriptionMessage(content.subscription.error)
-                      }}
-                      onClick={(_data, actions) => {
-                        if (!currentUser) {
-                          setSubscriptionMessageType('error')
-                          setSubscriptionMessage(content.subscription.loginRequired)
-                          navigateTo('/login')
-                          return actions.reject()
-                        }
-                        return actions.resolve()
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
       </main>
     </div>
   )
 
   if (MAINTENANCE_MODE) {
     return (
-      <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
         <div className="page-shell maintenance-active" dir={language === 'ar' ? 'rtl' : 'ltr'}>
           <section className="maintenance-notice maintenance-only">
             <div className="maintenance-notice__content">
@@ -1634,12 +1472,10 @@ function App() {
             </div>
           </section>
         </div>
-      </PayPalScriptProvider>
     )
   }
 
   return (
-    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, vault: true, intent: 'subscription', components: 'buttons', 'enable-funding': 'card' }}>
       <div className={`page-shell${darkMode ? ' dark-mode' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {currentPath.startsWith('/dashboard')
           ? renderDashboardPage()
@@ -1647,7 +1483,6 @@ function App() {
             ? renderHomePage()
             : renderAuthPage()}
       </div>
-    </PayPalScriptProvider>
   )
 }
 
