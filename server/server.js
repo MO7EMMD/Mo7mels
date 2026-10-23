@@ -607,7 +607,7 @@ app.use((error, request, response, next) => {
 })
 
 app.use(express.static(publicPath))
-app.use(express.static(distPath))
+app.use(express.static(distPath, { index: false }))
 
 app.get('*', async (_request, response, next) => {
   try {
