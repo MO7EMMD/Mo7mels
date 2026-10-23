@@ -43,7 +43,7 @@ Recommended simple/free deployment: **Render** (frontend + API in one service).
 1. Connect the repository to Render and create a Web Service.
 2. Use the included `render.yaml` (Blueprint) for automatic configuration.
 3. Set these required environment variables in Render:
-   - `SITE_URL=https://mo7mels.com`
+   - `SITE_URL=https://www.mo7mels.com`
    - `DATABASE_URL=postgres://...`
 4. Set optional variables as needed:
    - `SITE_NAME`
@@ -75,8 +75,8 @@ Notes:
 To connect a custom domain on Render:
 
 1. Open your Render service and go to `Settings > Custom Domains`.
-2. Add your domain (`mo7mels.com` and optionally `www.mo7mels.com`).
-3. Set `SITE_URL` to your final primary URL.
+2. Add both domains (`mo7mels.com` and `www.mo7mels.com`) to Render.
+3. Set `SITE_URL` to `https://www.mo7mels.com` as the canonical URL.
 4. Set `ENABLE_CANONICAL_REDIRECT=true` if you want non-primary hostnames redirected.
 5. Add SMTP and branding environment variables if you want production OTP emails.
 6. Redeploy after saving variables.

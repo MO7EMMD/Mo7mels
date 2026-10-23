@@ -17,7 +17,7 @@ const app = express()
 const port = process.env.PORT || 3001
 const isVercel = Boolean(process.env.VERCEL)
 const configuredSiteUrl = normalizeSiteUrl(process.env.SITE_URL)
-const primarySiteUrl = 'https://mo7mels.com'
+const primarySiteUrl = 'https://www.mo7mels.com'
 const effectiveSiteUrl = configuredSiteUrl || primarySiteUrl
 const canonicalRedirectEnabled = process.env.ENABLE_CANONICAL_REDIRECT === 'true'
 const isProduction = process.env.NODE_ENV === 'production'
@@ -325,12 +325,21 @@ app.use((request, response, next) => {
 
   const requestOrigin = `${request.protocol}://${host}`
 
-  // Avoid redirect loops when registrar forwarding points the custom domain to *.onrender.com.
+  // Avoid redirect loops when the registrar forwards the apex domain to its www alias.
   if (host.endsWith('.onrender.com')) {
     return next()
   }
 
   if (requestOrigin === configuredSiteUrl) {
+    return next()
+  }
+
+  const requestHost = host.split(':')[0].toLowerCase()
+  const configuredHost = new URL(configuredSiteUrl).hostname.toLowerCase()
+  const requestRootDomain = requestHost.replace(/^www\./, '')
+  const configuredRootDomain = configuredHost.replace(/^www\./, '')
+
+  if (requestRootDomain === configuredRootDomain) {
     return next()
   }
 

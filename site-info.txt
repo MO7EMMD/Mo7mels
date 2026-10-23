@@ -5,7 +5,7 @@ Latest commit: e565265 (Add custom OTP and maintenance notification updates)
 
 Deployment service: Render (preferred)
 Render service name: mo7mels
-Primary URL: https://mo7mels.com
+Primary URL: https://www.mo7mels.com
 Plan: free
 
 Frontend framework: React + Vite
@@ -35,7 +35,7 @@ NPM scripts:
 - npm start: run the production server
 
 Render environment variables used:
-- SITE_URL=https://mo7mels.com
+- SITE_URL=https://www.mo7mels.com
 - SITE_NAME=Mo7mels
 - SITE_LOGO_URL=https://mo7mels.onrender.com/site-logo.svg
 - ENABLE_CANONICAL_REDIRECT=true
@@ -56,6 +56,5 @@ Identifiers:
 - Repository URL: https://github.com/MO7EMMD/Mo7mels.git
 - NPM package/name: mo7mels
 - Render service name: mo7mels
-- Site URL: https://mo7mels.com
+- Site URL: https://www.mo7mels.com
 - Latest commit hash: e565265
- 

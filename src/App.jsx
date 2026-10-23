@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
+import './modern.css'
 import { PayPalScriptProvider, PayPalButtons, FUNDING } from '@paypal/react-paypal-js'
 import { Bar } from 'react-chartjs-2'
 import {
@@ -152,7 +153,13 @@ const translations = {
     english: 'English',
     linkedin: 'LinkedIn',
     pageTitle: 'Mo7mels',
+    homeHeadline: 'Turn links into ready-to-share embeds.',
     pageSubtitle: 'Create embeds for YouTube, Shorts, TikTok, Instagram, and general links.',
+    homeKicker: 'Create once. Share everywhere.',
+    embedGeneratorLabel: 'EMBED GENERATOR',
+    generatorHint: 'Paste a URL from a supported platform or any public page.',
+    ready: 'READY',
+    anyLink: 'Any link',
     inputPlaceholder: 'Enter YouTube, YouTube Shorts, TikTok, Instagram, or any URL',
     generate: 'Generate Embed',
     embedCode: 'Embed Code',
@@ -301,7 +308,13 @@ const translations = {
     arabic: 'العربية',
     english: 'الإنجليزية',
     pageTitle: 'Mo7mels',
+    homeHeadline: 'حوّل روابطك إلى تضمينات جاهزة للمشاركة.',
     pageSubtitle: 'أنشئ أكواد تضمين ليوتيوب وشورتس وتيك توك وإنستقرام والروابط العامة.',
+    homeKicker: 'أنشئ مرة، وشارك في كل مكان.',
+    embedGeneratorLabel: 'مولد التضمين',
+    generatorHint: 'ألصق رابطاً من منصة مدعومة أو أي صفحة عامة.',
+    ready: 'جاهز',
+    anyLink: 'أي رابط',
     inputPlaceholder: 'أدخل رابط يوتيوب أو شورتس أو تيك توك أو إنستقرام أو أي رابط',
     generate: 'إنشاء الإيمبد',
     embedCode: 'كود الإيمبد',
@@ -1411,9 +1424,12 @@ function App() {
   }
 
   const renderHomePage = () => (
-    <div className="App">
+    <div className="App home-app">
       <div className="top-bar">
-        <div className="brand-mark">{content.brand}</div>
+        <a className="brand-lockup" href="/" onClick={(event) => { event.preventDefault(); navigateTo('/') }} aria-label={content.brand}>
+          <span className="brand-mark">m<span>7</span></span>
+          <span className="brand-name">{content.brand}<small>EMBED WORKSPACE</small></span>
+        </a>
         <div className="top-bar-actions">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
           <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
@@ -1447,21 +1463,52 @@ function App() {
         </div>
       </div>
 
-      <h1>{content.pageTitle}</h1>
-      <p className="page-subtitle">{content.pageSubtitle}</p>
-      <input
-        type="text"
-        placeholder={content.inputPlaceholder}
-        value={url}
-        onChange={(event) => {
-          setUrl(event.target.value)
-          if (validationMessage) {
-            setValidationMessage('')
-            setValidationType('')
-          }
-        }}
-      />
-      <button onClick={generateEmbed}>{content.generate}</button>
+      <main className="home-main">
+        <section className="home-hero">
+          <div className="home-hero-copy">
+            <span className="home-kicker"><i /> {content.homeKicker}</span>
+            <h1>{content.pageTitle}<span className="hero-period">.</span></h1>
+            <h2 className="home-headline">{content.homeHeadline}</h2>
+            <p className="page-subtitle">{content.pageSubtitle}</p>
+            <div className="platform-list" aria-label="Supported platforms">
+              <span>YouTube</span><span>Shorts</span><span>TikTok</span><span>Instagram</span><span>{content.anyLink}</span>
+            </div>
+          </div>
+          <div className="hero-art" aria-hidden="true">
+            <div className="art-ring ring-a" /><div className="art-ring ring-b" />
+            <div className="art-orb"><span>m7</span></div>
+            <span className="art-particle particle-a" /><span className="art-particle particle-b" /><span className="art-particle particle-c" />
+            <div className="art-chip chip-a">&lt;/&gt; <b>HTML</b></div>
+            <div className="art-chip chip-b">↗ <b>SHARE</b></div>
+          </div>
+        </section>
+
+        <section className="generator-panel" aria-label={content.generate}>
+          <div className="generator-heading">
+              <div><span className="generator-step">01 <i>/</i> {content.embedGeneratorLabel}</span><h2>{content.generate}</h2></div>
+            <span className="generator-status"><i /> {content.ready}</span>
+          </div>
+          <div className="generator-input-row">
+            <label className="sr-only" htmlFor="embed-url">{content.inputPlaceholder}</label>
+            <input
+              id="embed-url"
+              className="embed-url-input"
+              type="url"
+              placeholder={content.inputPlaceholder}
+              value={url}
+              onChange={(event) => {
+                setUrl(event.target.value)
+                if (validationMessage) {
+                  setValidationMessage('')
+                  setValidationType('')
+                }
+              }}
+              onKeyDown={(event) => { if (event.key === 'Enter') generateEmbed() }}
+            />
+            <button type="button" className="generate-button" onClick={generateEmbed}>{content.generate}<span>↗</span></button>
+          </div>
+          <p className="generator-footnote"><span>↳</span> {content.generatorHint}</p>
+        </section>
       {validationMessage && (
         <p className={`validation-message ${validationType}`}>{validationMessage}</p>
       )}
@@ -1572,6 +1619,7 @@ function App() {
           })}
         </div>
       </div>
+      </main>
     </div>
   )
 
