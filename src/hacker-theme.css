@@ -100,3 +100,29 @@ body::after { content: ''; position: fixed; inset: 0; z-index: 20; pointer-event
  .terms-section { padding:17px; }
  .site-nav a { font-size:10px; }
 }
+/* Compact, calm type scale: smaller copy, clear hierarchy, readable controls. */
+body { font-size:14px; line-height:1.65; letter-spacing:.005em; }
+.page-shell { font-size:.9rem; line-height:1.65; }
+.home-hero h1 { font-size:clamp(3.1rem,7vw,5rem); line-height:1.04; letter-spacing:-.065em; }
+.home-headline { font-size:clamp(1.25rem,2.3vw,1.65rem); line-height:1.35; letter-spacing:-.035em; }
+.page-subtitle,.section-heading p,.feature-card p,.generator-footnote,.terms-section ul,.terms-section p { font-size:.84rem; line-height:1.7; }
+.section-heading h2 { font-size:clamp(1.35rem,2.6vw,1.8rem); line-height:1.35; }
+.generator-heading h2,.embed-result-block h2,.auth-form-header h2,.dash-panel h2,.dashboard-card h2 { font-size:1.2rem; line-height:1.4; }
+.home-kicker,.generator-step,.generator-status,.embed-options-title,.feature-card span { font-size:9px; }
+.site-nav a,.site-footer nav a,.back-to-top { font-size:10px; padding:8px 2px; }
+.top-bar-actions button,.top-bar-actions a,.generate-button,.copy-btn,.export-btn { min-height:40px; font-size:11px; padding-inline:12px; }
+.embed-toggle,.embed-dimension,.auth-form label,.settings-panel label { font-size:.78rem; }
+.embed-url-input,.auth-form input,.settings-panel input,.embed-dimension input,.embed-result-block textarea { font-size:.84rem; }
+.platform-list span { font-size:.68rem; }
+.art-chip { font-size:.67rem; }
+.brand-mark { font-size:13px; }
+.brand-name small { font-size:7px; }
+.terms-section h2 { font-size:.98rem; }
+.footer-bottom { font-size:10px; }
+.telegram-contact strong { font-size:10px; }
+@media (max-width:680px) {
+  .home-hero h1 { font-size:clamp(3rem,13vw,4.2rem); }
+  .home-headline { font-size:1.25rem; }
+  .page-subtitle,.section-heading p,.feature-card p,.generator-footnote,.terms-section ul,.terms-section p { font-size:.82rem; }
+  .top-bar-actions button,.top-bar-actions a { min-height:40px; }
+}
