@@ -1623,9 +1623,16 @@ function App() {
   const saveBoardImage = () => {
     const canvas = boardCanvasRef.current
     if (!canvas) return
+    const exportCanvas = document.createElement('canvas')
+    exportCanvas.width = canvas.width
+    exportCanvas.height = canvas.height
+    const exportContext = exportCanvas.getContext('2d')
+    exportContext.fillStyle = '#fff'
+    exportContext.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+    exportContext.drawImage(canvas, 0, 0)
     const link = document.createElement('a')
     link.download = 'oman-grade-12-whiteboard.png'
-    link.href = canvas.toDataURL('image/png')
+    link.href = exportCanvas.toDataURL('image/png')
     link.click()
   }
 
