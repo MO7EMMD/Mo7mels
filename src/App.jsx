@@ -39,7 +39,61 @@ const STUDY_SUBJECTS = [
   { id: 'art', ar: 'الفنون التشكيلية', en: 'Visual Arts', icon: '◩', ministryId: 346, tasks: ['صمّم رسماً أولياً يعبّر عن مكان تحبه في عُمان.', 'جرّب التوازن بين المساحة واللون والخط.'], tasksEn: ['Sketch a place in Oman that matters to you.', 'Experiment with balance, color, and line.'] },
   { id: 'sports', ar: 'الرياضة المدرسية', en: 'School Sports', icon: '◎', ministryId: 350, tasks: ['صمّم خطة إحماء قصيرة قبل نشاط رياضي.', 'دوّن كيف تساعد الراحة وشرب الماء على سلامة الجسم.'], tasksEn: ['Plan a short warm-up before physical activity.', 'Note how rest and hydration support physical wellbeing.'] },
 ]
-const STUDY_TABS = ['library', 'worksheets', 'board']
+const STUDY_TABS = ['home', 'library', 'worksheets', 'board', 'resources', 'links']
+const STUDY_PAGE_PATHS = { home: '/', library: '/books', worksheets: '/worksheets', board: '/whiteboard', resources: '/resources', links: '/links' }
+const MINISTRY_RESOURCE_GROUPS = [
+  { id: 'digital-learning', ar: 'التعليم الرقمي', en: 'Digital education', items: [
+    { ar: 'منصة نور', en: 'Noor Platform', href: 'https://lms.moe.gov.om/' },
+    { ar: 'المنصات التعليمية', en: 'Educational platforms', href: 'https://home.moe.gov.om/ar/pages/208/show/1024' },
+    { ar: 'المناهج الدراسية', en: 'School curriculum', href: 'https://home.moe.gov.om/ar/manaheg' },
+    { ar: 'زاويتي التعليمية', en: 'Zawity educational portal', href: 'https://home.moe.gov.om/ar/zawity' },
+  ] },
+  { id: 'systems', ar: 'الأنظمة الرقمية', en: 'Digital systems', items: [
+    { ar: 'نظام المراسلات', en: 'Correspondence system', href: 'https://dms.moe.gov.om/' },
+    { ar: 'دليل الهاتف', en: 'Telephone directory', href: 'https://services.moe.gov.om/' },
+    { ar: 'نظام الاستمارات', en: 'Forms system', href: 'https://istmarah.moe.gov.om/' },
+    { ar: 'مركز القبول الموحد', en: 'Higher Education Admission Center', href: 'https://heac.gov.om/' },
+  ] },
+  { id: 'digital-services', ar: 'الإصدارات والمصادر', en: 'Publications and resources', items: [
+    { ar: 'الإصدارات التعليمية', en: 'Educational publications', href: 'https://home.moe.gov.om/ar/library' },
+    { ar: 'البحوث والدراسات', en: 'Research and studies', href: 'https://home.moe.gov.om/ar/pages/222' },
+    { ar: 'المكتبة الرقمية', en: 'Digital library', href: 'https://lib.moe.gov.om/' },
+    { ar: 'الأدلة التعليمية', en: 'Educational guides', href: 'https://home.moe.gov.om/ar/library/1' },
+  ] },
+  { id: 'higher-education', ar: 'التعليم العالي', en: 'Higher education', items: [
+    { ar: 'البعثات الداخلية', en: 'Internal scholarships', href: 'https://home.moe.gov.om/ar/bisat' },
+    { ar: 'مؤسسات التعليم العالي الخاصة', en: 'Private higher education institutions', href: 'https://home.moe.gov.om/ar/privatehe' },
+    { ar: 'مؤسسات التعليم العالي الحكومية', en: 'Government higher education institutions', href: 'https://home.moe.gov.om/ar/govhe' },
+    { ar: 'الجامعات والكليات', en: 'Universities and colleges', href: 'https://home.moe.gov.om/ar/universities' },
+  ] },
+  { id: 'participation', ar: 'البيانات والمشاركة', en: 'Open data and participation', items: [
+    { ar: 'بوابة البيانات المفتوحة', en: 'Open data portal', href: 'https://opendata.gov.om/' },
+    { ar: 'المشاركة الإلكترونية', en: 'Digital participation', href: 'https://home.moe.gov.om/ar/participate/' },
+    { ar: 'تواصل مع الوزارة', en: 'Contact the Ministry', href: 'https://home.moe.gov.om/ar/contactus' },
+  ] },
+]
+const MINISTRY_PORTAL_LINKS = [
+  { ar: 'الرؤية والرسالة', en: 'Vision and mission', href: 'https://home.moe.gov.om/ar/pages/162/show/504' },
+  { ar: 'الهيكل التنظيمي', en: 'Organization structure', href: 'https://home.moe.gov.om/ar/hierarchical' },
+  { ar: 'اللوائح والقوانين', en: 'Laws and regulations', href: 'https://home.moe.gov.om/ar/library/69' },
+  { ar: 'تاريخ التعليم في عُمان', en: 'History of education in Oman', href: 'https://home.moe.gov.om/ar/pages/6/show/12' },
+  { ar: 'نظام التعليم', en: 'Education system', href: 'https://home.moe.gov.om/ar/pages/14' },
+  { ar: 'عن البوابة التعليمية', en: 'About the education portal', href: 'https://home.moe.gov.om/ar/pages/3/show/320' },
+  { ar: 'المحافظات التعليمية', en: 'Educational directorates', href: 'https://home.moe.gov.om/ar/governemants' },
+  { ar: 'الإعلانات', en: 'Announcements', href: 'https://home.moe.gov.om/ar/updates/1' },
+  { ar: 'المناقصات', en: 'Tenders', href: 'https://home.moe.gov.om/ar/monq' },
+  { ar: 'الأخبار', en: 'News', href: 'https://home.moe.gov.om/ar/topics/1' },
+  { ar: 'الوظائف الشاغرة', en: 'Job vacancies', href: 'https://home.moe.gov.om/ar/pages/126' },
+  { ar: 'النشرات التوعوية', en: 'Awareness bulletins', href: 'https://home.moe.gov.om/ar/updates/3' },
+  { ar: 'العروض', en: 'Offers', href: 'https://home.moe.gov.om/ar/mazaya' },
+  { ar: 'الفعاليات', en: 'Events', href: 'https://home.moe.gov.om/ar/events' },
+  { ar: 'خريطة الموقع', en: 'Sitemap', href: 'https://home.moe.gov.om/ar/sitemap' },
+  { ar: 'خصوصية الموقع', en: 'Website privacy', href: 'https://home.moe.gov.om/ar/pages/111/show/309' },
+  { ar: 'منصة تجاوب للشكاوى والمقترحات', en: 'Tajaawob feedback and suggestions', href: 'https://tajawob.om/p/home' },
+  { ar: 'وزارة العمل', en: 'Ministry of Labour', href: 'https://www.mol.gov.om/' },
+  { ar: 'وزارة النقل والاتصالات وتقنية المعلومات', en: 'Ministry of Transport, Communications and IT', href: 'https://www.mtcit.gov.om/ITAPortal_AR/ITA/default.aspx' },
+  { ar: 'شرطة عُمان السلطانية', en: 'Royal Oman Police', href: 'https://www.rop.gov.om/arabic/index.aspx' },
+]
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 const MAINTENANCE_TITLE = import.meta.env.VITE_MAINTENANCE_TITLE || 'نعتذر لإزعاجك'
 const MAINTENANCE_MESSAGE =
@@ -139,7 +193,7 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/pricing', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+  return ['/', '/pricing', '/books', '/worksheets', '/whiteboard', '/resources', '/links', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
     ? window.location.pathname
     : '/'
 }
@@ -662,7 +716,7 @@ function App() {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('darkMode') === 'true'
   })
-  const [studyTab, setStudyTab] = useState('library')
+  const [studyTab, setStudyTab] = useState(() => Object.keys(STUDY_PAGE_PATHS).find((page) => STUDY_PAGE_PATHS[page] === (typeof window === 'undefined' ? '/' : window.location.pathname)) || 'home')
   const [studySearch, setStudySearch] = useState('')
   const [selectedStudySubject, setSelectedStudySubject] = useState('math')
   const [worksheetAnswers, setWorksheetAnswers] = useState(() => {
@@ -686,7 +740,9 @@ function App() {
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(getInitialPath())
+      const nextPath = getInitialPath()
+      setCurrentPath(nextPath)
+      setStudyTab(Object.keys(STUDY_PAGE_PATHS).find((page) => STUDY_PAGE_PATHS[page] === nextPath) || 'home')
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -831,6 +887,7 @@ function App() {
   const navigateTo = (path) => {
     window.history.pushState({}, '', path)
     setCurrentPath(path)
+    window.scrollTo(0, 0)
   }
 
   const clearAuthMessage = () => {
@@ -1639,10 +1696,10 @@ function App() {
   const renderHomePage = () => (
     <div className="study-hub">
       <header className="study-header">
-        <a className="study-brand" href="#study-home"><span className="study-brand-mark">م</span><span>{language === 'ar' ? 'مسار ١٢' : 'Grade 12 Oman'}<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
+        <a className="study-brand" href="/" onClick={(event) => { event.preventDefault(); setStudyTab('home'); navigateTo('/') }}><span className="study-brand-mark">م</span><span>{language === 'ar' ? 'مسار ١٢' : 'Grade 12 Oman'}<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
         <nav className="study-nav" aria-label={language === 'ar' ? 'أقسام الموقع' : 'Study tools'}>
-          {STUDY_TABS.map((tab) => <button key={tab} type="button" className={studyTab === tab ? 'active' : ''} onClick={() => setStudyTab(tab)}>
-            {tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Library') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : (language === 'ar' ? 'السبورة' : 'Whiteboard')}
+          {STUDY_TABS.map((tab) => <button key={tab} type="button" className={studyTab === tab ? 'active' : ''} aria-current={studyTab === tab ? 'page' : undefined} onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>
+            {tab === 'home' ? (language === 'ar' ? 'الرئيسية' : 'Home') : tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Books') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : tab === 'board' ? (language === 'ar' ? 'السبورة' : 'Whiteboard') : tab === 'resources' ? (language === 'ar' ? 'مصادر الوزارة' : 'Ministry resources') : (language === 'ar' ? 'روابط مهمة' : 'Useful links')}
           </button>)}
         </nav>
         <div className="study-controls">
@@ -1652,12 +1709,23 @@ function App() {
       </header>
 
       <main className="study-main" id="study-home">
-        <section className="study-welcome">
+        <section className="study-welcome" hidden={studyTab !== 'home'}>
           <div><span className="study-overline">{language === 'ar' ? 'سلطنة عُمان · الصف الثاني عشر' : 'SULTANATE OF OMAN · GRADE 12'}</span>
             <h1>{language === 'ar' ? 'خطوتك القادمة، تبدأ من هنا.' : 'Your next step starts here.'}</h1>
             <p>{language === 'ar' ? 'كتبك، مراجعتك، وأدوات الدراسة في مساحة واحدة هادئة.' : 'Your books, revision, and study tools in one calm space.'}</p>
           </div>
           <div className="study-welcome-note"><span>12</span><small>{language === 'ar' ? 'مواد المنهج' : 'SUBJECTS'}</small></div>
+        </section>
+
+        <section className="study-home-grid" hidden={studyTab !== 'home'}>
+          {[
+            { id: 'library', icon: '▤', ar: 'كتب الصف الثاني عشر', en: 'Grade 12 textbooks', noteAr: 'روابط موثقة لمكتبة الوزارة حسب المادة.', noteEn: 'Verified links to Ministry books by subject.' },
+            { id: 'worksheets', icon: '✎', ar: 'أوراق العمل', en: 'Worksheets', noteAr: 'تدريبات قابلة للطباعة مع حفظ إجاباتك.', noteEn: 'Printable practice with saved answers.' },
+            { id: 'board', icon: '▱', ar: 'السبورة البيضاء', en: 'Whiteboard', noteAr: 'اكتب وارسم واحفظ ملاحظاتك كصورة.', noteEn: 'Draw, write, and save your notes as an image.' },
+            { id: 'resources', icon: '⌘', ar: 'مصادر وزارة التعليم', en: 'Ministry resources', noteAr: 'المنصات والمكتبات والخدمات الرسمية.', noteEn: 'Official platforms, libraries, and services.' },
+          ].map((card) => <button className="study-home-card" key={card.id} type="button" onClick={() => { setStudyTab(card.id); navigateTo(STUDY_PAGE_PATHS[card.id]) }}>
+            <span className="home-card-icon" aria-hidden="true">{card.icon}</span><span className="home-card-copy"><strong>{language === 'ar' ? card.ar : card.en}</strong><small>{language === 'ar' ? card.noteAr : card.noteEn}</small></span><span className="home-card-arrow" aria-hidden="true">↗</span>
+          </button>)}
         </section>
 
         <section className="study-panel" hidden={studyTab !== 'library'}>
@@ -1673,6 +1741,24 @@ function App() {
             </article>)}
           </div>
           <p className="study-source-note">{language === 'ar' ? 'المصدر: مكتبة المناهج الرسمية لوزارة التعليم في سلطنة عُمان.' : 'Source: the official Ministry of Education curriculum library for Oman.'} <a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'عرض المكتبة الرسمية' : 'Open official library'}</a> · <a href={MINISTRY_SUBJECT_CHOICES_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'ضوابط اختيار المواد' : 'Subject selection guidance'}</a></p>
+        </section>
+
+        <section className="study-panel" hidden={studyTab !== 'resources'}>
+          <div className="study-section-heading"><div><span>{language === 'ar' ? 'الدليل الرسمي' : 'OFFICIAL DIRECTORY'}</span><h2>{language === 'ar' ? 'مصادر وزارة التعليم' : 'Ministry of Education resources'}</h2></div><a href="https://home.moe.gov.om/" target="_blank" rel="noreferrer">{language === 'ar' ? 'موقع الوزارة ↗' : 'Ministry website ↗'}</a></div>
+          <p className="study-help">{language === 'ar' ? 'جمّعنا روابط أقسام الخدمات والموارد الظاهرة في موقع الوزارة الرسمي، مع فتح كل خدمة من مصدرها.' : 'A directory of the Ministry’s official service and resource sections. Each link opens its original source.'}</p>
+          <div className="ministry-groups">
+            {MINISTRY_RESOURCE_GROUPS.map((group) => <section className="ministry-group" key={group.id}>
+              <h3>{language === 'ar' ? group.ar : group.en}</h3>
+              <div className="ministry-link-grid">{group.items.map((item) => <a key={item.href} href={item.href} target="_blank" rel="noreferrer"><span>{language === 'ar' ? item.ar : item.en}</span><b aria-hidden="true">↗</b></a>)}</div>
+            </section>)}
+          </div>
+        </section>
+
+        <section className="study-panel" hidden={studyTab !== 'links'}>
+          <div className="study-section-heading"><div><span>{language === 'ar' ? 'تذييل موقع الوزارة' : 'MINISTRY WEBSITE FOOTER'}</span><h2>{language === 'ar' ? 'روابط تهمك' : 'Useful links'}</h2></div><a href="https://home.moe.gov.om/" target="_blank" rel="noreferrer">{language === 'ar' ? 'فتح موقع الوزارة ↗' : 'Open Ministry website ↗'}</a></div>
+          <p className="study-help">{language === 'ar' ? 'روابط الموقع العامة، الصفحات التعريفية، والأقسام الإخبارية والخدمية.' : 'The Ministry’s general information, news, service, and footer links.'}</p>
+          <div className="ministry-link-grid useful-link-grid">{MINISTRY_PORTAL_LINKS.map((item) => <a key={item.href + item.en} href={item.href} target="_blank" rel="noreferrer"><span>{language === 'ar' ? item.ar : item.en}</span><b aria-hidden="true">↗</b></a>)}</div>
+          <div className="ministry-contact-strip"><div><strong>{language === 'ar' ? 'مركز الاتصال' : 'Contact centre'}</strong><span>{language === 'ar' ? 'وزارة التعليم · سلطنة عُمان' : 'Ministry of Education · Sultanate of Oman'}</span></div><a href="tel:+96824255552">+968 2425 5552</a><a href="https://wa.me/96824255552" target="_blank" rel="noreferrer">WhatsApp ↗</a><a href="https://tajawob.om/p/home" target="_blank" rel="noreferrer">{language === 'ar' ? 'مقترحات وشكاوى عبر تجاوب' : 'Feedback via Tajaawob'} ↗</a></div>
         </section>
 
         <section className="study-panel" hidden={studyTab !== 'worksheets'}>
@@ -1704,7 +1790,7 @@ function App() {
           <p className="study-help board-hint">{language === 'ar' ? 'استخدم القلم أو القلم العريض أو الممحاة. تعمل السبورة باللمس والماوس.' : 'Use the pen, marker, or eraser. The board supports touch and mouse.'}</p>
         </section>
       </main>
-      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">{language === 'ar' ? 'تواصل مع المطور' : 'Contact developer'} · @Nozvxa ↗</a><a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'وزارة التعليم' : 'Ministry of Education'} ↗</a></footer>
+      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <button key={tab} type="button" onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>{tab === 'home' ? (language === 'ar' ? 'الرئيسية' : 'Home') : tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Books') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : tab === 'board' ? (language === 'ar' ? 'السبورة' : 'Whiteboard') : tab === 'resources' ? (language === 'ar' ? 'مصادر الوزارة' : 'MOE resources') : (language === 'ar' ? 'روابط مهمة' : 'Useful links')}</button>)}</nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
     </div>
   )
 
@@ -1725,7 +1811,7 @@ function App() {
       <div className={`page-shell${darkMode ? ' dark-mode' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {currentPath.startsWith('/dashboard')
           ? renderDashboardPage()
-          : currentPath === '/' || currentPath === '/pricing'
+          : currentPath === '/' || currentPath === '/pricing' || Object.values(STUDY_PAGE_PATHS).includes(currentPath)
             ? renderHomePage()
             : renderAuthPage()}
       </div>

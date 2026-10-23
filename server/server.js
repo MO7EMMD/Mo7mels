@@ -92,18 +92,19 @@ function getSiteUrl(request) {
 }
 
 function buildSitemapXml(siteUrl) {
+  const pages = [
+    ['/', 'weekly', '1.0'],
+    ['/books', 'weekly', '0.9'],
+    ['/worksheets', 'weekly', '0.8'],
+    ['/whiteboard', 'monthly', '0.7'],
+    ['/resources', 'weekly', '0.8'],
+    ['/links', 'monthly', '0.6'],
+    ['/portfolio/', 'weekly', '0.7'],
+  ]
+  const entries = pages.map(([pathname, changefreq, priority]) => `  <url>\n    <loc>${siteUrl}${pathname}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`).join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${siteUrl}/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${siteUrl}/portfolio/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
+${entries}
 </urlset>`
 }
 
