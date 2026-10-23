@@ -308,6 +308,10 @@ function toPublicUser(user) {
   }
 }
 
+app.get('/p', (_request, response) => {
+  response.redirect(301, '/portfolio/')
+})
+
 app.get('/api/health', (_request, response) => {
   response.json({ ok: true })
 })
