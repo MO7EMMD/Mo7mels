@@ -23,6 +23,23 @@ const SOCIAL_LINKS = [
   { label: 'X', href: 'https://x.com/Mo7_4l6' },
   { label: 'TikTok', href: 'https://www.tiktok.com/@ku.i25' },
 ]
+const MINISTRY_GRADE_12_URL = 'https://home.moe.gov.om/ar/manaheg/16'
+const MINISTRY_SUBJECT_CHOICES_URL = 'https://home.moe.gov.om/ar/topics/1/show/13053'
+const STUDY_SUBJECTS = [
+  { id: 'islamic', ar: 'التربية الإسلامية', en: 'Islamic Education', icon: '☾', ministryId: 309, tasks: ['لخّص فكرة رئيسية من درس هذا الأسبوع.', 'اكتب دليلاً أو مثالاً يدعم الفكرة.'], tasksEn: ['Summarize one key idea from this week’s lesson.', 'Add evidence or an example that supports it.'] },
+  { id: 'arabic', ar: 'اللغة العربية', en: 'Arabic Language', icon: 'ع', ministryId: 313, tasks: ['أعرب: قرأ الطالبُ الكتابَ.', 'اكتب فقرة قصيرة عن هدف دراسي تسعى إليه.'], tasksEn: ['Parse this sentence: قرأ الطالبُ الكتابَ.', 'Write a short paragraph about a study goal.'] },
+  { id: 'english', ar: 'اللغة الإنجليزية', en: 'English Language', icon: 'A', ministryId: 316, tasks: ['Write a short paragraph about a goal you want to achieve.', 'Review it for verb tense, spelling, and punctuation.'], tasksEn: ['Write a short paragraph about a goal you want to achieve.', 'Review it for verb tense, spelling, and punctuation.'] },
+  { id: 'math', ar: 'الرياضيات', en: 'Mathematics', icon: '∑', ministryId: 319, tasks: ['حل المعادلة: x² − 5x + 6 = 0.', 'تحقق من الحل بالتعويض عن كل قيمة.'], tasksEn: ['Solve: x² − 5x + 6 = 0.', 'Check each solution by substitution.'] },
+  { id: 'biology', ar: 'الأحياء', en: 'Biology', icon: '⌘', ministryId: 322, tasks: ['ارسم مخططاً مبسطاً لعملية حيوية درستها.', 'اشرح دور كل جزء في المخطط بجملة واحدة.'], tasksEn: ['Draw a simple diagram of a biological process you studied.', 'Explain each part of the diagram in one sentence.'] },
+  { id: 'chemistry', ar: 'الكيمياء', en: 'Chemistry', icon: '⚗', ministryId: 326, tasks: ['وازن المعادلة: H₂ + O₂ → H₂O.', 'اذكر عدد ذرات كل عنصر قبل الموازنة وبعدها.'], tasksEn: ['Balance: H₂ + O₂ → H₂O.', 'Count the atoms of each element before and after balancing.'] },
+  { id: 'physics', ar: 'الفيزياء', en: 'Physics', icon: '↗', ministryId: 329, tasks: ['يمر تيار في مقاومة 4Ω موصولة بجهد 12V. احسب التيار.', 'اكتب القانون والوحدات المستخدمة.'], tasksEn: ['A 4Ω resistor is connected to 12V. Find the current.', 'Write the formula and units you used.'] },
+  { id: 'homeland', ar: 'هذا وطني', en: 'This Is My Country', icon: '⌂', ministryId: 336, tasks: ['اختر موضوعاً من وحدتك الحالية واكتب ثلاث معلومات تعلمتها.', 'أضف سؤالاً واحداً تريد مناقشته في الصف.'], tasksEn: ['Choose a topic from your current unit and write three things you learned.', 'Add one question you would like to discuss in class.'] },
+  { id: 'geography', ar: 'الجغرافيا الاقتصادية', en: 'Economic Geography', icon: '⌖', ministryId: 339, tasks: ['اختر نشاطاً اقتصادياً في عُمان وارسم خريطة ذهنية لعوامله.', 'اشرح كيف يؤثر الموقع أو الموارد في هذا النشاط.'], tasksEn: ['Choose an economic activity in Oman and map its contributing factors.', 'Explain how location or resources affect it.'] },
+  { id: 'ict', ar: 'تقنية المعلومات', en: 'Information Technology', icon: '</>', ministryId: 343, tasks: ['اكتب خطوات إنشاء نسخة احتياطية آمنة لملف دراسي.', 'اذكر طريقتين لحماية حساباتك الرقمية.'], tasksEn: ['List the steps for safely backing up a school file.', 'Name two ways to protect your online accounts.'] },
+  { id: 'art', ar: 'الفنون التشكيلية', en: 'Visual Arts', icon: '◩', ministryId: 346, tasks: ['صمّم رسماً أولياً يعبّر عن مكان تحبه في عُمان.', 'جرّب التوازن بين المساحة واللون والخط.'], tasksEn: ['Sketch a place in Oman that matters to you.', 'Experiment with balance, color, and line.'] },
+  { id: 'sports', ar: 'الرياضة المدرسية', en: 'School Sports', icon: '◎', ministryId: 350, tasks: ['صمّم خطة إحماء قصيرة قبل نشاط رياضي.', 'دوّن كيف تساعد الراحة وشرب الماء على سلامة الجسم.'], tasksEn: ['Plan a short warm-up before physical activity.', 'Note how rest and hydration support physical wellbeing.'] },
+]
+const STUDY_TABS = ['library', 'worksheets', 'board']
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 const MAINTENANCE_TITLE = import.meta.env.VITE_MAINTENANCE_TITLE || 'نعتذر لإزعاجك'
 const MAINTENANCE_MESSAGE =
@@ -645,9 +662,21 @@ function App() {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('darkMode') === 'true'
   })
+  const [studyTab, setStudyTab] = useState('library')
+  const [studySearch, setStudySearch] = useState('')
+  const [selectedStudySubject, setSelectedStudySubject] = useState('math')
+  const [worksheetAnswers, setWorksheetAnswers] = useState(() => {
+    if (typeof window === 'undefined') return {}
+    try { return JSON.parse(localStorage.getItem('omanGrade12Worksheets') || '{}') } catch { return {} }
+  })
+  const [boardColor, setBoardColor] = useState('#203b32')
+  const [boardSize, setBoardSize] = useState(4)
+  const [boardTool, setBoardTool] = useState('pen')
   const [orderSearch, setOrderSearch] = useState('')
   const [copied, setCopied] = useState(false)
   const previewRef = useRef(null)
+  const boardCanvasRef = useRef(null)
+  const boardDrawingRef = useRef(false)
   const googleCallbackRef = useRef(
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth') === 'google_connected',
   )
@@ -1539,33 +1568,136 @@ function App() {
     )
   }
 
+  const activeStudySubject = STUDY_SUBJECTS.find((subject) => subject.id === selectedStudySubject) || STUDY_SUBJECTS[3]
+  const filteredStudySubjects = STUDY_SUBJECTS.filter((subject) =>
+    `${subject.ar} ${subject.en}`.toLocaleLowerCase().includes(studySearch.toLocaleLowerCase().trim()),
+  )
+
+  const updateWorksheetAnswer = (subjectId, value) => {
+    const nextAnswers = { ...worksheetAnswers, [subjectId]: value }
+    setWorksheetAnswers(nextAnswers)
+    localStorage.setItem('omanGrade12Worksheets', JSON.stringify(nextAnswers))
+  }
+
+  const getBoardPoint = (event) => {
+    const canvas = boardCanvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    return {
+      x: (event.clientX - rect.left) * (canvas.width / rect.width),
+      y: (event.clientY - rect.top) * (canvas.height / rect.height),
+    }
+  }
+
+  const startBoardStroke = (event) => {
+    const canvas = boardCanvasRef.current
+    if (!canvas) return
+    canvas.setPointerCapture(event.pointerId)
+    const context = canvas.getContext('2d')
+    const point = getBoardPoint(event)
+    boardDrawingRef.current = true
+    context.beginPath()
+    context.moveTo(point.x, point.y)
+    context.strokeStyle = boardColor
+    context.lineWidth = boardTool === 'marker' ? boardSize * 3 : boardTool === 'eraser' ? boardSize * 5 : boardSize
+    context.lineCap = 'round'
+    context.lineJoin = 'round'
+    context.globalCompositeOperation = boardTool === 'eraser' ? 'destination-out' : 'source-over'
+    context.globalAlpha = boardTool === 'marker' ? 0.38 : 1
+  }
+
+  const drawBoardStroke = (event) => {
+    if (!boardDrawingRef.current || !boardCanvasRef.current) return
+    const point = getBoardPoint(event)
+    const context = boardCanvasRef.current.getContext('2d')
+    context.lineTo(point.x, point.y)
+    context.stroke()
+  }
+
+  const endBoardStroke = () => { boardDrawingRef.current = false }
+
+  const clearBoard = () => {
+    const canvas = boardCanvasRef.current
+    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+  }
+
+  const saveBoardImage = () => {
+    const canvas = boardCanvasRef.current
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = 'oman-grade-12-whiteboard.png'
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+
   const renderHomePage = () => (
-    <div className="simple-portfolio">
-      <header className="simple-header">
-        <a className="simple-brand" href="/" aria-label="mo7mels">mo7mels</a>
-        <div className="simple-controls">
+    <div className="study-hub">
+      <header className="study-header">
+        <a className="study-brand" href="#study-home"><span className="study-brand-mark">م</span><span>{language === 'ar' ? 'مسار ١٢' : 'Grade 12 Oman'}<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
+        <nav className="study-nav" aria-label={language === 'ar' ? 'أقسام الموقع' : 'Study tools'}>
+          {STUDY_TABS.map((tab) => <button key={tab} type="button" className={studyTab === tab ? 'active' : ''} onClick={() => setStudyTab(tab)}>
+            {tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Library') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : (language === 'ar' ? 'السبورة' : 'Whiteboard')}
+          </button>)}
+        </nav>
+        <div className="study-controls">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
           <ThemeSwitcher content={content} darkMode={darkMode} onToggle={toggleDarkMode} />
         </div>
       </header>
-      <main className="simple-main">
-        <p className="simple-eyebrow">{language === 'ar' ? 'الموقع الشخصي' : 'PERSONAL WEBSITE'}</p>
-        <h1>{language === 'ar' ? 'مرحباً، أنا mo7mels.' : 'Hi, I’m mo7mels.'}</h1>
-        <p className="simple-intro">
-          {language === 'ar'
-            ? 'هذه مساحتي على الإنترنت. تابعني أو تواصل معي عبر الروابط أدناه.'
-            : 'This is my corner of the internet. Follow along or get in touch through the links below.'}
-        </p>
-        <div className="simple-actions">
-          <a href="mailto:mohemmdy.532@gmail.com">{language === 'ar' ? 'راسلني بالبريد' : 'Email me'} <span aria-hidden="true">↗</span></a>
-          <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">{language === 'ar' ? 'تواصل عبر تيليجرام' : 'Message me on Telegram'} <span aria-hidden="true">↗</span></a>
-        </div>
-        <section className="simple-socials" aria-label={language === 'ar' ? 'حساباتي الاجتماعية' : 'Social media'}>
-          <h2>{language === 'ar' ? 'حساباتي' : 'Find me online'}</h2>
-          <div>{SOCIAL_LINKS.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}<span aria-hidden="true">↗</span></a>)}</div>
+
+      <main className="study-main" id="study-home">
+        <section className="study-welcome">
+          <div><span className="study-overline">{language === 'ar' ? 'سلطنة عُمان · الصف الثاني عشر' : 'SULTANATE OF OMAN · GRADE 12'}</span>
+            <h1>{language === 'ar' ? 'خطوتك القادمة، تبدأ من هنا.' : 'Your next step starts here.'}</h1>
+            <p>{language === 'ar' ? 'كتبك، مراجعتك، وأدوات الدراسة في مساحة واحدة هادئة.' : 'Your books, revision, and study tools in one calm space.'}</p>
+          </div>
+          <div className="study-welcome-note"><span>12</span><small>{language === 'ar' ? 'مواد المنهج' : 'SUBJECTS'}</small></div>
+        </section>
+
+        <section className="study-panel" hidden={studyTab !== 'library'}>
+          <div className="study-section-heading"><div><span>{language === 'ar' ? 'مكتبة المنهج' : 'CURRICULUM LIBRARY'}</span><h2>{language === 'ar' ? 'اختر مادتك' : 'Choose a subject'}</h2></div>
+            <a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'مكتبة وزارة التعليم ↗' : 'Ministry textbook library ↗'}</a>
+          </div>
+          <p className="study-help">{language === 'ar' ? 'روابط مباشرة إلى صفحات كتب الصف الثاني عشر الرسمية. تختلف المواد الاختيارية حسب خطة الطالب.' : 'Direct links to official Grade 12 textbook pages. Elective subjects vary by each student’s study plan.'}</p>
+          <label className="study-search"><span aria-hidden="true">⌕</span><input value={studySearch} onChange={(event) => setStudySearch(event.target.value)} placeholder={language === 'ar' ? 'ابحث عن مادة...' : 'Search subjects...'} /></label>
+          <div className="study-subject-grid">
+            {filteredStudySubjects.map((subject) => <article className="study-subject-card" key={subject.id}>
+              <span className="subject-icon" aria-hidden="true">{subject.icon}</span><div><h3>{language === 'ar' ? subject.ar : subject.en}</h3><p>{language === 'ar' ? 'الصف الثاني عشر · فصول وكتب' : 'Grade 12 · terms and books'}</p></div>
+              <a href={`https://home.moe.gov.om/ar/manaheg/${subject.ministryId}`} target="_blank" rel="noreferrer" aria-label={`${language === 'ar' ? 'فتح كتب' : 'Open books for'} ${language === 'ar' ? subject.ar : subject.en}`}>↗</a>
+            </article>)}
+          </div>
+          <p className="study-source-note">{language === 'ar' ? 'المصدر: مكتبة المناهج الرسمية لوزارة التعليم في سلطنة عُمان.' : 'Source: the official Ministry of Education curriculum library for Oman.'} <a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'عرض المكتبة الرسمية' : 'Open official library'}</a> · <a href={MINISTRY_SUBJECT_CHOICES_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'ضوابط اختيار المواد' : 'Subject selection guidance'}</a></p>
+        </section>
+
+        <section className="study-panel" hidden={studyTab !== 'worksheets'}>
+          <div className="study-section-heading"><div><span>{language === 'ar' ? 'تدريب ومراجعة' : 'PRACTICE & REVISION'}</span><h2>{language === 'ar' ? 'ورقة عمل سريعة' : 'Quick worksheet'}</h2></div>
+            <span className="study-local-badge">{language === 'ar' ? 'حفظ تلقائي على جهازك' : 'Auto-saved on this device'}</span>
+          </div>
+          <div className="worksheet-subject-list" aria-label={language === 'ar' ? 'اختر المادة' : 'Choose a subject'}>
+            {STUDY_SUBJECTS.map((subject) => <button type="button" key={subject.id} className={selectedStudySubject === subject.id ? 'active' : ''} onClick={() => setSelectedStudySubject(subject.id)}>{language === 'ar' ? subject.ar : subject.en}</button>)}
+          </div>
+          <article className="worksheet-sheet" id="worksheet-print-area">
+            <div className="worksheet-title"><div><span>{language === 'ar' ? 'ورقة تدريبية · الصف الثاني عشر' : 'PRACTICE SHEET · GRADE 12'}</span><h3>{language === 'ar' ? activeStudySubject.ar : activeStudySubject.en}</h3></div><span className="worksheet-date">{new Date().toLocaleDateString(language === 'ar' ? 'ar-OM' : 'en-OM')}</span></div>
+            <p className="study-help">{language === 'ar' ? 'أسئلة بداية للمراجعة. راجع كتابك وخطة مادتك للتأكد من مطابقة موضوعات المنهج.' : 'Starter questions for revision. Check your textbook and course plan to match your current syllabus.'}</p>
+            <ol className="worksheet-tasks">{(language === 'ar' ? activeStudySubject.tasks : activeStudySubject.tasksEn).map((task) => <li key={task}>{task}</li>)}</ol>
+            <label className="worksheet-answer"><span>{language === 'ar' ? 'ملاحظاتك وإجاباتك' : 'Your notes and answers'}</span><textarea value={worksheetAnswers[selectedStudySubject] || ''} onChange={(event) => updateWorksheetAnswer(selectedStudySubject, event.target.value)} placeholder={language === 'ar' ? 'اكتب إجابتك هنا...' : 'Write your answer here...'} /></label>
+            <button type="button" className="study-print-button" onClick={() => window.print()}>{language === 'ar' ? 'طباعة ورقة العمل' : 'Print worksheet'} <span>↗</span></button>
+          </article>
+        </section>
+
+        <section className="study-panel" hidden={studyTab !== 'board'}>
+          <div className="study-section-heading"><div><span>{language === 'ar' ? 'مساحة كتابة' : 'WORKSPACE'}</span><h2>{language === 'ar' ? 'السبورة البيضاء' : 'Whiteboard'}</h2></div>
+            <div className="board-actions"><button type="button" onClick={clearBoard}>{language === 'ar' ? 'مسح السبورة' : 'Clear board'}</button><button type="button" className="primary" onClick={saveBoardImage}>{language === 'ar' ? 'حفظ صورة' : 'Save image'} ↓</button></div>
+          </div>
+          <div className="board-toolbar">
+            <div className="board-tool-group"><button type="button" className={boardTool === 'pen' ? 'active' : ''} onClick={() => setBoardTool('pen')}>✎ <span>{language === 'ar' ? 'قلم' : 'Pen'}</span></button><button type="button" className={boardTool === 'marker' ? 'active' : ''} onClick={() => setBoardTool('marker')}>▰ <span>{language === 'ar' ? 'قلم عريض' : 'Marker'}</span></button><button type="button" className={boardTool === 'eraser' ? 'active' : ''} onClick={() => setBoardTool('eraser')}>⌫ <span>{language === 'ar' ? 'ممحاة' : 'Eraser'}</span></button></div>
+            <div className="board-colors" aria-label={language === 'ar' ? 'لون القلم' : 'Pen color'}>{['#203b32', '#2563eb', '#d34d42', '#9a6a12', '#7c4d9e'].map((color) => <button key={color} type="button" className={boardColor === color ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setBoardColor(color)} aria-label={color} />)}</div>
+            <label className="board-size"><span>{language === 'ar' ? 'حجم القلم' : 'Size'}</span><input type="range" min="2" max="12" value={boardSize} onChange={(event) => setBoardSize(Number(event.target.value))} /></label>
+          </div>
+          <canvas ref={boardCanvasRef} className="study-canvas" width="1400" height="720" onPointerDown={startBoardStroke} onPointerMove={drawBoardStroke} onPointerUp={endBoardStroke} onPointerCancel={endBoardStroke} aria-label={language === 'ar' ? 'ارسم على السبورة باستخدام المؤشر أو اللمس' : 'Draw on the whiteboard with mouse or touch'} />
+          <p className="study-help board-hint">{language === 'ar' ? 'استخدم القلم أو القلم العريض أو الممحاة. تعمل السبورة باللمس والماوس.' : 'Use the pen, marker, or eraser. The board supports touch and mouse.'}</p>
         </section>
       </main>
-      <footer className="simple-footer"><span>© {new Date().getFullYear()} mo7mels</span><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram · @Nozvxa</a></footer>
+      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">{language === 'ar' ? 'تواصل مع المطور' : 'Contact developer'} · @Nozvxa ↗</a><a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'وزارة التعليم' : 'Ministry of Education'} ↗</a></footer>
     </div>
   )
 

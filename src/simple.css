@@ -47,3 +47,133 @@ body { margin:0; min-width:320px; background:#f7f8fa; }
 @media(prefers-reduced-motion:reduce) {
   .simple-portfolio *, .simple-portfolio *::before, .simple-portfolio *::after { transition-duration:.01ms!important; }
 }
+
+/* Oman Grade 12 learning hub */
+.study-hub { --study-ink:#202a25; --study-muted:#747e77; --study-line:#e6e9e5; --study-paper:#fff; --study-bg:#f6f7f4; min-height:100vh; padding:0 max(24px,calc((100vw - 1120px)/2)); background:var(--study-bg); color:var(--study-ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+.study-header { display:flex; min-height:76px; align-items:center; justify-content:space-between; gap:22px; border-bottom:1px solid var(--study-line); }
+.study-brand { display:flex; flex:none; align-items:center; gap:10px; color:var(--study-ink); font-size:13px; font-weight:700; text-decoration:none; }
+.study-brand-mark { display:grid; width:36px; height:36px; place-items:center; border-radius:11px; background:#244b3e; color:white; font-size:17px; }
+.study-brand small { display:block; margin-top:4px; color:var(--study-muted); font-size:8px; font-weight:600; letter-spacing:.11em; }
+.study-nav { display:flex; align-items:center; gap:5px; }
+.study-nav button,.board-tool-group button,.board-actions button { min-height:36px; padding:0 13px; border:0; border-radius:8px; background:transparent; color:var(--study-muted); font-family:inherit; font-size:11px; font-weight:600; line-height:1; cursor:pointer; }
+.study-nav button:hover,.board-tool-group button:hover { background:rgba(38,75,62,.07); color:var(--study-ink); }
+.study-nav button.active,.board-tool-group button.active { background:#e6eee9; color:#244b3e; }
+.study-controls { display:flex; align-items:center; gap:8px; }
+.study-controls .language-switcher { gap:2px; }
+.study-controls .language-option { min-height:30px; border-radius:999px; font-size:11px; }
+.study-controls .theme-toggle { min-height:36px; border-radius:999px; font-size:11px; }
+.study-main { width:min(100%,1120px); margin:0 auto; padding:38px 0 64px; }
+.study-welcome { display:flex; min-height:190px; align-items:center; justify-content:space-between; gap:24px; padding:28px clamp(23px,5vw,52px); border:1px solid #e4eae3; border-radius:17px; background:linear-gradient(115deg,#eef3ed,#e8f0eb 62%,#f4f2e9); }
+.study-overline,.study-section-heading>div>span { color:#607d6e; font-size:9px; font-weight:700; letter-spacing:.12em; }
+.study-welcome h1 { max-width:620px; margin:13px 0 7px; color:#1f3027; font-size:clamp(27px,4.5vw,43px); font-weight:700; letter-spacing:-.055em; line-height:1.18; }
+.study-welcome p { margin:0; color:#68766d; font-size:13px; line-height:1.75; }
+.study-welcome-note { display:flex; width:112px; height:112px; flex:none; flex-direction:column; align-items:center; justify-content:center; border:1px solid rgba(52,91,70,.17); border-radius:50%; background:rgba(255,255,255,.5); color:#335a46; }
+.study-welcome-note span { font-size:39px; font-weight:700; letter-spacing:-.08em; }
+.study-welcome-note small { margin-top:1px; font-size:8px; font-weight:700; letter-spacing:.12em; }
+.study-panel { margin-top:25px; padding:27px; border:1px solid var(--study-line); border-radius:15px; background:var(--study-paper); }
+.study-panel[hidden] { display:none; }
+.study-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:15px; }
+.study-section-heading h2 { margin:7px 0 0; color:var(--study-ink); font-size:22px; font-weight:700; letter-spacing:-.045em; }
+.study-section-heading>a { color:#426c56; font-size:11px; font-weight:650; text-decoration:none; }
+.study-section-heading>a:hover,.study-source-note a:hover { text-decoration:underline; }
+.study-help { margin:8px 0 0; color:var(--study-muted); font-size:11px; line-height:1.7; }
+.study-search { display:flex; height:43px; align-items:center; gap:9px; margin:21px 0 15px; padding:0 13px; border:1px solid var(--study-line); border-radius:9px; background:var(--study-bg); color:#7b857e; }
+.study-search span { font-size:19px; }
+.study-search input { width:100%; border:0; outline:0; background:transparent; color:var(--study-ink); font-family:inherit; font-size:12px; font-weight:400; line-height:1.3; }
+.study-search input::placeholder { color:#969e98; }
+.study-subject-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.study-subject-card { display:flex; min-width:0; min-height:78px; align-items:center; gap:11px; padding:12px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-paper); transition:border-color .15s,transform .15s; }
+.study-subject-card:hover { transform:translateY(-1px); border-color:#bac9bd; }
+.subject-icon { display:grid; width:38px; height:38px; flex:none; place-items:center; border-radius:10px; background:#eef3ee; color:#355e49; font-size:17px; font-weight:650; }
+.study-subject-card>div { min-width:0; flex:1; }
+.study-subject-card h3 { overflow:hidden; margin:0; color:var(--study-ink); font-size:11px; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+.study-subject-card p { margin:5px 0 0; color:var(--study-muted); font-size:9px; }
+.study-subject-card>a { display:grid; width:29px; height:29px; flex:none; place-items:center; border:1px solid var(--study-line); border-radius:8px; color:#52675a; font-size:13px; text-decoration:none; }
+.study-source-note { margin:18px 0 0; color:var(--study-muted); font-size:10px; }
+.study-source-note a { margin-inline-start:4px; color:#426c56; text-decoration:none; }
+.study-local-badge { padding:7px 10px; border-radius:999px; background:#edf4ee; color:#426a4f; font-size:9px; font-weight:650; }
+.worksheet-subject-list { display:flex; flex-wrap:wrap; gap:7px; margin:20px 0 15px; }
+.worksheet-subject-list button { min-height:32px; padding:0 11px; border:1px solid var(--study-line); border-radius:999px; background:var(--study-paper); color:var(--study-muted); font-size:10px; cursor:pointer; }
+.worksheet-subject-list button.active { border-color:#426c56; background:#eaf1eb; color:#315742; }
+.worksheet-sheet { padding:22px; border:1px solid var(--study-line); border-radius:12px; background:#fff; color:#26312a; }
+.worksheet-title { display:flex; justify-content:space-between; gap:16px; padding-bottom:13px; border-bottom:1px solid #e9ece8; }
+.worksheet-title>div>span { color:#718078; font-size:9px; font-weight:650; letter-spacing:.08em; }
+.worksheet-title h3 { margin:6px 0 0; font-size:17px; }
+.worksheet-date { color:#7c857e; font-size:10px; }
+.worksheet-tasks { display:grid; gap:14px; margin:20px 0; padding-inline-start:22px; color:#3a463e; font-size:12px; line-height:1.75; }
+.worksheet-answer { display:grid; gap:7px; color:#4c5b51; font-size:10px; font-weight:650; }
+.worksheet-answer textarea { min-height:120px; resize:vertical; padding:11px; border:1px solid #e4e8e3; border-radius:8px; background:#fcfdfb; color:#202a25; font-family:inherit; font-size:12px; font-weight:400; line-height:1.7; }
+.study-print-button { min-height:36px; margin-top:13px; padding:0 12px; border:1px solid #dce5de; border-radius:8px; background:#f0f5f0; color:#315742; font-size:10px; font-weight:650; cursor:pointer; }
+.study-print-button span { margin-inline-start:5px; }
+.board-actions { display:flex; gap:7px; }
+.board-actions button { border:1px solid var(--study-line); background:var(--study-paper); }
+.board-actions button.primary { border-color:#244b3e; background:#244b3e; color:#fff; }
+.board-toolbar { display:flex; min-height:58px; align-items:center; flex-wrap:wrap; gap:14px; margin:17px 0 12px; padding:8px 10px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-bg); }
+.board-tool-group,.board-colors { display:flex; align-items:center; gap:4px; }
+.board-tool-group button { display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 9px; font-size:13px; }
+.board-tool-group button span { font-size:10px; }
+.board-colors { gap:8px; padding:0 6px; }
+.board-colors button { width:19px; height:19px; border:2px solid white; border-radius:50%; background:var(--swatch); box-shadow:0 0 0 1px #d9ded9; cursor:pointer; }
+.board-colors button.active { box-shadow:0 0 0 2px #536b5a; }
+.board-size { display:flex; align-items:center; gap:8px; margin-inline-start:auto; color:var(--study-muted); font-size:10px; }
+.board-size input { width:100px; accent-color:#426c56; }
+.study-canvas { display:block; width:100%; height:auto; aspect-ratio:35/18; touch-action:none; border:1px solid #e6e9e5; border-radius:9px; background-color:#fff; background-image:linear-gradient(#edf0ec 1px,transparent 1px),linear-gradient(90deg,#edf0ec 1px,transparent 1px); background-size:24px 24px; cursor:crosshair; }
+.board-hint { margin-top:10px; }
+.study-footer { display:flex; min-height:67px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; border-top:1px solid var(--study-line); color:var(--study-muted); font-size:10px; }
+.study-footer a { color:inherit; text-decoration:none; }
+.study-footer a:hover { color:#426c56; }
+.page-shell.dark-mode .study-hub { --study-ink:#e8ece8; --study-muted:#a0aaa2; --study-line:#323a34; --study-paper:#1b201c; --study-bg:#141815; background:var(--study-bg); }
+.page-shell.dark-mode .study-brand,.page-shell.dark-mode .study-section-heading h2,.page-shell.dark-mode .study-subject-card h3 { color:var(--study-ink); }
+.page-shell.dark-mode .study-brand-mark { background:#315b47; }
+.page-shell.dark-mode .study-welcome { border-color:#34443a; background:linear-gradient(115deg,#202b23,#25352b 62%,#2d3023); }
+.page-shell.dark-mode .study-welcome h1 { color:#eef3ee; }
+.page-shell.dark-mode .study-welcome p,.page-shell.dark-mode .study-overline { color:#bbc9bd; }
+.page-shell.dark-mode .study-welcome-note { border-color:#4b6753; background:rgba(20,30,23,.45); color:#b7d1bc; }
+.page-shell.dark-mode .study-nav button.active,.page-shell.dark-mode .board-tool-group button.active,.page-shell.dark-mode .worksheet-subject-list button.active { background:#293d30; color:#c5ddca; }
+.page-shell.dark-mode .study-panel,.page-shell.dark-mode .study-subject-card { border-color:var(--study-line); background:var(--study-paper); }
+.page-shell.dark-mode .study-subject-card:hover { border-color:#526d58; }
+.page-shell.dark-mode .subject-icon,.page-shell.dark-mode .study-local-badge { background:#26392c; color:#c5ddca; }
+.page-shell.dark-mode .study-search { border-color:var(--study-line); background:#171c18; }
+.page-shell.dark-mode .study-search input { color:var(--study-ink); }
+.page-shell.dark-mode .study-source-note a,.page-shell.dark-mode .study-section-heading>a { color:#b4d0ba; }
+.page-shell.dark-mode .worksheet-sheet { border-color:var(--study-line); background:#fdfefc; color:#26312a; }
+.page-shell.dark-mode .study-print-button { border-color:#415b48; background:#26392c; color:#d0e2d2; }
+.page-shell.dark-mode .board-toolbar { border-color:var(--study-line); background:var(--study-bg); }
+.page-shell.dark-mode .board-actions button { border-color:var(--study-line); background:var(--study-paper); color:var(--study-ink); }
+.page-shell.dark-mode .board-actions button.primary { border-color:#47694f; background:#315b47; color:white; }
+@media(max-width:900px) {
+  .study-hub { padding:0 22px; }
+  .study-header { flex-wrap:wrap; padding:13px 0; }
+  .study-nav { order:3; width:100%; justify-content:center; }
+  .study-subject-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+  .study-hub { padding:0 15px; }
+  .study-header { gap:10px; }
+  .study-controls { gap:5px; }
+  .study-main { padding-top:20px; }
+  .study-welcome { min-height:160px; padding:21px; }
+  .study-welcome h1 { font-size:27px; }
+  .study-welcome p { max-width:250px; font-size:11px; }
+  .study-welcome-note { width:69px; height:69px; }
+  .study-welcome-note span { font-size:28px; }
+  .study-welcome-note small { font-size:6px; }
+  .study-panel { padding:17px 13px; }
+  .study-section-heading { align-items:flex-start; flex-direction:column; }
+  .study-section-heading h2 { font-size:20px; }
+  .study-subject-grid { grid-template-columns:1fr; }
+  .board-toolbar { gap:8px; }
+  .board-tool-group button { padding:0 7px; }
+  .board-tool-group button span { font-size:9px; }
+  .board-size { width:100%; margin-inline-start:0; }
+  .board-size input { flex:1; }
+  .board-actions { width:100%; }
+  .board-actions button { flex:1; }
+  .study-footer { padding:15px 0; }
+}
+@media print {
+  body * { visibility:hidden!important; }
+  #worksheet-print-area,#worksheet-print-area * { visibility:visible!important; }
+  #worksheet-print-area { position:absolute; inset:0; width:100%; border:0; }
+  .study-print-button { display:none!important; }
+}
