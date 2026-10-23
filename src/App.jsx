@@ -165,6 +165,27 @@ const translations = {
     embedWidth: 'Width (px)',
     embedHeight: 'Height (px)',
     responsiveHint: 'Responsive embeds adapt to the available space.',
+    navHome: 'Home',
+    navFeatures: 'Features',
+    navRules: 'Rules',
+    navContact: 'Contact',
+    featureTitle: 'Built for quick publishing',
+    featureCopy: 'A focused toolkit to turn public links into clean, shareable embeds.',
+    featureCards: [
+      ['01 / FAST', 'Generate embed code in a few seconds.'],
+      ['02 / FLEXIBLE', 'Choose responsive or custom dimensions.'],
+      ['03 / READY', 'Preview, copy, and save your embed snippets.'],
+    ],
+    footerTitle: 'Usage rules & terms',
+    footerRules: [
+      'Only embed public content that you have permission to share.',
+      'Respect each platform’s terms, copyright, and creator attribution.',
+      'You are responsible for checking embeds and links before publishing.',
+      'Do not use this service to distribute harmful, illegal, or misleading content.',
+    ],
+    footerNote: 'By using Mo7mels, you agree to use the service lawfully and respectfully.',
+    developerContact: 'Contact the developer',
+    copyright: '© 2026 Mo7mels. All rights reserved.',
     ready: 'READY',
     anyLink: 'Any link',
     inputPlaceholder: 'Enter YouTube, YouTube Shorts, TikTok, Instagram, or any URL',
@@ -307,6 +328,27 @@ const translations = {
     embedWidth: 'العرض (بكسل)',
     embedHeight: 'الارتفاع (بكسل)',
     responsiveHint: 'تتكيّف التضمينات المتجاوبة مع المساحة المتاحة.',
+    navHome: 'الرئيسية',
+    navFeatures: 'المميزات',
+    navRules: 'القواعد',
+    navContact: 'تواصل',
+    featureTitle: 'أدوات عملية للنشر السريع',
+    featureCopy: 'مجموعة مركزة لتحويل الروابط العامة إلى تضمينات مرتبة وسهلة المشاركة.',
+    featureCards: [
+      ['٠١ / سريع', 'أنشئ كود التضمين خلال ثوانٍ.'],
+      ['٠٢ / مرن', 'اختر أبعادًا متجاوبة أو مخصصة.'],
+      ['٠٣ / جاهز', 'عاين أكواد التضمين وانسخها واحفظها.'],
+    ],
+    footerTitle: 'قواعد الاستخدام والشروط',
+    footerRules: [
+      'ضمّن المحتوى العام الذي تملك إذنًا بمشاركته فقط.',
+      'احترم شروط كل منصة وحقوق النشر ونسب المحتوى إلى صاحبه.',
+      'تحقق من التضمينات والروابط قبل نشرها.',
+      'لا تستخدم الخدمة لنشر محتوى ضار أو غير قانوني أو مضلل.',
+    ],
+    footerNote: 'باستخدامك Mo7mels، توافق على استخدام الخدمة بشكل قانوني ومسؤول.',
+    developerContact: 'تواصل مع المطور',
+    copyright: '© 2026 Mo7mels. جميع الحقوق محفوظة.',
     ready: 'جاهز',
     anyLink: 'أي رابط',
     inputPlaceholder: 'أدخل رابط يوتيوب أو شورتس أو تيك توك أو إنستقرام أو أي رابط',
@@ -1339,6 +1381,12 @@ function App() {
           <span className="brand-mark">mo7mels</span>
           <span className="brand-name"><small>EMBED WORKSPACE</small></span>
         </a>
+        <nav className="site-nav" aria-label={content.navHome}>
+          <a href="#home">{content.navHome}</a>
+          <a href="#features">{content.navFeatures}</a>
+          <a href="#rules">{content.navRules}</a>
+          <a href="#contact">{content.navContact}</a>
+        </nav>
         <div className="top-bar-actions">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
           <button type="button" className="darkmode-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
@@ -1373,7 +1421,7 @@ function App() {
       </div>
 
       <main className="home-main">
-        <section className="home-hero">
+        <section className="home-hero" id="home">
           <div className="home-hero-copy">
             <span className="home-kicker"><i /> {content.homeKicker}</span>
             <h1>{content.pageTitle}<span className="hero-period">.</span></h1>
@@ -1385,10 +1433,26 @@ function App() {
           </div>
           <div className="hero-art" aria-hidden="true">
             <div className="art-ring ring-a" /><div className="art-ring ring-b" />
-            <div className="art-orb"><span>m7</span></div>
+            <div className="art-orb"><span>mo7mels</span></div>
             <span className="art-particle particle-a" /><span className="art-particle particle-b" /><span className="art-particle particle-c" />
             <div className="art-chip chip-a">&lt;/&gt; <b>HTML</b></div>
             <div className="art-chip chip-b">↗ <b>SHARE</b></div>
+          </div>
+        </section>
+
+        <section className="feature-section" id="features">
+          <div className="section-heading">
+            <span className="generator-step">02 <i>/</i> MO7MELS TOOLKIT</span>
+            <h2>{content.featureTitle}</h2>
+            <p>{content.featureCopy}</p>
+          </div>
+          <div className="feature-grid">
+            {content.featureCards.map(([label, description]) => (
+              <article className="feature-card" key={label}>
+                <span>{label}</span>
+                <p>{description}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -1459,6 +1523,29 @@ function App() {
       )}
 
       </main>
+      <footer className="site-footer">
+        <div className="footer-topline">
+          <a className="footer-brand" href="#home">mo7mels<span>_</span></a>
+          <nav aria-label={content.navContact}>
+            <a href="#home">{content.navHome}</a>
+            <a href="#features">{content.navFeatures}</a>
+            <a href="#rules">{content.navRules}</a>
+            <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram ↗</a>
+          </nav>
+        </div>
+        <section className="terms-section" id="rules">
+          <h2>{content.footerTitle}</h2>
+          <ul>{content.footerRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+          <p>{content.footerNote}</p>
+        </section>
+        <div className="footer-bottom" id="contact">
+          <span>{content.copyright}</span>
+          <a className="telegram-contact" href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">
+            <span>{content.developerContact}</span><strong>@Nozvxa ↗</strong>
+          </a>
+          <a href="#home" className="back-to-top">↑ {content.navHome}</a>
+        </div>
+      </footer>
     </div>
   )
 

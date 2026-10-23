@@ -53,3 +53,50 @@ body::after { content: ''; position: fixed; inset: 0; z-index: 20; pointer-event
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+.site-nav,.site-footer nav { display:flex; align-items:center; gap:clamp(10px,2vw,25px); }
+.site-nav { margin:0 auto; }
+.site-nav a,.site-footer nav a,.back-to-top { color:#a7bda9; font:11px var(--mono); text-transform:uppercase; letter-spacing:.08em; transition:color 160ms ease,text-shadow 160ms ease; }
+.site-nav a:hover,.site-footer nav a:hover,.back-to-top:hover { color:var(--accent); text-shadow:0 0 12px rgba(183,255,115,.45); }
+.top-bar-actions { gap:8px; }
+.top-bar-actions button,.top-bar-actions a,.generate-button,.copy-btn,.export-btn { min-height:40px; border-radius:8px; font-family:var(--mono); letter-spacing:.015em; }
+.top-bar-actions .nav-primary-button { background:linear-gradient(135deg,#b7ff73,#73d454); color:#071008; }
+.top-bar-actions .nav-outline-button,.top-bar-actions .linkedin-link { border-color:var(--line); background:rgba(8,17,11,.72); color:#c6ddc8; }
+.home-hero,.feature-section,.generator-panel,.site-footer { scroll-margin-top:30px; }
+.feature-section { padding:45px 0 50px; border-top:1px solid var(--line); }
+.section-heading { max-width:640px; margin-bottom:22px; }
+.section-heading h2 { margin:13px 0 7px; color:#eaffeb; font-size:clamp(1.5rem,3vw,2.1rem); letter-spacing:-.04em; }
+.section-heading p { margin:0; color:var(--muted); line-height:1.75; }
+.feature-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; }
+.feature-card { min-height:132px; padding:20px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(145deg,rgba(13,24,16,.88),rgba(7,13,9,.9)); transition:transform 180ms ease,border-color 180ms ease,box-shadow 180ms ease; }
+.feature-card:hover { transform:translateY(-4px); border-color:rgba(183,255,115,.48); box-shadow:0 12px 34px rgba(67,190,75,.09); }
+.feature-card span { color:var(--accent); font:10px var(--mono); letter-spacing:.08em; }
+.feature-card p { margin:17px 0 0; color:#c0d1c1; font-size:.94rem; line-height:1.65; }
+.site-footer { margin-top:50px; padding:25px 0 20px; border-top:1px solid var(--line); }
+.footer-topline,.footer-bottom { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.footer-brand { color:var(--accent); font:700 17px var(--mono); letter-spacing:.02em; }
+.footer-brand span { animation:status-pulse 1.6s infinite; }
+.site-footer nav { flex-wrap:wrap; }
+.site-footer nav a { font-size:10px; }
+.terms-section { max-width:760px; margin:34px 0 27px; padding:21px 23px; border:1px solid var(--line); border-radius:12px; background:rgba(7,14,9,.62); }
+.terms-section h2 { margin:0 0 12px; color:#eaffeb; font-size:1.05rem; }
+.terms-section ul { display:grid; gap:8px; margin:0; padding-inline-start:20px; color:#a7bda9; font-size:.83rem; line-height:1.6; }
+.terms-section li::marker { color:var(--accent); }
+.terms-section p { margin:14px 0 0; color:var(--muted); font-size:.78rem; line-height:1.6; }
+.footer-bottom { padding-top:17px; border-top:1px solid rgba(133,255,153,.1); color:var(--muted); font:10px var(--mono); }
+.telegram-contact { display:inline-flex; align-items:center; gap:10px; color:#a7bda9; }
+.telegram-contact strong { color:var(--accent); font-size:11px; }
+:where(button,a,input,textarea):focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+@media (max-width:800px) {
+ .top-bar { flex-wrap:wrap; justify-content:space-between; padding:12px 0; }
+ .site-nav { order:3; flex-basis:100%; justify-content:center; padding:3px 0 7px; }
+ .top-bar-actions { flex-wrap:wrap; justify-content:flex-end; }
+}
+@media (max-width:600px) {
+ .feature-grid { grid-template-columns:1fr; gap:9px; }
+ .feature-card { min-height:0; padding:16px; }
+ .feature-card p { margin-top:10px; }
+ .footer-topline,.footer-bottom { align-items:flex-start; flex-direction:column; }
+ .site-footer nav { gap:12px; }
+ .terms-section { padding:17px; }
+ .site-nav a { font-size:10px; }
+}
