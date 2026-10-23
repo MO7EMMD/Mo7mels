@@ -210,6 +210,108 @@ body { margin:0; min-width:320px; background:#f7f8fa; }
 @media print {
   body * { visibility:hidden!important; }
   #worksheet-print-area,#worksheet-print-area * { visibility:visible!important; }
+  .printable-study-section,.printable-study-section * { visibility:visible!important; }
   #worksheet-print-area { position:absolute; inset:0; width:100%; border:0; }
+  .printable-study-section { position:absolute; inset:0; width:100%; border:0; }
   .study-print-button { display:none!important; }
+}
+
+/* Subject pages, source viewer, and small interactive labs */
+.study-nav { flex-wrap:wrap; justify-content:center; }
+.study-home-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.physics-unit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:21px; }
+.physics-unit-card { position:relative; display:grid; min-height:91px; align-content:start; gap:7px; padding:13px 38px 12px 13px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-bg); color:var(--study-ink); text-align:start; cursor:pointer; transition:border-color .15s,transform .15s,background .15s; }
+[dir="rtl"] .physics-unit-card { padding:13px 13px 12px 38px; }
+.physics-unit-card:hover,.physics-unit-card.active { transform:translateY(-1px); border-color:#8da995; background:#edf3ee; }
+.physics-unit-card>span,.math-unit-title { color:#66806f; font:700 9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.1em; }
+.physics-unit-card strong { font-size:11px; line-height:1.45; }
+.physics-unit-card small { color:var(--study-muted); font-size:9px; }
+.physics-unit-card>b { position:absolute; inset-inline-end:12px; top:13px; color:#6f8876; font-size:12px; font-weight:500; }
+.physics-unit-content { display:grid; gap:13px; margin-top:18px; }
+.lesson-card,.formula-section,.simulation-card,.exam-note { padding:17px; border:1px solid var(--study-line); border-radius:11px; background:var(--study-bg); }
+.lesson-card>span,.mini-section-heading>span,.simulation-card>div>span,.mini-lab-card>div>span { color:#66806f; font:700 9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.1em; }
+.lesson-card p { margin:9px 0 0; color:var(--study-ink); font-size:12px; line-height:1.85; }
+.mini-section-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.mini-section-heading button,.resource-close { min-height:30px; padding:0 10px; border:1px solid var(--study-line); border-radius:7px; background:var(--study-paper); color:var(--study-muted); font-family:inherit; font-size:9px; font-weight:600; line-height:1.2; cursor:pointer; }
+.formula-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.formula-grid code { display:flex; min-height:44px; align-items:center; padding:9px 11px; border:1px solid var(--study-line); border-radius:8px; background:var(--study-paper); color:var(--study-ink); font:600 11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; direction:ltr; text-align:left; }
+.simulation-card { display:flex; align-items:center; justify-content:space-between; gap:17px; background:linear-gradient(110deg,#f0f5f0,#f6f7f4); }
+.simulation-card h3 { margin:7px 0 4px; color:var(--study-ink); font-size:14px; }
+.simulation-card p { margin:0; color:var(--study-muted); font-size:10px; line-height:1.6; }
+.simulation-card>button { min-height:37px; flex:none; padding:0 12px; border:0; border-radius:8px; background:#315b47; color:#fff; font-family:inherit; font-size:10px; font-weight:650; line-height:1.2; cursor:pointer; }
+.study-subheading { display:flex; align-items:end; justify-content:space-between; margin:24px 0 12px; }
+.study-subheading>div>span,.official-documents h3 { color:#66806f; font:700 9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.1em; }
+.study-subheading h3 { margin:5px 0 0; font-size:14px; letter-spacing:-.02em; }
+.study-resource-grid,.exam-resource-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:13px; }
+.study-resource-card { display:flex; min-width:0; min-height:88px; align-items:center; gap:10px; padding:11px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-paper); }
+.study-resource-icon { display:grid; width:34px; height:34px; flex:none; place-items:center; border-radius:9px; background:#eef3ee; color:#355e49; font-size:15px; }
+.study-resource-copy { display:grid; min-width:0; flex:1; gap:4px; }
+.study-resource-copy strong { color:var(--study-ink); font-size:10px; line-height:1.5; }
+.study-resource-copy small { color:var(--study-muted); font-size:9px; line-height:1.5; }
+.study-resource-copy>span { color:#7b897d; font-size:8px; }
+.unit-practice { padding:11px 12px; border:1px solid var(--study-line); border-radius:8px; background:var(--study-paper); }
+.unit-practice summary { color:#426c56; font-size:10px; font-weight:650; cursor:pointer; }
+.unit-practice>p { margin:9px 0; color:var(--study-ink); font-size:10px; line-height:1.75; }
+.unit-practice label { display:grid; gap:6px; color:var(--study-muted); font-size:9px; }
+.unit-practice textarea { min-height:74px; resize:vertical; padding:9px; border:1px solid var(--study-line); border-radius:7px; background:var(--study-bg); color:var(--study-ink); font-family:inherit; font-size:10px; font-weight:400; line-height:1.7; }
+.math-unit-practice { padding:9px; }
+.math-unit-practice textarea { min-height:58px; }
+.study-resource-actions { display:flex; flex:none; align-items:center; gap:4px; }
+.study-resource-actions button,.study-resource-actions>a { display:grid; min-width:29px; height:29px; place-items:center; padding:0 8px; border:1px solid var(--study-line); border-radius:7px; background:var(--study-bg); color:#496653; font-family:inherit; font-size:9px; font-weight:600; line-height:1.2; text-decoration:none; cursor:pointer; }
+.resource-frame-wrap { overflow:hidden; height:min(74vh,760px); margin-top:15px; border:1px solid var(--study-line); border-radius:9px; background:#fff; }
+.resource-frame-wrap iframe { width:100%; height:100%; border:0; background:#fff; }
+.resource-original-link { display:inline-flex; min-height:35px; align-items:center; margin-top:10px; padding:0 11px; border:1px solid var(--study-line); border-radius:8px; color:#426c56; font-size:10px; font-weight:650; text-decoration:none; }
+.math-track-switch { display:flex; gap:7px; margin-top:17px; }
+.math-track-switch button { min-height:34px; padding:0 12px; border:1px solid var(--study-line); border-radius:999px; background:var(--study-paper); color:var(--study-muted); font-family:inherit; font-size:10px; font-weight:600; line-height:1.2; cursor:pointer; }
+.math-track-switch button.active { border-color:#426c56; background:#eaf1eb; color:#315742; }
+.math-resource-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; color:var(--study-muted); font-size:9px; }
+.math-resource-top a { color:#426c56; font-weight:650; text-decoration:none; }
+.math-semester { margin-top:20px; }
+.math-semester h3,.official-documents h3 { margin:0 0 10px; color:var(--study-ink); font-size:13px; letter-spacing:0; }
+.math-unit-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.math-unit-card { display:grid; align-content:start; gap:8px; padding:14px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-bg); }
+.math-unit-title { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:8px; }
+.math-unit-title small { color:var(--study-muted); font-family:inherit; font-size:8px; font-weight:500; line-height:1.3; letter-spacing:0; }
+.math-unit-card h4 { margin:0; color:var(--study-ink); font-size:12px; line-height:1.5; }
+.math-unit-card code { min-height:35px; color:var(--study-muted); font:500 9px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; direction:ltr; text-align:left; }
+.math-unit-card>p { margin:0; color:var(--study-muted); font-size:9px; }
+.math-unit-card>div:last-child { display:flex; align-items:center; gap:7px; margin-top:2px; }
+.math-unit-card>div:last-child button,.math-unit-card>div:last-child a { min-height:30px; padding:0 9px; border:1px solid var(--study-line); border-radius:7px; background:var(--study-paper); color:#426c56; font-family:inherit; font-size:9px; font-weight:600; line-height:1.2; text-decoration:none; cursor:pointer; }
+.official-documents { margin-top:24px; padding-top:18px; border-top:1px solid var(--study-line); }
+.exam-note { margin-top:17px; }
+.exam-note strong { color:var(--study-ink); font-size:11px; }
+.exam-note p { margin:6px 0 0; color:var(--study-muted); font-size:10px; line-height:1.7; }
+.mini-lab-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; margin-top:15px; }
+.mini-lab-card { display:grid; align-content:start; gap:11px; padding:15px; border:1px solid var(--study-line); border-radius:11px; background:var(--study-bg); }
+.mini-lab-card h3 { margin:5px 0 3px; color:var(--study-ink); font-size:13px; }
+.mini-lab-card p { margin:0; color:var(--study-muted); font-size:10px; }
+.mini-lab-card>label { display:grid; gap:6px; color:var(--study-muted); font-size:9px; }
+.mini-lab-card input[type="range"] { width:100%; accent-color:#426c56; }
+.circuit-visual { display:flex; height:68px; align-items:center; justify-content:center; gap:0; margin-top:2px; color:#426c56; font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
+.circuit-visual i { width:24%; height:2px; background:#426c56; }
+.circuit-visual b { display:grid; width:36px; height:32px; place-items:center; border:2px solid #426c56; border-radius:5px; background:var(--study-paper); font-size:11px; }
+.wave-simulation { width:100%; height:120px; overflow:hidden; border:1px solid var(--study-line); border-radius:8px; background:var(--study-paper); }
+.wave-simulation>path:first-child { fill:none; stroke:#3b7756; stroke-width:3; }
+.wave-simulation .wave-dot { fill:none; stroke:#c7d4c9; stroke-width:1; stroke-dasharray:4 5; }
+.simulations-lab { margin-top:17px; }
+.page-shell.dark-mode .physics-unit-card { background:var(--study-bg); }
+.page-shell.dark-mode .physics-unit-card:hover,.page-shell.dark-mode .physics-unit-card.active,.page-shell.dark-mode .math-track-switch button.active { border-color:#526d58; background:#26392c; color:#c5ddca; }
+.page-shell.dark-mode .lesson-card,.page-shell.dark-mode .formula-section,.page-shell.dark-mode .simulation-card,.page-shell.dark-mode .exam-note,.page-shell.dark-mode .math-unit-card,.page-shell.dark-mode .mini-lab-card { border-color:var(--study-line); background:var(--study-bg); }
+.page-shell.dark-mode .formula-grid code,.page-shell.dark-mode .study-resource-card,.page-shell.dark-mode .resource-close,.page-shell.dark-mode .study-resource-actions button,.page-shell.dark-mode .study-resource-actions>a,.page-shell.dark-mode .math-track-switch button,.page-shell.dark-mode .math-unit-card>div:last-child button,.page-shell.dark-mode .math-unit-card>div:last-child a { border-color:var(--study-line); background:var(--study-paper); color:var(--study-ink); }
+.page-shell.dark-mode .simulation-card>button { background:#315b47; color:#fff; }
+.page-shell.dark-mode .study-resource-icon { background:#26392c; color:#c5ddca; }
+.page-shell.dark-mode .unit-practice { border-color:var(--study-line); background:var(--study-paper); }
+.page-shell.dark-mode .unit-practice summary { color:#b4d0ba; }
+.page-shell.dark-mode .unit-practice textarea { border-color:var(--study-line); background:var(--study-bg); color:var(--study-ink); }
+@media(max-width:900px) { .study-home-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .physics-unit-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) {
+  .study-nav { justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; padding-bottom:2px; }
+  .study-nav button { flex:none; }
+  .study-home-grid,.physics-unit-grid,.formula-grid,.study-resource-grid,.exam-resource-grid,.math-unit-grid,.mini-lab-grid { grid-template-columns:1fr; }
+  .simulation-card { align-items:flex-start; flex-direction:column; }
+  .simulation-card>button { width:100%; }
+  .math-resource-top { align-items:flex-start; flex-direction:column; }
+  .resource-frame-wrap { height:65vh; }
+  .study-resource-card { align-items:flex-start; }
+  .study-resource-actions { flex-direction:column; }
 }

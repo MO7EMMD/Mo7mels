@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import './modern.css'
+import StudyPages from './StudyPages.jsx'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -39,8 +40,25 @@ const STUDY_SUBJECTS = [
   { id: 'art', ar: 'الفنون التشكيلية', en: 'Visual Arts', icon: '◩', ministryId: 346, tasks: ['صمّم رسماً أولياً يعبّر عن مكان تحبه في عُمان.', 'جرّب التوازن بين المساحة واللون والخط.'], tasksEn: ['Sketch a place in Oman that matters to you.', 'Experiment with balance, color, and line.'] },
   { id: 'sports', ar: 'الرياضة المدرسية', en: 'School Sports', icon: '◎', ministryId: 350, tasks: ['صمّم خطة إحماء قصيرة قبل نشاط رياضي.', 'دوّن كيف تساعد الراحة وشرب الماء على سلامة الجسم.'], tasksEn: ['Plan a short warm-up before physical activity.', 'Note how rest and hydration support physical wellbeing.'] },
 ]
-const STUDY_TABS = ['home', 'library', 'worksheets', 'board', 'resources', 'links']
-const STUDY_PAGE_PATHS = { home: '/', library: '/books', worksheets: '/worksheets', board: '/whiteboard', resources: '/resources', links: '/links' }
+const STUDY_TABS = ['home', 'library', 'physics', 'math', 'worksheets', 'exams', 'board', 'resources', 'links']
+const STUDY_PAGE_PATHS = { home: '/', library: '/books', physics: '/physics', math: '/mathematics', worksheets: '/worksheets', exams: '/exams', board: '/whiteboard', resources: '/resources', links: '/links' }
+const STUDY_TAB_LABELS = {
+  home: { ar: 'الرئيسية', en: 'Home' },
+  library: { ar: 'الكتب', en: 'Books' },
+  physics: { ar: 'الفيزياء', en: 'Physics' },
+  math: { ar: 'الرياضيات', en: 'Maths' },
+  worksheets: { ar: 'أوراق العمل', en: 'Worksheets' },
+  exams: { ar: 'الامتحانات', en: 'Exams' },
+  board: { ar: 'السبورة', en: 'Whiteboard' },
+  resources: { ar: 'مصادر الوزارة', en: 'MOE resources' },
+  links: { ar: 'روابط مهمة', en: 'Useful links' },
+}
+const getStudyTabForPath = (pathname) => {
+  if (pathname.startsWith('/physics')) return 'physics'
+  if (pathname.startsWith('/mathematics')) return 'math'
+  return Object.keys(STUDY_PAGE_PATHS).find((page) => STUDY_PAGE_PATHS[page] === pathname) || 'home'
+}
+const isStudyPath = (pathname) => Object.values(STUDY_PAGE_PATHS).includes(pathname) || pathname.startsWith('/physics/') || pathname.startsWith('/mathematics/')
 const MINISTRY_RESOURCE_GROUPS = [
   { id: 'digital-learning', ar: 'التعليم الرقمي', en: 'Digital education', items: [
     { ar: 'منصة نور', en: 'Noor Platform', href: 'https://lms.moe.gov.om/' },
@@ -193,7 +211,9 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/pricing', '/books', '/worksheets', '/whiteboard', '/resources', '/links', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+  return ['/', '/pricing', '/books', '/worksheets', '/whiteboard', '/resources', '/links', '/physics', '/mathematics', '/exams', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+    || window.location.pathname.startsWith('/physics/')
+    || window.location.pathname.startsWith('/mathematics/')
     ? window.location.pathname
     : '/'
 }
@@ -716,7 +736,7 @@ function App() {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('darkMode') === 'true'
   })
-  const [studyTab, setStudyTab] = useState(() => Object.keys(STUDY_PAGE_PATHS).find((page) => STUDY_PAGE_PATHS[page] === (typeof window === 'undefined' ? '/' : window.location.pathname)) || 'home')
+  const [studyTab, setStudyTab] = useState(() => getStudyTabForPath(typeof window === 'undefined' ? '/' : window.location.pathname))
   const [studySearch, setStudySearch] = useState('')
   const [selectedStudySubject, setSelectedStudySubject] = useState('math')
   const [worksheetAnswers, setWorksheetAnswers] = useState(() => {
@@ -742,7 +762,7 @@ function App() {
     const handlePopState = () => {
       const nextPath = getInitialPath()
       setCurrentPath(nextPath)
-      setStudyTab(Object.keys(STUDY_PAGE_PATHS).find((page) => STUDY_PAGE_PATHS[page] === nextPath) || 'home')
+      setStudyTab(getStudyTabForPath(nextPath))
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -1699,7 +1719,7 @@ function App() {
         <a className="study-brand" href="/" onClick={(event) => { event.preventDefault(); setStudyTab('home'); navigateTo('/') }}><span className="study-brand-mark">م</span><span>{language === 'ar' ? 'مسار ١٢' : 'Grade 12 Oman'}<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
         <nav className="study-nav" aria-label={language === 'ar' ? 'أقسام الموقع' : 'Study tools'}>
           {STUDY_TABS.map((tab) => <button key={tab} type="button" className={studyTab === tab ? 'active' : ''} aria-current={studyTab === tab ? 'page' : undefined} onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>
-            {tab === 'home' ? (language === 'ar' ? 'الرئيسية' : 'Home') : tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Books') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : tab === 'board' ? (language === 'ar' ? 'السبورة' : 'Whiteboard') : tab === 'resources' ? (language === 'ar' ? 'مصادر الوزارة' : 'Ministry resources') : (language === 'ar' ? 'روابط مهمة' : 'Useful links')}
+            {STUDY_TAB_LABELS[tab][language]}
           </button>)}
         </nav>
         <div className="study-controls">
@@ -1720,7 +1740,10 @@ function App() {
         <section className="study-home-grid" hidden={studyTab !== 'home'}>
           {[
             { id: 'library', icon: '▤', ar: 'كتب الصف الثاني عشر', en: 'Grade 12 textbooks', noteAr: 'روابط موثقة لمكتبة الوزارة حسب المادة.', noteEn: 'Verified links to Ministry books by subject.' },
+            { id: 'physics', icon: '⚛', ar: 'مختبر الفيزياء', en: 'Physics lab', noteAr: 'تسع وحدات، قوانين، مراجعات ومحاكاة.', noteEn: 'Nine units, formulas, revision, and simulations.' },
+            { id: 'math', icon: '∑', ar: 'مسارات الرياضيات', en: 'Mathematics tracks', noteAr: 'الرياضيات الأساسية والمتقدمة، وحدة بوحدة.', noteEn: 'Basic and Advanced Mathematics, unit by unit.' },
             { id: 'worksheets', icon: '✎', ar: 'أوراق العمل', en: 'Worksheets', noteAr: 'تدريبات قابلة للطباعة مع حفظ إجاباتك.', noteEn: 'Printable practice with saved answers.' },
+            { id: 'exams', icon: '✓', ar: 'الامتحانات النهائية', en: 'Final exams', noteAr: 'نماذج وأسئلة وزارية وإجاباتها.', noteEn: 'Ministry papers, sample exams, and answer keys.' },
             { id: 'board', icon: '▱', ar: 'السبورة البيضاء', en: 'Whiteboard', noteAr: 'اكتب وارسم واحفظ ملاحظاتك كصورة.', noteEn: 'Draw, write, and save your notes as an image.' },
             { id: 'resources', icon: '⌘', ar: 'مصادر وزارة التعليم', en: 'Ministry resources', noteAr: 'المنصات والمكتبات والخدمات الرسمية.', noteEn: 'Official platforms, libraries, and services.' },
           ].map((card) => <button className="study-home-card" key={card.id} type="button" onClick={() => { setStudyTab(card.id); navigateTo(STUDY_PAGE_PATHS[card.id]) }}>
@@ -1789,8 +1812,10 @@ function App() {
           <canvas ref={boardCanvasRef} className="study-canvas" width="1400" height="720" onPointerDown={startBoardStroke} onPointerMove={drawBoardStroke} onPointerUp={endBoardStroke} onPointerCancel={endBoardStroke} aria-label={language === 'ar' ? 'ارسم على السبورة باستخدام المؤشر أو اللمس' : 'Draw on the whiteboard with mouse or touch'} />
           <p className="study-help board-hint">{language === 'ar' ? 'استخدم القلم أو القلم العريض أو الممحاة. تعمل السبورة باللمس والماوس.' : 'Use the pen, marker, or eraser. The board supports touch and mouse.'}</p>
         </section>
+
+        <StudyPages page={studyTab} path={currentPath} language={language} navigateTo={(path) => { setStudyTab(getStudyTabForPath(path)); navigateTo(path) }} />
       </main>
-      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <button key={tab} type="button" onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>{tab === 'home' ? (language === 'ar' ? 'الرئيسية' : 'Home') : tab === 'library' ? (language === 'ar' ? 'الكتب' : 'Books') : tab === 'worksheets' ? (language === 'ar' ? 'أوراق العمل' : 'Worksheets') : tab === 'board' ? (language === 'ar' ? 'السبورة' : 'Whiteboard') : tab === 'resources' ? (language === 'ar' ? 'مصادر الوزارة' : 'MOE resources') : (language === 'ar' ? 'روابط مهمة' : 'Useful links')}</button>)}</nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
+      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <button key={tab} type="button" onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>{STUDY_TAB_LABELS[tab][language]}</button>)}</nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
     </div>
   )
 
@@ -1811,7 +1836,7 @@ function App() {
       <div className={`page-shell${darkMode ? ' dark-mode' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {currentPath.startsWith('/dashboard')
           ? renderDashboardPage()
-          : currentPath === '/' || currentPath === '/pricing' || Object.values(STUDY_PAGE_PATHS).includes(currentPath)
+          : currentPath === '/' || currentPath === '/pricing' || isStudyPath(currentPath)
             ? renderHomePage()
             : renderAuthPage()}
       </div>
