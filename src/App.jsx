@@ -23,6 +23,7 @@ const SOCIAL_LINKS = [
   { label: 'GitHub', href: 'https://github.com/MO7EMMD' },
   { label: 'X', href: 'https://x.com/Mo7_4l6' },
   { label: 'TikTok', href: 'https://www.tiktok.com/@ku.i25' },
+  { label: 'Telegram', href: 'https://t.me/Nozvxa' },
 ]
 const MINISTRY_GRADE_12_URL = 'https://home.moe.gov.om/ar/manaheg/16'
 const MINISTRY_SUBJECT_CHOICES_URL = 'https://home.moe.gov.om/ar/topics/1/show/13053'
