@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './index.css'
 import './hacker-theme.css'
 import './reference-theme.css'
+import './simple.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

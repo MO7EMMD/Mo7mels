@@ -1540,252 +1540,32 @@ function App() {
   }
 
   const renderHomePage = () => (
-    <div className="App home-app">
-      <div className="top-bar">
-        <a className="brand-lockup" href="/" onClick={(event) => { event.preventDefault(); navigateTo('/') }} aria-label={content.brand}>
-          <span className="brand-mark">mo7mels</span>
-          <span className="brand-name"><small>EMBED WORKSPACE</small></span>
-        </a>
-        <nav className="site-nav" aria-label={content.navHome}>
-          <a href="#home">{content.navHome}</a>
-          <a href="#features">{content.navFeatures}</a>
-          <a href="#plans">{content.navPricing}</a>
-          <a href="#faq">FAQ</a>
-          <a href="#contact">{content.navContact}</a>
-        </nav>
-        <div className="top-bar-actions">
+    <div className="simple-portfolio">
+      <header className="simple-header">
+        <a className="simple-brand" href="/" aria-label="mo7mels">mo7mels</a>
+        <div className="simple-controls">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
           <ThemeSwitcher content={content} darkMode={darkMode} onToggle={toggleDarkMode} />
-          {currentUser ? (
-            <>
-              <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
-                {content.linkedin}
-              </a>
-              <button type="button" className="nav-outline-button" onClick={() => navigateTo('/dashboard')}>
-                {content.dashboard}
-              </button>
-              <button type="button" className="nav-primary-button" onClick={handleLogout}>
-                {content.logout}
-              </button>
-            </>
-          ) : (
-            <>
-              <a className="nav-link-button linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
-                {content.linkedin}
-              </a>
-              <button type="button" className="nav-outline-button" onClick={() => navigateTo('/login')}>
-                {content.login}
-              </button>
-              <button type="button" className="nav-primary-button" onClick={() => navigateTo('/signup')}>
-                {content.signUp}
-              </button>
-            </>
-          )}
         </div>
-      </div>
-
-      <main className="home-main">
-        <section className="home-hero" id="home">
-          <div className="home-hero-copy">
-            <span className="home-kicker"><i /> {content.homeKicker}</span>
-            <h1>{content.pageTitle}<span className="hero-period">.</span></h1>
-            <h2 className="home-headline">{content.homeHeadline}</h2>
-            <p className="page-subtitle">{content.pageSubtitle}</p>
-            <div className="hero-actions">
-              <a className="get-started-button" href="#embed-tool">{content.getStarted}<span>↗</span></a>
-              <a className="learn-more-link" href="#features">{content.navFeatures} ↓</a>
-            </div>
-            <div className="platform-list" aria-label="Supported platforms">
-              <span>YouTube</span><span>Shorts</span><span>TikTok</span><span>Instagram</span><span>{content.anyLink}</span>
-            </div>
-          </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="art-ring ring-a" /><div className="art-ring ring-b" />
-            <div className="art-orb"><span>mo7mels</span></div>
-            <span className="art-particle particle-a" /><span className="art-particle particle-b" /><span className="art-particle particle-c" />
-            <div className="art-chip chip-a">&lt;/&gt; <b>HTML</b></div>
-            <div className="art-chip chip-b">↗ <b>SHARE</b></div>
-          </div>
+      </header>
+      <main className="simple-main">
+        <p className="simple-eyebrow">{language === 'ar' ? 'الموقع الشخصي' : 'PERSONAL WEBSITE'}</p>
+        <h1>{language === 'ar' ? 'مرحباً، أنا mo7mels.' : 'Hi, I’m mo7mels.'}</h1>
+        <p className="simple-intro">
+          {language === 'ar'
+            ? 'هذه مساحتي على الإنترنت. تابعني أو تواصل معي عبر الروابط أدناه.'
+            : 'This is my corner of the internet. Follow along or get in touch through the links below.'}
+        </p>
+        <div className="simple-actions">
+          <a href="mailto:mohemmdy.532@gmail.com">{language === 'ar' ? 'راسلني بالبريد' : 'Email me'} <span aria-hidden="true">↗</span></a>
+          <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">{language === 'ar' ? 'تواصل عبر تيليجرام' : 'Message me on Telegram'} <span aria-hidden="true">↗</span></a>
+        </div>
+        <section className="simple-socials" aria-label={language === 'ar' ? 'حساباتي الاجتماعية' : 'Social media'}>
+          <h2>{language === 'ar' ? 'حساباتي' : 'Find me online'}</h2>
+          <div>{SOCIAL_LINKS.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}<span aria-hidden="true">↗</span></a>)}</div>
         </section>
-
-        <section className="feature-section" id="features">
-          <div className="section-heading">
-            <span className="generator-step">02 <i>/</i> MO7MELS TOOLKIT</span>
-            <h2>{content.featureTitle}</h2>
-            <p>{content.featureCopy}</p>
-          </div>
-          <div className="feature-grid">
-            {content.featureCards.map(([label, description]) => (
-              <article className="feature-card" key={label}>
-                <span>{label}</span>
-                <p>{description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="workflow-section">
-          <div className="reference-section-heading">
-            <span>{language === 'ar' ? 'خطوات العمل' : 'HOW IT WORKS'}</span>
-            <h2>{content.workflowTitle}</h2>
-          </div>
-          <div className="workflow-grid">
-            {content.workflowSteps.map(([number, title, description]) => (
-              <article className="workflow-card" key={number}>
-                <span>{number}</span><h3>{title}</h3><p>{description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="generator-panel" id="embed-tool" aria-label={content.generate}>
-          <div className="generator-heading">
-              <div><span className="generator-step">01 <i>/</i> {content.embedGeneratorLabel}</span><h2>{content.generate}</h2></div>
-            <span className="generator-status"><i /> {content.ready}</span>
-          </div>
-          <div className="generator-input-row">
-            <label className="sr-only" htmlFor="embed-url">{content.inputPlaceholder}</label>
-            <input
-              id="embed-url"
-              className="embed-url-input"
-              type="url"
-              placeholder={content.inputPlaceholder}
-              value={url}
-              onChange={(event) => {
-                setUrl(event.target.value)
-                if (validationMessage) {
-                  setValidationMessage('')
-                  setValidationType('')
-                }
-              }}
-              onKeyDown={(event) => { if (event.key === 'Enter') generateEmbed() }}
-            />
-            <button type="button" className="generate-button" onClick={generateEmbed}>{content.generate}<span>↗</span></button>
-          </div>
-          <div className="embed-options">
-            <span className="embed-options-title">{content.embedOptions}</span>
-            <label className="embed-toggle">
-              <input type="checkbox" checked={responsiveEmbed} onChange={(event) => setResponsiveEmbed(event.target.checked)} />
-              <span>{content.responsiveEmbed}</span>
-            </label>
-            {!responsiveEmbed && <>
-              <label className="embed-dimension">{content.embedWidth}<input type="number" min="240" max="1920" value={embedWidth} onChange={(event) => setEmbedWidth(Math.min(1920, Math.max(240, Number(event.target.value) || 240)))} /></label>
-              <label className="embed-dimension">{content.embedHeight}<input type="number" min="160" max="1080" value={embedHeight} onChange={(event) => setEmbedHeight(Math.min(1080, Math.max(160, Number(event.target.value) || 160)))} /></label>
-            </>}
-          </div>
-          <p className="generator-footnote"><span>↳</span> {content.generatorHint} {responsiveEmbed ? content.responsiveHint : ''}</p>
-        </section>
-      {validationMessage && (
-        <p className={`validation-message ${validationType}`}>{validationMessage}</p>
-      )}
-      {embedCode && (
-        <div className="embed-result-block">
-          <h2>{content.embedCode}</h2>
-          <textarea value={embedCode} readOnly rows={5} cols={50} />
-          <div className="embed-actions">
-            <button
-              type="button"
-              className="copy-btn"
-              onClick={() => {
-                navigator.clipboard.writeText(embedCode).catch(() => {})
-                setCopied(true)
-                setTimeout(() => setCopied(false), 1800)
-              }}
-            >
-              {copied ? (language === 'ar' ? '✓ تم النسخ' : '✓ Copied!') : (language === 'ar' ? 'نسخ الكود' : 'Copy Code')}
-            </button>
-            {currentUser && (
-              <button type="button" className="export-btn" onClick={handleExportHtml}>
-                {language === 'ar' ? 'تصدير HTML' : 'Export HTML'}
-              </button>
-            )}
-          </div>
-          <div ref={previewRef} dangerouslySetInnerHTML={{ __html: embedCode }} />
-        </div>
-      )}
-
-      <section className="plan-section" id="plans">
-        <div className="reference-section-heading">
-          <span>{content.plansKicker}</span>
-          <h2>{content.plansTitle}</h2>
-          <p>{content.plansIntro}</p>
-        </div>
-        <div className="plan-grid">
-          {content.planNames.map((name, index) => (
-            <article className={`plan-card${index === 1 ? ' plan-card-featured' : ''}`} key={name}>
-              {index === 1 && <span className="plan-badge">{language === 'ar' ? 'الأكثر استخدامًا' : 'POPULAR'}</span>}
-              <h3>{name}</h3>
-              <p className="plan-description">{content.planDescriptions[index]}</p>
-              <p className="plan-status">{content.planStatus}</p>
-              <ul>{content.planFeatures[index].map((feature) => <li key={feature}>{feature}</li>)}</ul>
-              <a className="plan-action" href="#embed-tool">{content.getStarted}<span>↗</span></a>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="why-section">
-        <div className="reference-section-heading">
-          <h2>{content.whyTitle}</h2>
-        </div>
-        <div className="why-grid">
-          {content.whyCards.map(([title, description]) => (
-            <article className="why-card" key={title}><h3>{title}</h3><p>{description}</p></article>
-          ))}
-        </div>
-      </section>
-
-      <section className="faq-section" id="faq">
-        <div className="reference-section-heading"><h2>{content.faqTitle}</h2></div>
-        <div className="faq-list">
-          {content.faqItems.map(([question, answer]) => (
-            <details className="faq-item" key={question}>
-              <summary>{question}<span aria-hidden="true">+</span></summary>
-              <p>{answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section className="conversion-section">
-        <div><h2>{content.ctaTitle}</h2><p>{content.ctaCopy}</p></div>
-        <a className="get-started-button" href="#embed-tool">{content.getStarted}<span>↗</span></a>
-      </section>
-
       </main>
-      <footer className="site-footer">
-        <div className="footer-topline">
-          <a className="footer-brand" href="#home">mo7mels<span>_</span></a>
-          <nav aria-label={content.navContact}>
-            <a href="#home">{content.navHome}</a>
-            <a href="#features">{content.navFeatures}</a>
-            <a href="#plans">{content.navPricing}</a>
-            <a href="#faq">FAQ</a>
-          <a href="#privacy">{language === 'ar' ? 'الخصوصية' : 'Privacy'}</a>
-            <a href="#rules">{content.navRules}</a>
-            <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram ↗</a>
-          </nav>
-        </div>
-        <section className="terms-section" id="rules">
-          <h2>{content.footerTitle}</h2>
-          <ul>{content.footerRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
-          <p>{content.footerNote}</p>
-        </section>
-        <section className="terms-section privacy-section" id="privacy">
-          <h2>{content.privacyTitle}</h2>
-          <p>{content.privacyCopy}</p>
-        </section>
-        <div className="footer-bottom" id="contact">
-          <span>{content.copyright}</span>
-          <div className="footer-socials" aria-label="Social media">
-            {SOCIAL_LINKS.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}</a>)}
-          </div>
-          <a className="telegram-contact" href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">
-            <span>{content.developerContact}</span><strong>@Nozvxa ↗</strong>
-          </a>
-          <a href="#home" className="back-to-top">↑ {content.navHome}</a>
-        </div>
-      </footer>
+      <footer className="simple-footer"><span>© {new Date().getFullYear()} mo7mels</span><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram · @Nozvxa</a></footer>
     </div>
   )
 
