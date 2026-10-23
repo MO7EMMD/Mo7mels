@@ -115,7 +115,7 @@ function getInitialPath() {
     return '/'
   }
 
-  return ['/', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
+  return ['/', '/pricing', '/login', '/signup', '/dashboard', '/dashboard/orders', '/dashboard/analytics', '/dashboard/customers', '/dashboard/settings'].includes(window.location.pathname)
     ? window.location.pathname
     : '/'
 }
@@ -169,6 +169,37 @@ const translations = {
     navFeatures: 'Features',
     navRules: 'Rules',
     navContact: 'Contact',
+    navPricing: 'Plans',
+    getStarted: 'Get Started',
+    plansKicker: 'SIMPLE TOOLKIT',
+    plansTitle: 'Plans for every workflow',
+    plansIntro: 'Start with the embed tools. Account and team options are being prepared.',
+    planNames: ['Starter', 'Creator', 'Studio'],
+    planDescriptions: [
+      'For a quick, one-time embed.',
+      'For creators who reuse and organize embeds.',
+      'For teams managing multiple embed projects.',
+    ],
+    planFeatures: [
+      ['Generate embed snippets', 'Responsive or fixed sizing', 'Copy and preview'],
+      ['Everything in Starter', 'Save embeds to your account', 'Export saved snippets'],
+      ['Everything in Creator', 'Organize and review saved embeds', 'Team tools in development'],
+    ],
+    planStatus: 'Plan details coming soon',
+    whyTitle: 'A simpler way to embed',
+    whyCards: [
+      ['Quick setup', 'Paste a public link and get a ready-to-use snippet.'],
+      ['Works across platforms', 'Generate embeds for YouTube, TikTok, Instagram, and public pages.'],
+      ['Fits your layout', 'Use responsive sizing or set your own dimensions.'],
+      ['Keep your work close', 'Sign in to save snippets and export your collection.'],
+    ],
+    faqTitle: 'Frequently asked questions',
+    faqItems: [
+      ['How do I get started?', 'Paste a supported public URL into the embed tool and choose Generate Embed.'],
+      ['Do you host the videos or posts?', 'No. The original platform hosts its content; Mo7mels generates the embed code.'],
+      ['Can I change the embed size?', 'Yes. Use responsive width or switch it off to enter fixed width and height values.'],
+      ['Are payment plans available?', 'Payment options are not available yet. We will add details when they are ready.'],
+    ],
     featureTitle: 'Built for quick publishing',
     featureCopy: 'A focused toolkit to turn public links into clean, shareable embeds.',
     featureCards: [
@@ -332,6 +363,37 @@ const translations = {
     navFeatures: 'المميزات',
     navRules: 'القواعد',
     navContact: 'تواصل',
+    navPricing: 'الخطط',
+    getStarted: 'ابدأ الآن',
+    plansKicker: 'أدوات بسيطة',
+    plansTitle: 'خيارات تناسب طريقة عملك',
+    plansIntro: 'ابدأ بأدوات التضمين. خيارات الحساب والفريق قيد الإعداد.',
+    planNames: ['البداية', 'صانع المحتوى', 'الفريق'],
+    planDescriptions: [
+      'لإنشاء تضمين سريع لمرة واحدة.',
+      'لصنّاع المحتوى الذين ينظمون التضمينات ويعيدون استخدامها.',
+      'للفرق التي تدير عدة مشاريع تضمين.',
+    ],
+    planFeatures: [
+      ['إنشاء أكواد التضمين', 'أبعاد متجاوبة أو ثابتة', 'نسخ ومعاينة'],
+      ['كل مزايا البداية', 'حفظ التضمينات في الحساب', 'تصدير الأكواد المحفوظة'],
+      ['كل مزايا صانع المحتوى', 'تنظيم ومراجعة التضمينات المحفوظة', 'أدوات الفريق قيد التطوير'],
+    ],
+    planStatus: 'تفاصيل الخطط قريبًا',
+    whyTitle: 'طريقة أبسط للتضمين',
+    whyCards: [
+      ['إعداد سريع', 'ألصق رابطًا عامًا واحصل على كود جاهز للاستخدام.'],
+      ['منصات متعددة', 'أنشئ تضمينات ليوتيوب وتيك توك وإنستقرام والصفحات العامة.'],
+      ['يناسب تصميمك', 'استخدم عرضًا متجاوبًا أو اختر الأبعاد بنفسك.'],
+      ['احتفظ بعملك', 'سجل الدخول لحفظ الأكواد وتصدير مجموعتك.'],
+    ],
+    faqTitle: 'الأسئلة الشائعة',
+    faqItems: [
+      ['كيف أبدأ؟', 'ألصق رابطًا عامًا مدعومًا في أداة التضمين ثم اختر إنشاء التضمين.'],
+      ['هل تستضيفون الفيديوهات أو المنشورات؟', 'لا. تستضيف المنصة الأصلية محتواها، بينما ينشئ Mo7mels كود التضمين.'],
+      ['هل يمكنني تغيير حجم التضمين؟', 'نعم. استخدم العرض المتجاوب أو أوقفه لإدخال العرض والارتفاع المطلوبين.'],
+      ['هل خيارات الدفع متاحة؟', 'خيارات الدفع غير متاحة حاليًا. سنضيف التفاصيل عندما تصبح جاهزة.'],
+    ],
     featureTitle: 'أدوات عملية للنشر السريع',
     featureCopy: 'مجموعة مركزة لتحويل الروابط العامة إلى تضمينات مرتبة وسهلة المشاركة.',
     featureCards: [
@@ -549,6 +611,12 @@ function App() {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [])
+
+  useEffect(() => {
+    if (currentPath === '/pricing') {
+      window.requestAnimationFrame(() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' }))
+    }
+  }, [currentPath])
 
   useEffect(() => {
     const syncSession = async () => {
@@ -1384,7 +1452,8 @@ function App() {
         <nav className="site-nav" aria-label={content.navHome}>
           <a href="#home">{content.navHome}</a>
           <a href="#features">{content.navFeatures}</a>
-          <a href="#rules">{content.navRules}</a>
+          <a href="#plans">{content.navPricing}</a>
+          <a href="#faq">FAQ</a>
           <a href="#contact">{content.navContact}</a>
         </nav>
         <div className="top-bar-actions">
@@ -1427,6 +1496,10 @@ function App() {
             <h1>{content.pageTitle}<span className="hero-period">.</span></h1>
             <h2 className="home-headline">{content.homeHeadline}</h2>
             <p className="page-subtitle">{content.pageSubtitle}</p>
+            <div className="hero-actions">
+              <a className="get-started-button" href="#embed-tool">{content.getStarted}<span>↗</span></a>
+              <a className="learn-more-link" href="#features">{content.navFeatures} ↓</a>
+            </div>
             <div className="platform-list" aria-label="Supported platforms">
               <span>YouTube</span><span>Shorts</span><span>TikTok</span><span>Instagram</span><span>{content.anyLink}</span>
             </div>
@@ -1456,7 +1529,7 @@ function App() {
           </div>
         </section>
 
-        <section className="generator-panel" aria-label={content.generate}>
+        <section className="generator-panel" id="embed-tool" aria-label={content.generate}>
           <div className="generator-heading">
               <div><span className="generator-step">01 <i>/</i> {content.embedGeneratorLabel}</span><h2>{content.generate}</h2></div>
             <span className="generator-status"><i /> {content.ready}</span>
@@ -1522,6 +1595,49 @@ function App() {
         </div>
       )}
 
+      <section className="plan-section" id="plans">
+        <div className="reference-section-heading">
+          <span>{content.plansKicker}</span>
+          <h2>{content.plansTitle}</h2>
+          <p>{content.plansIntro}</p>
+        </div>
+        <div className="plan-grid">
+          {content.planNames.map((name, index) => (
+            <article className={`plan-card${index === 1 ? ' plan-card-featured' : ''}`} key={name}>
+              {index === 1 && <span className="plan-badge">{language === 'ar' ? 'الأكثر استخدامًا' : 'POPULAR'}</span>}
+              <h3>{name}</h3>
+              <p className="plan-description">{content.planDescriptions[index]}</p>
+              <p className="plan-status">{content.planStatus}</p>
+              <ul>{content.planFeatures[index].map((feature) => <li key={feature}>{feature}</li>)}</ul>
+              <a className="plan-action" href="#embed-tool">{content.getStarted}<span>↗</span></a>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="why-section">
+        <div className="reference-section-heading">
+          <h2>{content.whyTitle}</h2>
+        </div>
+        <div className="why-grid">
+          {content.whyCards.map(([title, description]) => (
+            <article className="why-card" key={title}><h3>{title}</h3><p>{description}</p></article>
+          ))}
+        </div>
+      </section>
+
+      <section className="faq-section" id="faq">
+        <div className="reference-section-heading"><h2>{content.faqTitle}</h2></div>
+        <div className="faq-list">
+          {content.faqItems.map(([question, answer]) => (
+            <details className="faq-item" key={question}>
+              <summary>{question}<span aria-hidden="true">+</span></summary>
+              <p>{answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       </main>
       <footer className="site-footer">
         <div className="footer-topline">
@@ -1529,6 +1645,8 @@ function App() {
           <nav aria-label={content.navContact}>
             <a href="#home">{content.navHome}</a>
             <a href="#features">{content.navFeatures}</a>
+            <a href="#plans">{content.navPricing}</a>
+            <a href="#faq">FAQ</a>
             <a href="#rules">{content.navRules}</a>
             <a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">Telegram ↗</a>
           </nav>
@@ -1566,7 +1684,7 @@ function App() {
       <div className={`page-shell${darkMode ? ' dark-mode' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {currentPath.startsWith('/dashboard')
           ? renderDashboardPage()
-          : currentPath === '/'
+          : currentPath === '/' || currentPath === '/pricing'
             ? renderHomePage()
             : renderAuthPage()}
       </div>
