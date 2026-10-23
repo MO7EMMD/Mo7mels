@@ -21,7 +21,9 @@ services:
       - key: VITE_LINKEDIN_URL
         value: "https://www.linkedin.com/company/mo7mels"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: mo7mels-free-db
+          property: connectionString
       - key: OTP_DEBUG
         value: "false"
       - key: SMTP_HOST
@@ -40,3 +42,9 @@ services:
         sync: false
     buildCommand: npm install && npm run build
     startCommand: npm start
+
+databases:
+  - name: mo7mels-free-db
+    databaseName: mo7mels
+    user: mo7mels_user
+    plan: free
