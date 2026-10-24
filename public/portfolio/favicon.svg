@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">mo7mels</title>
+  <style>
+    .ring { fill: none; stroke: #bbff6a; stroke-width: 2; stroke-dasharray: 24 12; transform-origin: 64px 64px; animation: orbit 8s linear infinite; }
+    .word { font: 800 23px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: -1.5px; fill: #eff4f0; }
+    .seven { fill: #bbff6a; }
+    .dot { fill: #bbff6a; transform-origin: 103px 29px; animation: pulse 2.2s ease-in-out infinite; }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity: .45; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.1); } }
+    @media (prefers-reduced-motion: reduce) { .ring, .dot { animation: none; } }
+  </style>
+  <rect x="4" y="4" width="120" height="120" rx="36" fill="#080b0a" stroke="#26372b" stroke-width="2"/>
+  <circle class="ring" cx="64" cy="64" r="48"/>
+  <text class="word" x="14" y="70">mo<tspan class="seven">7</tspan>mels</text>
+  <circle class="dot" cx="103" cy="29" r="4"/>
+</svg>

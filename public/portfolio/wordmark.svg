@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 64" role="img" aria-labelledby="title">
+  <title id="title">mo7mels</title>
+  <style>
+    .word { font: 800 45px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: -3.8px; fill: #eff4f0; }
+    .accent { fill: #bbff6a; }
+    .trace { fill: none; stroke: #bbff6a; stroke-width: 2; stroke-linecap: round; opacity: .75; transform-origin: 16px 56px; animation: trace 3.6s ease-in-out infinite; }
+    .spark { fill: #bbff6a; transform-origin: 229px 17px; animation: spark 2.4s ease-in-out infinite; }
+    @keyframes trace { 0%, 100% { transform: scaleX(.15); opacity: .25; } 45%, 72% { transform: scaleX(1); opacity: .85; } }
+    @keyframes spark { 0%, 100% { opacity: .45; transform: scale(.72); } 50% { opacity: 1; transform: scale(1.08); } }
+    @media (prefers-reduced-motion: reduce) { .trace, .spark { animation: none; } }
+  </style>
+  <text class="word" x="12" y="47">mo<tspan class="accent">7</tspan>mels</text>
+  <path class="trace" d="M13 57h226"/>
+  <circle class="spark" cx="232" cy="15" r="3"/>
+</svg>
