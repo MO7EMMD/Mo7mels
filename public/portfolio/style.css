@@ -32,9 +32,8 @@
 @media(prefers-reduced-motion:reduce){.preview-orb{animation:none}}
 
 .project-card + .project-card{margin-top:24px}
-.project-preview-bot{min-height:0;padding:0;justify-content:center;background:#030b16}
-.project-preview-bot:after{display:none}
-.project-bot-video{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain}
+.project-card-bot{grid-template-columns:1fr;min-height:0}
+.project-card-bot .project-details>p{max-width:72ch}
 .project-features{display:flex;flex-wrap:wrap;gap:7px;list-style:none;padding:0;margin:17px 0 0}
 .project-features li{padding:6px 8px;border:1px solid var(--line);color:#a6b6aa;font:8px var(--mono);line-height:1.5}
-.project-links a:focus-visible,.project-bot-video:focus-visible{outline:2px solid var(--green);outline-offset:5px}
+.project-links a:focus-visible{outline:2px solid var(--green);outline-offset:5px}
