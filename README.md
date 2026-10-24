@@ -1,6 +1,10 @@
 # Mo7mels
 
-A web application to generate embed codes, manage accounts, and save embeds to a lightweight API-backed dashboard.
+A creator workspace for turning YouTube, TikTok, Instagram, and web links into ready-to-share embeds. Preview and copy generated snippets, then save them to your account for later.
+
+[Open Mo7mels](https://www.mo7mels.com) · [Creator portfolio](https://www.mo7mels.com/portfolio/)
+
+Built with **React, Vite, Node.js, Express, and PostgreSQL**, with local JSON storage available as a fallback.
 
 ## Getting Started
 
@@ -25,7 +29,7 @@ A web application to generate embed codes, manage accounts, and save embeds to a
 - Login and signup pages with email OTP verification
 - Confirm password field for new accounts
 - Dashboard page for reviewing saved embed history
-- File-based API server with JSON storage in `server/data/db.json`
+- Express API with PostgreSQL storage when `DATABASE_URL` or `POSTGRES_URL` is configured, and a local JSON fallback in `server/data/db.json`
 
 ## Available Scripts
 
@@ -89,8 +93,6 @@ After deployment, the app now generates these URLs from the live domain automati
 - Open Graph URL
 - `robots.txt`
 - `sitemap.xml`
-
-Last deployment trigger: 2026-04-09
 
 ## Account Settings & Dashboard Charts
 
