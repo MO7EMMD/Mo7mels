@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">mo7mels — Digital creator and builder</title>
+  <desc id="description">Web projects, creator tools and open source. Explore mo7mels.com/portfolio.</desc>
+  <defs>
+    <radialGradient id="glow">
+      <stop stop-color="#334f29" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#080b0a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="orb" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#d1ff9b"/>
+      <stop offset=".3" stop-color="#72b85d"/>
+      <stop offset=".68" stop-color="#183e2a"/>
+      <stop offset="1" stop-color="#080f0a"/>
+    </linearGradient>
+    <clipPath id="orb-clip"><circle cx="985" cy="280" r="130"/></clipPath>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#bbff6a" stroke-opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#080b0a"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <ellipse cx="1000" cy="270" rx="420" ry="410" fill="url(#glow)"/>
+  <path d="M64 110H1136M64 524H1136" stroke="#29382b"/>
+  <g font-family="Inter, Arial, sans-serif">
+    <circle cx="73" cy="67" r="5" fill="#bbff6a"/>
+    <text x="91" y="74" fill="#bbff6a" font-size="16" font-weight="600" letter-spacing="3">PERSONAL PORTFOLIO</text>
+    <text x="1136" y="73" fill="#9ba89d" text-anchor="end" font-size="15" letter-spacing="2">CREATE. BUILD. EXPLORE.</text>
+    <text x="60" y="251" fill="#eff4f0" font-size="112" font-weight="800" letter-spacing="-8">mo<tspan fill="#bbff6a">7</tspan>mels</text>
+    <path d="M66 279H189" stroke="#bbff6a" stroke-width="4" stroke-linecap="round"/>
+    <text x="64" y="344" fill="#eff4f0" font-size="39" font-weight="600" letter-spacing="-1">Digital creator &amp; builder.</text>
+    <text x="64" y="395" fill="#a3b0a6" font-size="24">Thoughtful tools and ideas for the internet.</text>
+    <g font-size="15" font-weight="500" fill="#c0cdc2">
+      <rect x="64" y="437" width="149" height="39" rx="19.5" fill="#111b14" stroke="#304131"/>
+      <text x="138.5" y="462" text-anchor="middle">Web projects</text>
+      <rect x="225" y="437" width="149" height="39" rx="19.5" fill="#111b14" stroke="#304131"/>
+      <text x="299.5" y="462" text-anchor="middle">Creator tools</text>
+      <rect x="386" y="437" width="149" height="39" rx="19.5" fill="#111b14" stroke="#304131"/>
+      <text x="460.5" y="462" text-anchor="middle">Open source</text>
+    </g>
+    <text x="64" y="574" fill="#bbff6a" font-size="21" font-weight="500">mo7mels.com/portfolio</text>
+    <text x="1136" y="573" fill="#a3b0a6" text-anchor="end" font-size="17">Explore my work. Let’s connect.</text>
+  </g>
+  <circle cx="985" cy="280" r="130" fill="url(#orb)"/>
+  <g clip-path="url(#orb-clip)" fill="none" stroke="#d1ff9b" stroke-opacity=".19">
+    <ellipse cx="985" cy="280" rx="47" ry="130"/>
+    <ellipse cx="985" cy="280" rx="96" ry="130"/>
+    <ellipse cx="985" cy="280" rx="130" ry="44"/>
+    <ellipse cx="985" cy="280" rx="130" ry="91"/>
+    <path d="M855 280H1115M985 150V410"/>
+  </g>
+  <ellipse cx="985" cy="280" rx="177" ry="59" transform="rotate(-30 985 280)" fill="none" stroke="#bbff6a" stroke-opacity=".5"/>
+  <ellipse cx="985" cy="280" rx="173" ry="77" transform="rotate(55 985 280)" fill="none" stroke="#91cc81" stroke-opacity=".23"/>
+  <circle cx="1138" cy="194" r="5" fill="#d1ff9b"/>
+  <circle cx="842" cy="360" r="3" fill="#bbff6a"/>
+</svg>
