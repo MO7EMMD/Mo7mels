@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://www.mo7mels.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://www.mo7mels.com/portfolio/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
+  <url><loc>https://mo7mels.com/</loc></url>
+  <url><loc>https://mo7mels.com/books</loc></url>
+  <url><loc>https://mo7mels.com/physics</loc></url>
+  <url><loc>https://mo7mels.com/physics/gravitational-fields</loc></url>
+  <url><loc>https://mo7mels.com/physics/electric-fields</loc></url>
+  <url><loc>https://mo7mels.com/physics/electric-circuits</loc></url>
+  <url><loc>https://mo7mels.com/physics/capacitors</loc></url>
+  <url><loc>https://mo7mels.com/physics/magnetism-induction</loc></url>
+  <url><loc>https://mo7mels.com/physics/waves</loc></url>
+  <url><loc>https://mo7mels.com/physics/superposition</loc></url>
+  <url><loc>https://mo7mels.com/physics/quantum-physics</loc></url>
+  <url><loc>https://mo7mels.com/physics/nuclear-physics</loc></url>
+  <url><loc>https://mo7mels.com/mathematics</loc></url>
+  <url><loc>https://mo7mels.com/mathematics/advanced</loc></url>
+  <url><loc>https://mo7mels.com/mathematics/basic</loc></url>
+  <url><loc>https://mo7mels.com/worksheets</loc></url>
+  <url><loc>https://mo7mels.com/exams</loc></url>
+  <url><loc>https://mo7mels.com/whiteboard</loc></url>
+  <url><loc>https://mo7mels.com/resources</loc></url>
+  <url><loc>https://mo7mels.com/links</loc></url>
+  <url><loc>https://mo7mels.com/portfolio/</loc></url>
+  <url><loc>https://mo7mels.com/project</loc></url>
 </urlset>

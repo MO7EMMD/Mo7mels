@@ -7,6 +7,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as db from './db.js'
 import { projectProxy } from './project-proxy.js'
+import { buildRobotsTxt, buildSitemapXml, renderSeoHtml } from './seo.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -92,47 +93,6 @@ function getRequestOrigin(request) {
 
 function getSiteUrl(request) {
   return effectiveSiteUrl || getRequestOrigin(request)
-}
-
-function buildSitemapXml(siteUrl) {
-  const pages = [
-    ['/', 'weekly', '1.0'],
-    ['/books', 'weekly', '0.9'],
-    ['/physics', 'weekly', '0.9'],
-    ['/physics/gravitational-fields', 'monthly', '0.8'],
-    ['/physics/electric-fields', 'monthly', '0.8'],
-    ['/physics/electric-circuits', 'monthly', '0.8'],
-    ['/physics/capacitors', 'monthly', '0.8'],
-    ['/physics/magnetism-induction', 'monthly', '0.8'],
-    ['/physics/waves', 'monthly', '0.8'],
-    ['/physics/superposition', 'monthly', '0.8'],
-    ['/physics/quantum-physics', 'monthly', '0.8'],
-    ['/physics/nuclear-physics', 'monthly', '0.8'],
-    ['/mathematics', 'weekly', '0.9'],
-    ['/mathematics/advanced', 'monthly', '0.8'],
-    ['/mathematics/basic', 'monthly', '0.8'],
-    ['/worksheets', 'weekly', '0.8'],
-    ['/exams', 'weekly', '0.8'],
-    ['/whiteboard', 'monthly', '0.7'],
-    ['/resources', 'weekly', '0.8'],
-    ['/links', 'monthly', '0.6'],
-    ['/portfolio/', 'weekly', '0.7'],
-  ]
-  const entries = pages.map(([pathname, changefreq, priority]) => `  <url>\n    <loc>${siteUrl}${pathname}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`).join('\n')
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${entries}
-</urlset>`
-}
-
-function buildRobotsTxt(siteUrl) {
-  return `User-agent: *
-Allow: /
-Disallow: /dashboard
-Disallow: /login
-Disallow: /signup
-
-Sitemap: ${siteUrl}/sitemap.xml`
 }
 
 function normalizeEmail(email) {
@@ -700,24 +660,12 @@ app.delete('/api/subscription', requireAuthenticatedUser, asyncRoute(async (requ
   return response.json({ ok: true })
 }))
 
-app.get('/robots.txt', (request, response) => {
-  const siteUrl = getSiteUrl(request)
-
-  if (!siteUrl) {
-    return response.status(503).type('text/plain').send('SITE_URL is required for robots.txt in production.')
-  }
-
-  response.type('text/plain').send(buildRobotsTxt(siteUrl))
+app.get('/robots.txt', (_request, response) => {
+  response.type('text/plain').send(buildRobotsTxt())
 })
 
-app.get('/sitemap.xml', (request, response) => {
-  const siteUrl = getSiteUrl(request)
-
-  if (!siteUrl) {
-    return response.status(503).type('text/plain').send('SITE_URL is required for sitemap.xml in production.')
-  }
-
-  response.type('application/xml').send(buildSitemapXml(siteUrl))
+app.get('/sitemap.xml', (_request, response) => {
+  response.type('application/xml').send(buildSitemapXml())
 })
 
 app.use((error, request, response, next) => {
@@ -747,7 +695,7 @@ app.get('*', async (_request, response, next) => {
 
     const html = await fs.readFile(indexPath, 'utf8')
 
-    response.type('html').send(html.replaceAll('__SITE_URL__', siteUrl))
+    response.type('html').send(renderSeoHtml(html, _request.path))
   } catch {
     next()
   }

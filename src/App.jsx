@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import './modern.css'
 import StudyPages from './StudyPages.jsx'
+import { getPageMetadata } from '../server/seo.js'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -779,6 +780,21 @@ function App() {
   }, [language])
 
   useEffect(() => {
+    const page = getPageMetadata(currentPath)
+    document.title = page.title
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', page.canonical)
+    for (const [selector, value] of [
+      ['meta[name="description"]', page.description],
+      ['meta[name="robots"]', page.index ? 'index,follow' : 'noindex,follow'],
+      ['meta[property="og:title"]', page.title],
+      ['meta[property="og:description"]', page.description],
+      ['meta[property="og:url"]', page.canonical],
+      ['meta[name="twitter:title"]', page.title],
+      ['meta[name="twitter:description"]', page.description],
+    ]) document.querySelector(selector)?.setAttribute('content', value)
+  }, [currentPath])
+
+  useEffect(() => {
     if (currentPath === '/pricing') {
       window.requestAnimationFrame(() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' }))
     }
@@ -909,6 +925,13 @@ function App() {
     window.history.pushState({}, '', path)
     setCurrentPath(path)
     window.scrollTo(0, 0)
+  }
+
+  const followStudyLink = (event, path, tab = getStudyTabForPath(path)) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    setStudyTab(tab)
+    navigateTo(path)
   }
 
   const clearAuthMessage = () => {
@@ -1717,11 +1740,12 @@ function App() {
   const renderHomePage = () => (
     <div className="study-hub">
       <header className="study-header">
-        <a className="study-brand" href="/" onClick={(event) => { event.preventDefault(); setStudyTab('home'); navigateTo('/') }}><span className="study-brand-mark">م</span><span>{language === 'ar' ? 'مسار ١٢' : 'Grade 12 Oman'}<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
+        <a className="study-brand" href="/" onClick={(event) => followStudyLink(event, '/')}><span className="study-brand-mark">م</span><span>mo7mels<small>{language === 'ar' ? 'مساحة التعلّم' : 'STUDY SPACE'}</small></span></a>
         <nav className="study-nav" aria-label={language === 'ar' ? 'أقسام الموقع' : 'Study tools'}>
-          {STUDY_TABS.map((tab) => <button key={tab} type="button" className={studyTab === tab ? 'active' : ''} aria-current={studyTab === tab ? 'page' : undefined} onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>
+          {STUDY_TABS.map((tab) => <a key={tab} href={STUDY_PAGE_PATHS[tab]} className={studyTab === tab ? 'active' : ''} aria-current={studyTab === tab ? 'page' : undefined} onClick={(event) => followStudyLink(event, STUDY_PAGE_PATHS[tab], tab)}>
             {STUDY_TAB_LABELS[tab][language]}
-          </button>)}
+          </a>)}
+          <a href="/project">{language === 'ar' ? 'مشروع' : 'مشروع · Projects'}</a>
         </nav>
         <div className="study-controls">
           <LanguageSwitcher content={content} language={language} setLanguage={setLanguage} />
@@ -1747,9 +1771,9 @@ function App() {
             { id: 'exams', icon: '✓', ar: 'الامتحانات النهائية', en: 'Final exams', noteAr: 'نماذج وأسئلة وزارية وإجاباتها.', noteEn: 'Ministry papers, sample exams, and answer keys.' },
             { id: 'board', icon: '▱', ar: 'السبورة البيضاء', en: 'Whiteboard', noteAr: 'اكتب وارسم واحفظ ملاحظاتك كصورة.', noteEn: 'Draw, write, and save your notes as an image.' },
             { id: 'resources', icon: '⌘', ar: 'مصادر وزارة التعليم', en: 'Ministry resources', noteAr: 'المنصات والمكتبات والخدمات الرسمية.', noteEn: 'Official platforms, libraries, and services.' },
-          ].map((card) => <button className="study-home-card" key={card.id} type="button" onClick={() => { setStudyTab(card.id); navigateTo(STUDY_PAGE_PATHS[card.id]) }}>
+          ].map((card) => <a className="study-home-card" key={card.id} href={STUDY_PAGE_PATHS[card.id]} onClick={(event) => followStudyLink(event, STUDY_PAGE_PATHS[card.id], card.id)}>
             <span className="home-card-icon" aria-hidden="true">{card.icon}</span><span className="home-card-copy"><strong>{language === 'ar' ? card.ar : card.en}</strong><small>{language === 'ar' ? card.noteAr : card.noteEn}</small></span><span className="home-card-arrow" aria-hidden="true">↗</span>
-          </button>)}
+          </a>)}
         </section>
 
         <section className="study-panel" hidden={studyTab !== 'library'}>
@@ -1816,7 +1840,7 @@ function App() {
 
         <StudyPages page={studyTab} path={currentPath} language={language} navigateTo={(path) => { setStudyTab(getStudyTabForPath(path)); navigateTo(path) }} />
       </main>
-      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <button key={tab} type="button" onClick={() => { setStudyTab(tab); navigateTo(STUDY_PAGE_PATHS[tab]) }}>{STUDY_TAB_LABELS[tab][language]}</button>)}</nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
+      <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <a key={tab} href={STUDY_PAGE_PATHS[tab]} onClick={(event) => followStudyLink(event, STUDY_PAGE_PATHS[tab], tab)}>{STUDY_TAB_LABELS[tab][language]}</a>)}<a href="/project">{language === 'ar' ? 'مشروع' : 'مشروع · Projects'}</a><a href="/portfolio/">{language === 'ar' ? 'أعمال mo7mels' : 'mo7mels portfolio'}</a></nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
     </div>
   )
 
