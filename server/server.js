@@ -6,6 +6,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as db from './db.js'
+import { projectProxy } from './project-proxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -50,6 +51,8 @@ const mailTransporter = smtpConfigured
   : null
 
 app.set('trust proxy', true)
+
+app.use('/project', projectProxy)
 
 app.use(cors())
 app.use(express.json())
