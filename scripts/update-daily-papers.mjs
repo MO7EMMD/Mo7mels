@@ -36,7 +36,9 @@ function pageFacts(html,fallback){
  const scope=title+' '+crumb;
  const subjectScope=(crumb||title).replace(/منهج\s*(?:عربي|انجليزي|إنجليزي)|باللغة\s*(?:العربية|الانجليزية|الإنجليزية)/g,'');
  const semester=/(?:الفصل|فصل)(?:\s*الدراسي)?\s*(?:الثاني|ثاني|ثان)(?=\s|$|[،,:·-])|(?:^|\s|[،,:·(])ف\s*2(?=\s|$|[،,:·)\-])/.test(scope)?2:/(?:الفصل|فصل)(?:\s*الدراسي)?\s*(?:الأول|أول|الاول|اول)(?=\s|$|[،,:·-])|(?:^|\s|[،,:·(])ف\s*1(?=\s|$|[،,:·)\-])/.test(scope)?1:null;
- return {title,scope,subjectId:subjects.find(([,pattern])=>pattern.test(subjectScope))?.[0],semester};
+ const subjectId=subjects.find(([,pattern])=>pattern.test(subjectScope))?.[0];
+ const track=subjectId==='math'?(/متقدم|advanced/i.test(subjectScope)?'advanced':/أساسي|اساسي|basic/i.test(subjectScope)?'basic':null):null;
+ return {title,scope,subjectId,semester,track};
 }
 function embeddingAllowed(r){const ancestors=(r.headers.get('content-security-policy')||'').match(/frame-ancestors\s+([^;]+)/i)?.[1];return !/SAMEORIGIN|DENY/i.test(r.headers.get('x-frame-options')||'')&&(!ancestors||/\*|https:\/\/mo7mels\.com/.test(ancestors));}
 async function googleViewer(pdfUrl){
@@ -89,7 +91,7 @@ async function collect(source){
     if(!files.length&&source.id==='afidni')queue.push(...anchors(page,post.url).filter(a=>new URL(a.url).hostname==='afidni.com'&&paperPattern.test(a.title)&&gradePattern.test(a.title)).slice(0,3));
     for(const file of files.slice(0,3)){
      const key=canonical(file);if(known.has(key)||additions.length>=sourceCap||existing.length+additions.length>=MAX_TOTAL)continue;
-     try{const verified=await verifyFile(file);state.verified++;const finalKey=canonical(verified.pdfUrl||verified.viewerUrl),id='daily-'+createHash('sha256').update(finalKey).digest('hex').slice(0,16);if(known.has(finalKey)||knownIds.has(id)){known.add(key);continue;}known.add(key);known.add(finalKey);knownIds.add(id);additions.push({id,subjectId:facts.subjectId,semester:facts.semester,titleAr:facts.title,titleEn:facts.title,...verified,sourceUrl:post.url,addedAt:new Date().toISOString()});state.added++;}catch{state.rejected++;}
+     try{const verified=await verifyFile(file);state.verified++;const finalKey=canonical(verified.pdfUrl||verified.viewerUrl),id='daily-'+createHash('sha256').update(finalKey).digest('hex').slice(0,16);if(known.has(finalKey)||knownIds.has(id)){known.add(key);continue;}known.add(key);known.add(finalKey);knownIds.add(id);additions.push({id,subjectId:facts.subjectId,semester:facts.semester,...(facts.track?{track:facts.track}:{}),titleAr:facts.title,titleEn:facts.title,...verified,sourceUrl:post.url,addedAt:new Date().toISOString()});state.added++;}catch{state.rejected++;}
     }
    }catch{state.rejected++;}
   }
