@@ -4,6 +4,9 @@ import { worksheetFiles } from './worksheets.js'
 const PhysicsLab = lazy(() => import('./PhysicsLab.jsx'))
 const PhysicsPractice = lazy(() => import('./PhysicsPractice.jsx'))
 import textbooks from './textbooks.json'
+import { mathTracks, mathSymbolLegend } from './math-curriculum.js'
+import ArabicMathText from './ArabicMathText.jsx'
+const arabicDigits = (value) => String(value).replace(/[0-9]/g, (digit) => '٠١٢٣٤٥٦٧٨٩'[Number(digit)])
 
 const MOE_MATH_OUTCOMES = 'https://home.moe.gov.om/images/library/file/Book748807.pdf'
 const MOE_MATH_ASSESSMENT = 'https://home.moe.gov.om/images/library/file/Book743402.pdf'
@@ -21,35 +24,6 @@ const physicsUnits = [
   { id: 'nuclear-physics', number: 9, semester: 2, ar: 'الفيزياء النووية', en: 'Nuclear physics', introAr: 'ادرس المعادلات النووية وطاقة الربط والعشوائية الإشعاعية والانحلال وعمر النصف.', introEn: 'Study nuclear equations, binding energy, radioactive randomness, decay, and half-life.', lawAr: ['تكافؤ الكتلة والطاقة: E = mc²', 'النقص في الكتلة: Δm = مجموع كتل النيوكليونات − كتلة النواة', 'الانحلال: N = N₀e^(−λt)', 'عمر النصف: t½ = ln(2) / λ', 'النشاط الإشعاعي: A = λN'], lawEn: ['Mass–energy equivalence: E = mc²', 'Mass defect: Δm = sum of nucleon masses − nucleus mass', 'Decay: N = N₀e^(−λt)', 'Half-life: t½ = ln(2) / λ', 'Activity: A = λN'], lessonAr: 'وازِن العدد الكتلي والعدد الذري في المعادلة النووية. استخدم منحنى الانحلال أو العلاقة الأسية لحساب النوى المتبقية، وتذكّر أن نصف العمر ثابت للعينة ولا يعتمد على حجمها.', lessonEn: 'Conserve nucleon number and proton number in nuclear equations. Use a decay graph or the exponential model to calculate remaining nuclei. Half-life is characteristic of the isotope and does not depend on sample size.', practiceAr: 'عمر النصف لنظير مشع 6 ساعات، وكانت العينة 8000 نواة. كم نواة تبقى بعد 18 ساعة؟', practiceEn: 'A radioactive isotope has a 6-hour half-life and starts with 8000 nuclei. How many remain after 18 hours?', simulation: { ar: 'محاكاة الانحلال الإشعاعي', en: 'Radioactive decay activity', url: 'https://phet.colorado.edu/en/simulations/filter?subjects=physics' } },
 ]
 
-const mathTracks = {
-  advanced: {
-    ar: 'الرياضيات المتقدمة', en: 'Advanced Mathematics',
-    units: [
-      { semester: 1, ar: 'اللوغاريتمات والدوال الأسية', en: 'Logarithms and exponential functions', law: 'logₐ(xy)=logₐx+logₐy · eˣ و ln x دالتان عكسيتان', lawEn: 'logₐ(xy)=logₐx+logₐy · eˣ and ln x are inverse functions', practiceAr: 'حل المعادلة 2ˣ = 8، ثم اكتب الحل باستخدام اللوغاريتمات.', practiceEn: 'Solve 2ˣ = 8, then express the solution using logarithms.' },
-      { semester: 1, ar: 'حساب المثلثات', en: 'Trigonometry', law: 'sin(A±B), cos(A±B), tan(A±B) · sin 2A · cos 2A', lawEn: 'sin(A±B), cos(A±B), tan(A±B) · sin 2A · cos 2A', practiceAr: 'استخدم صيغة جمع الزاويتين لإيجاد القيمة الدقيقة لـ sin 75°.', practiceEn: 'Use a compound-angle identity to find the exact value of sin 75°.' },
-      { semester: 1, ar: 'التفاضل', en: 'Differentiation', law: 'مشتقة حاصل الضرب والقاعدة والسلاسل · dy/dx', lawEn: 'Product, quotient, and chain rules · dy/dx', practiceAr: 'أوجد مشتقة y = x²eˣ، ثم أوجد قيمة المشتقة عند x=0.', practiceEn: 'Differentiate y = x²eˣ, then evaluate the derivative at x=0.' },
-      { semester: 1, ar: 'المتغيرات العشوائية المتقطعة', en: 'Discrete random variables', law: 'E(X)=Σxp(x) · Var(X)=E(X²)−[E(X)]²', lawEn: 'E(X)=Σxp(x) · Var(X)=E(X²)−[E(X)]²', practiceAr: 'للمتغير X القيم 0، 1، 2 باحتمالات 0.2، 0.5، 0.3 على الترتيب؛ احسب E(X).', practiceEn: 'X takes values 0, 1, 2 with probabilities 0.2, 0.5, 0.3. Find E(X).' },
-      { semester: 2, ar: 'التكامل', en: 'Integration', law: '∫xⁿdx = xⁿ⁺¹/(n+1)+C · التكامل بالتعويض والأجزاء', lawEn: '∫xⁿdx = xⁿ⁺¹/(n+1)+C · substitution and integration by parts', practiceAr: 'احسب ∫₂⁰ (3x² + 2x) dx.', practiceEn: 'Evaluate ∫₂⁰ (3x² + 2x) dx.' },
-      { semester: 2, ar: 'المتجهات', en: 'Vectors', law: '|a|=√(x²+y²+z²) · الجمع والضرب القياسي', lawEn: '|a|=√(x²+y²+z²) · vector addition and scalar multiplication', practiceAr: 'إذا كان a = (3, −4, 12)، احسب مقدار المتجه a.', practiceEn: 'For a = (3, −4, 12), calculate the magnitude of vector a.' },
-      { semester: 2, ar: 'الأعداد المركبة', en: 'Complex numbers', law: 'z=x+iy · |z|=√(x²+y²) · reⁱᶿ', lawEn: 'z=x+iy · |z|=√(x²+y²) · reⁱᶿ', practiceAr: 'اكتب العدد المركب 1 + i√3 بالصورة القطبية r(cos θ + i sin θ).', practiceEn: 'Write 1 + i√3 in polar form r(cos θ + i sin θ).' },
-      { semester: 2, ar: 'التوزيع الطبيعي', en: 'Normal distribution', law: 'Z=(X−μ)/σ · التماثل حول μ', lawEn: 'Z=(X−μ)/σ · symmetric about μ', practiceAr: 'إذا كان X ~ N(50, 5²)، أوجد قيمة z عندما X=60.', practiceEn: 'If X ~ N(50, 5²), find z when X=60.' },
-    ],
-  },
-  basic: {
-    ar: 'الرياضيات الأساسية', en: 'Basic Mathematics',
-    units: [
-      { semester: 1, ar: 'الطرق الجبرية', en: 'Algebraic methods', law: 'نظرية العامل: إذا كان f(a)=0 فإن (x−a) عامل', lawEn: 'Factor theorem: if f(a)=0, then (x−a) is a factor', practiceAr: 'تحقق من أن (x−2) عامل لـ x³−3x²−4x+12، ثم حلّل المقدار.', practiceEn: 'Show that (x−2) is a factor of x³−3x²−4x+12, then factorise it.' },
-      { semester: 1, ar: 'الأسس واللوغاريتمات', en: 'Exponentials and logarithms', law: 'logₐ(xy)=logₐx+logₐy · logₐx=ln x/ln a', lawEn: 'logₐ(xy)=logₐx+logₐy · logₐx=ln x/ln a', practiceAr: 'حل 3ˣ=81، ثم أوجد log₃ 81.', practiceEn: 'Solve 3ˣ=81, then evaluate log₃ 81.' },
-      { semester: 1, ar: 'التفاضل ونقاط السكون', en: 'Differentiation and stationary points', law: 'نقطة سكون عندما f′(x)=0', lawEn: 'A stationary point occurs where f′(x)=0', practiceAr: 'للدالة f(x)=x²−6x+5، أوجد نقطة السكون وحدد طبيعتها.', practiceEn: 'For f(x)=x²−6x+5, find the stationary point and determine its nature.' },
-      { semester: 1, ar: 'مقاييس الموقع والتشتت', en: 'Measures of location and spread', law: 'المدى الربيعي = Q₃−Q₁ · التباين = σ²', lawEn: 'Interquartile range = Q₃−Q₁ · variance = σ²', practiceAr: 'للبيانات 2، 4، 5، 7، 9، 10، 12، احسب الوسيط والمدى الربيعي.', practiceEn: 'For 2, 4, 5, 7, 9, 10, 12, find the median and interquartile range.' },
-      { semester: 2, ar: 'مفكوك ذي الحدين', en: 'The binomial expansion', law: '(a+b)ⁿ=Σ ⁿCᵣ aⁿ⁻ʳbʳ', lawEn: '(a+b)ⁿ=Σ ⁿCᵣ aⁿ⁻ʳbʳ', practiceAr: 'أوجد معامل x³ في مفكوك (x+2)⁵.', practiceEn: 'Find the coefficient of x³ in the expansion of (x+2)⁵.' },
-      { semester: 2, ar: 'المتتابعات والمتسلسلات', en: 'Sequences and series', law: 'حسابية: uₙ=a+(n−1)d · هندسية: uₙ=arⁿ⁻¹', lawEn: 'Arithmetic: uₙ=a+(n−1)d · geometric: uₙ=arⁿ⁻¹', practiceAr: 'متتابعة هندسية حدها الأول 3 وأساسها 2. أوجد مجموع أول 5 حدود.', practiceEn: 'A geometric sequence has first term 3 and ratio 2. Find the sum of its first 5 terms.' },
-      { semester: 2, ar: 'التكامل والمساحات', en: 'Integration and areas', law: 'المساحة المحصورة = ∫ᵃᵇ y dx', lawEn: 'Bounded area = ∫ᵃᵇ y dx', practiceAr: 'احسب المساحة تحت المنحنى y=2x بين x=0 وx=3.', practiceEn: 'Find the area under y=2x between x=0 and x=3.' },
-      { semester: 2, ar: 'تمثيل البيانات', en: 'Representations of data', law: 'المتوسط والانحراف المعياري ومخطط الصندوق', lawEn: 'Mean, standard deviation, and box plots', practiceAr: 'اشرح كيف يساعد مخطط الصندوق على تحديد القيم المتطرفة والالتواء.', practiceEn: 'Explain how a box plot helps identify outliers and skewness.' },
-    ],
-  },
-}
-
 function TextbookLinks({ subjectId, language }) {
   const ar = language === 'ar'
   return <div className="study-resource-grid">{textbooks.filter((book) => book.subjectId === subjectId).map((book) => <a key={book.id} className="textbook-link" href={book.url} target="_blank" rel="noopener noreferrer"><span className="textbook-link-copy"><strong>{ar ? book.titleAr : book.titleEn}</strong><small>{ar ? `${book.kind === 'activity' ? 'كتاب النشاط' : 'كتاب الطالب'} · الفصل ${book.term === '1' ? 'الأول' : 'الثاني'}` : `${book.kind === 'activity' ? 'Activity book' : 'Student book'} · Semester ${book.term}`}</small></span><span className="textbook-pdf">PDF ↗</span></a>)}</div>
@@ -58,11 +32,11 @@ function TextbookLinks({ subjectId, language }) {
 function DocumentLinks({ language, physics = false }) {
   const ar = language === 'ar'
   const documents = physics ? [{url:MOE_PHYSICS_ASSESSMENT,ar:'دليل التقويم ومواصفات امتحان الفيزياء',en:'Physics assessment and exam specifications'}] : [{url:MOE_MATH_OUTCOMES,ar:'مخرجات تعلّم الرياضيات 2025–2026',en:'Mathematics learning outcomes 2025–2026'},{url:MOE_MATH_ASSESSMENT,ar:'التقويم ومواصفات امتحان الرياضيات',en:'Mathematics assessment and exam specifications'}]
-  return <div className="study-resource-grid">{documents.map((item) => <a className="textbook-link" href={item.url} key={item.url} target="_blank" rel="noopener noreferrer"><span className="textbook-link-copy"><strong>{ar ? item.ar : item.en}</strong><small>Grade 12 · PDF</small></span><span className="textbook-pdf">PDF ↗</span></a>)}</div>
+  return <div className="study-resource-grid">{documents.map((item) => <a className="textbook-link" href={item.url} key={item.url} target="_blank" rel="noopener noreferrer"><span className="textbook-link-copy"><strong>{ar ? item.ar : item.en}</strong><small>{ar ? 'الصف الثاني عشر · PDF' : 'Grade 12 · PDF'}</small></span><span className="textbook-pdf">PDF ↗</span></a>)}</div>
 }
 
 function StudyPages({ page, path, language, navigateTo }) {
-  const ar = language === 'ar'
+  const ar = page === 'math' || language === 'ar'
   const [mathTrack, setMathTrack] = useState(path.includes('/basic') ? 'basic' : 'advanced')
   const [practiceAnswers, setPracticeAnswers] = useState(() => {try {return JSON.parse(window.localStorage.getItem('omanGrade12UnitPractice') || '{}')} catch {return {}}})
   useEffect(() => {if(path.startsWith('/mathematics/')) setMathTrack(path.includes('/basic') ? 'basic' : 'advanced')}, [path])
@@ -84,13 +58,14 @@ function StudyPages({ page, path, language, navigateTo }) {
     <section className="study-panel"><div className="study-section-heading"><div><span>mo7mels · PDF</span><h2>{ar?'أوراق الفيزياء والاختبارات':'Physics worksheets and tests'}</h2></div></div><p className="study-help">{ar?'اضغط الورقة لفتح ملفها فورًا في تبويب جديد في المتصفح.':'Select a paper to open its file immediately in a new browser tab.'}</p><WorksheetCards files={relevantPhysicsPapers} language={language}/></section>
     <section className="study-panel"><div className="study-section-heading"><div><span>{ar?'الكتب والمراجعة':'BOOKS & REVISION'}</span><h2>{ar?'كتاب الطالب والنشاط · الفيزياء':'Physics student and activity books'}</h2></div></div><TextbookLinks subjectId="physics" language={language}/><DocumentLinks physics language={language}/></section>
   </>
-  if(page === 'math') return <section className="study-panel subject-learning-page">
-    <div className="study-section-heading"><div><span>mo7mels · MATHEMATICS 12</span><h2>{ar?'اختر المسار والوحدة':'Choose a track and unit'}</h2></div></div>
+  if(page === 'math') return <section className="study-panel subject-learning-page math-arabic" dir="rtl" lang="ar">
+    <div className="study-section-heading"><div><span>mo7mels · رياضيات الصف الثاني عشر</span><h2>{ar?'اختر المسار والوحدة':'Choose a track and unit'}</h2></div></div>
     <p className="study-help">{ar?'ملخصات وقوانين وتدريب للمسارين الأساسي والمتقدم، مع كتب الطالب والنشاط وأوراق مراجعة.':'Notes, formulas, and practice for Basic and Advanced Mathematics, with textbooks and revision papers.'}</p>
+    <details className="math-symbol-guide"><summary>دليل الرموز الرياضية</summary><dl>{mathSymbolLegend.map((item) => <div key={item.symbol}><dt><ArabicMathText>{item.symbol}</ArabicMathText></dt><dd><ArabicMathText>{item.meaning}</ArabicMathText></dd></div>)}</dl></details>
     <div className="math-track-switch">{['advanced','basic'].map((track) => <a key={track} href={`/mathematics/${track}`} className={mathTrack===track?'active':''} onClick={(event) => follow(event,`/mathematics/${track}`)}>{ar?mathTracks[track].ar:mathTracks[track].en}</a>)}</div>
-    {[1,2].map((semester) => <section className="math-semester" key={semester}><h3>{ar?`الفصل الدراسي ${semester===1?'الأول':'الثاني'}`:`Semester ${semester}`}</h3><div className="math-unit-grid">{mathTracks[mathTrack].units.filter((entry) => entry.semester===semester).map((entry,index) => <article className="math-unit-card" key={entry.en}><div className="math-unit-title"><span>{ar?`الوحدة ${index+1}`:`UNIT ${index+1}`}</span></div><h4>{ar?entry.ar:entry.en}</h4><code>{ar?entry.law:entry.lawEn}</code><details className="unit-practice math-unit-practice"><summary>{ar?'تدريب سريع':'Quick practice'}</summary><p>{ar?entry.practiceAr:entry.practiceEn}</p><label>{ar?'خطوات الحل · تحفظ على جهازك':'Your working · saved on this device'}<textarea value={practiceAnswers[`math:${mathTrack}:${entry.en}`]||''} onChange={(event) => saveAnswer(`math:${mathTrack}:${entry.en}`,event.target.value)}/></label></details></article>)}</div></section>)}
-    <div className="official-documents"><h3>{ar?'أوراق mo7mels لهذا المسار':'mo7mels papers for this track'}</h3><WorksheetCards files={mathPapers} language={language}/></div>
-    <div className="official-documents"><h3>{ar?'كتب الطالب والنشاط':'Student and activity books'}</h3><TextbookLinks subjectId="math" language={language}/><DocumentLinks language={language}/></div>
+    {[1,2].map((semester) => <section className="math-semester" key={semester}><h3>{ar?`الفصل الدراسي ${semester===1?'الأول':'الثاني'}`:`Semester ${semester}`}</h3><div className="math-unit-grid">{mathTracks[mathTrack].units.filter((entry) => entry.semester===semester).map((entry,index) => <article className="math-unit-card" key={entry.en}><div className="math-unit-title"><span>{ar?`الوحدة ${arabicDigits(index+1)}`:`UNIT ${index+1}`}</span></div><h4>{ar?entry.ar:entry.en}</h4><ArabicMathText as="code">{entry.law}</ArabicMathText><details className="unit-practice math-unit-practice"><summary>{ar?'تدريب سريع':'Quick practice'}</summary><ArabicMathText as="p">{entry.practiceAr}</ArabicMathText><label>{ar?'خطوات الحل · تحفظ على جهازك':'Your working · saved on this device'}<textarea value={practiceAnswers[`math:${mathTrack}:${entry.en}`]||''} onChange={(event) => saveAnswer(`math:${mathTrack}:${entry.en}`,event.target.value)}/></label></details></article>)}</div></section>)}
+    <div className="official-documents"><h3>{ar?'أوراق mo7mels لهذا المسار':'mo7mels papers for this track'}</h3><WorksheetCards files={mathPapers} language="ar"/></div>
+    <div className="official-documents"><h3>{ar?'كتب الطالب والنشاط':'Student and activity books'}</h3><TextbookLinks subjectId="math" language="ar"/><DocumentLinks language="ar"/></div>
   </section>
   if(page === 'worksheets' || page === 'exams') return <section className="study-panel worksheet-library-panel"><div className="study-section-heading"><div><span>mo7mels · GRADE 12</span><h2>{ar?(page==='exams'?'الاختبارات النهائية والمراجعات':'مكتبة أوراق العمل'):(page==='exams'?'Final exams and revision':'Worksheet library')}</h2></div></div><p className="study-help">{ar?'اختر الورقة المطلوبة. ستفتح في تبويب جديد في المتصفح مع عرض ملف PDF مباشرة.':'Choose a paper. Its PDF opens in a dedicated new browser tab.'}</p><WorksheetLibrary language={language}/></section>
   return null

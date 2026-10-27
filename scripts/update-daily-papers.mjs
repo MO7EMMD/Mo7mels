@@ -38,7 +38,8 @@ function pageFacts(html,fallback){
  const semester=/(?:الفصل|فصل)(?:\s*الدراسي)?\s*(?:الثاني|ثاني|ثان)(?=\s|$|[،,:·-])|(?:^|\s|[،,:·(])ف\s*2(?=\s|$|[،,:·)\-])/.test(scope)?2:/(?:الفصل|فصل)(?:\s*الدراسي)?\s*(?:الأول|أول|الاول|اول)(?=\s|$|[،,:·-])|(?:^|\s|[،,:·(])ف\s*1(?=\s|$|[،,:·)\-])/.test(scope)?1:null;
  const subjectId=subjects.find(([,pattern])=>pattern.test(subjectScope))?.[0];
  const track=subjectId==='math'?(/متقدم|advanced/i.test(subjectScope)?'advanced':/أساسي|اساسي|basic/i.test(subjectScope)?'basic':null):null;
- return {title,scope,subjectId,semester,track};
+ const englishMath=subjectId==='math'&&/(?:منهج\s*(?:باللغة\s*)?(?:إنجليزي|انجليزي|إنجليز|انجليز)|باللغة\s*(?:الإنجليزية|الانجليزية)|english[- ]medium|english[- ]curriculum)/i.test(scope);
+ return {title,scope,subjectId,semester,track,englishMath};
 }
 function embeddingAllowed(r){const ancestors=(r.headers.get('content-security-policy')||'').match(/frame-ancestors\s+([^;]+)/i)?.[1];return !/SAMEORIGIN|DENY/i.test(r.headers.get('x-frame-options')||'')&&(!ancestors||/\*|https:\/\/mo7mels\.com/.test(ancestors));}
 async function googleViewer(pdfUrl){
@@ -86,7 +87,7 @@ async function collect(source){
   state.indexStatus='ok';const seenPosts=new Set();const queue=source.posts(html,index).slice(0,MAX_POSTS);
   while(queue.length&&state.postsChecked<MAX_POSTS&&additions.length<sourceCap&&existing.length+additions.length<MAX_TOTAL&&Date.now()<deadline){
    const post=queue.shift();if(seenPosts.has(post.url))continue;seenPosts.add(post.url);state.postsChecked++;
-   try{const page=await readText(post.url),facts=pageFacts(page,post.title);if(!gradePattern.test(facts.scope)||!paperPattern.test(facts.title)||!facts.subjectId||!facts.semester){state.rejected++;continue;}
+   try{const page=await readText(post.url),facts=pageFacts(page,post.title);if(!gradePattern.test(facts.scope)||!paperPattern.test(facts.title)||!facts.subjectId||!facts.semester||facts.englishMath){state.rejected++;continue;}
     const files=resourceLinks(page,post.url);
     if(!files.length&&source.id==='afidni')queue.push(...anchors(page,post.url).filter(a=>new URL(a.url).hostname==='afidni.com'&&paperPattern.test(a.title)&&gradePattern.test(a.title)).slice(0,3));
     for(const file of files.slice(0,3)){

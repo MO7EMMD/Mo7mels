@@ -1,0 +1,137 @@
+// Arabic school notation; ^{...} and _{...} are rendered as powers and indices.
+export const mathTracks = {
+  advanced: {
+    ar: 'الرياضيات المتقدمة', en: 'Advanced Mathematics',
+    units: [
+      {
+        semester: 1, ar: 'اللوغاريتمات والدوال الأسية', en: 'Logarithms and exponential functions',
+        law: 'لو_{أ}(س × ص) = لو_{أ}(س) + لو_{أ}(ص)، حيث أ > ٠، أ ≠ ١، س > ٠، ص > ٠. الدالتان هـ^{س} و لط(س) عكسيتان.',
+        lawEn: 'logₐ(xy) = logₐx + logₐy, where a > 0, a ≠ 1, x > 0, y > 0. eˣ and ln x are inverse functions.',
+        practiceAr: 'حل المعادلة ٢^{س} = ٨، ثم اكتب الحل باستخدام اللوغاريتمات.',
+        practiceEn: 'Solve 2ˣ = 8, then express the solution using logarithms.',
+      },
+      {
+        semester: 1, ar: 'حساب المثلثات', en: 'Trigonometry',
+        law: 'جا(أ + ب) = جا(أ) × جتا(ب) + جتا(أ) × جا(ب). ومنها: جا(٢أ) = ٢جا(أ) × جتا(أ).',
+        lawEn: 'sin(A + B) = sin A cos B + cos A sin B; hence sin 2A = 2 sin A cos A.',
+        practiceAr: 'استخدم صيغة جمع الزاويتين لإيجاد القيمة الدقيقة لـ جا(٧٥°).',
+        practiceEn: 'Use a compound-angle identity to find the exact value of sin 75°.',
+      },
+      {
+        semester: 1, ar: 'التفاضل', en: 'Differentiation',
+        law: 'قواعد الضرب والقسمة والدالة المركبة. قاعدة الضرب: (د × ق)′ = د′ × ق + د × ق′، حيث الدالتان قابلتان للاشتقاق.',
+        lawEn: 'Product, quotient, and chain rules. Product rule: (fg)′ = f′g + fg′ for differentiable functions.',
+        practiceAr: 'أوجد مشتقة ص = س^{٢} × هـ^{س}، ثم أوجد قيمة المشتقة عند س = ٠.',
+        practiceEn: 'Differentiate y = x²eˣ, then evaluate the derivative at x = 0.',
+      },
+      {
+        semester: 1, ar: 'المتغيرات العشوائية المتقطعة', en: 'Discrete random variables',
+        law: 'القيمة المتوقعة = مجموع (قيمة المتغير × احتمالها). التباين = القيمة المتوقعة لمربع المتغير − (القيمة المتوقعة للمتغير)^{٢}.',
+        lawEn: 'E(X) = Σxp(x); Var(X) = E(X²) − [E(X)]².',
+        practiceAr: 'للمتغير العشوائي س القيم ٠، ١، ٢ باحتمالات ٠٫٢، ٠٫٥، ٠٫٣ على الترتيب. احسب القيمة المتوقعة للمتغير س.',
+        practiceEn: 'X takes values 0, 1, 2 with probabilities 0.2, 0.5, 0.3. Find E(X).',
+      },
+      {
+        semester: 2, ar: 'التكامل', en: 'Integration',
+        law: 'تكامل س^{ن} بالنسبة إلى س = س^{ن+١} / (ن + ١) + ثابت التكامل، حيث ن ≠ −١، وعلى مجال تكون فيه القوى معرّفة. من الطرق: التعويض والتكامل بالأجزاء.',
+        lawEn: '∫xⁿ dx = xⁿ⁺¹/(n + 1) + C, for n ≠ −1 on a suitable domain; substitution and integration by parts.',
+        practiceAr: 'احسب التكامل المحدد من ٠ إلى ٢ للدالة د(س) = ٣س^{٢} + ٢س.',
+        practiceEn: 'Evaluate the definite integral of 3x² + 2x from 0 to 2.',
+      },
+      {
+        semester: 2, ar: 'المتجهات', en: 'Vectors',
+        law: 'إذا كان المتجه أ = (س، ص، ع)، فإن مقدار أ = √(س^{٢} + ص^{٢} + ع^{٢}). نستخدم جمع المتجهات والضرب القياسي.',
+        lawEn: 'For a = (x, y, z), |a| = √(x² + y² + z²); vector addition and the dot product.',
+        practiceAr: 'إذا كان المتجه أ = (٣، −٤، ١٢)، فاحسب مقدار المتجه أ.',
+        practiceEn: 'For a = (3, −4, 12), calculate the magnitude of vector a.',
+      },
+      {
+        semester: 2, ar: 'الأعداد المركبة', en: 'Complex numbers',
+        law: 'ع = س + ت × ص، حيث ت^{٢} = −١. مقدار ع = √(س^{٢} + ص^{٢}). الصورة القطبية: نق × (جتا(الزاوية) + ت × جا(الزاوية))، حيث نق هو المقدار.',
+        lawEn: 'z = x + iy, where i² = −1; |z| = √(x² + y²). Polar form: r(cos θ + i sin θ), with r = |z|.',
+        practiceAr: 'اكتب العدد المركب ١ + ت × √٣ بالصورة القطبية، موضحًا المقدار والزاوية بالدرجات، حيث ت^{٢} = −١.',
+        practiceEn: 'Write 1 + i√3 in polar form r(cos θ + i sin θ), giving the magnitude and angle in degrees.',
+      },
+      {
+        semester: 2, ar: 'التوزيع الطبيعي', en: 'Normal distribution',
+        law: 'الدرجة المعيارية = (القيمة − المتوسط) / الانحراف المعياري، بشرط أن يكون الانحراف المعياري موجبًا. التوزيع الطبيعي متماثل حول متوسطه.',
+        lawEn: 'Standard score z = (x − μ)/σ, with σ > 0. The normal distribution is symmetric about μ.',
+        practiceAr: 'متغير عشوائي س يتبع توزيعًا طبيعيًا بمتوسط ٥٠ وانحراف معياري ٥. أوجد الدرجة المعيارية عندما س = ٦٠.',
+        practiceEn: 'X is normally distributed with mean 50 and standard deviation 5. Find the standard score when X = 60.',
+      },
+    ],
+  },
+  basic: {
+    ar: 'الرياضيات الأساسية', en: 'Basic Mathematics',
+    units: [
+      {
+        semester: 1, ar: 'الطرق الجبرية', en: 'Algebraic methods',
+        law: 'نظرية العامل: إذا كانت د(س) كثيرة حدود وكانت د(أ) = ٠، فإن (س − أ) عامل من عواملها.',
+        lawEn: 'Factor theorem: for a polynomial f, if f(a) = 0, then (x − a) is a factor.',
+        practiceAr: 'تحقق من أن (س − ٢) عامل من عوامل س^{٣} − ٣س^{٢} − ٤س + ١٢، ثم حلّل المقدار.',
+        practiceEn: 'Show that (x − 2) is a factor of x³ − 3x² − 4x + 12, then factorise it.',
+      },
+      {
+        semester: 1, ar: 'الأسس واللوغاريتمات', en: 'Exponentials and logarithms',
+        law: 'لو_{أ}(س × ص) = لو_{أ}(س) + لو_{أ}(ص). تغيير الأساس: لو_{أ}(س) = لط(س) / لط(أ)، حيث أ > ٠، أ ≠ ١، س > ٠، ص > ٠.',
+        lawEn: 'logₐ(xy) = logₐx + logₐy; logₐx = ln x/ln a, with a > 0, a ≠ 1, x > 0, y > 0.',
+        practiceAr: 'حل المعادلة ٣^{س} = ٨١، ثم أوجد لو_{٣}(٨١).',
+        practiceEn: 'Solve 3ˣ = 81, then evaluate log₃ 81.',
+      },
+      {
+        semester: 1, ar: 'التفاضل ونقاط السكون', en: 'Differentiation and stationary points',
+        law: 'توجد نقطة سكون عند قيمة من مجال الدالة تكون مشتقتها عندها معرّفة وتحقق د′(س) = ٠. تحدد طبيعة النقطة بفحص تغيّر إشارة المشتقة أو بالمشتقة الثانية عند انطباق شروطها.',
+        lawEn: 'A stationary point occurs where the derivative exists and f′(x) = 0; classify it using the first-derivative sign change or an applicable second-derivative test.',
+        practiceAr: 'للدالة د(س) = س^{٢} − ٦س + ٥، أوجد نقطة السكون وحدد طبيعتها.',
+        practiceEn: 'For f(x) = x² − 6x + 5, find the stationary point and determine its nature.',
+      },
+      {
+        semester: 1, ar: 'مقاييس الموقع والتشتت', en: 'Measures of location and spread',
+        law: 'المدى الربيعي = الربيع الأعلى − الربيع الأدنى. التباين = (الانحراف المعياري)^{٢}.',
+        lawEn: 'Interquartile range = upper quartile − lower quartile; variance = (standard deviation)².',
+        practiceAr: 'للبيانات ٢، ٤، ٥، ٧، ٩، ١٠، ١٢، احسب الوسيط والمدى الربيعي.',
+        practiceEn: 'For 2, 4, 5, 7, 9, 10, 12, find the median and interquartile range.',
+      },
+      {
+        semester: 2, ar: 'مفكوك ذي الحدين', en: 'The binomial expansion',
+        law: 'في مفكوك (أ + ب)^{ن}، الحد ذو الرتبة (ر + ١) = توافيق(ن، ر) × أ^{ن−ر} × ب^{ر}، حيث ن عدد صحيح غير سالب ور عدد صحيح يحقق ٠ ≤ ر ≤ ن.',
+        lawEn: 'In (a + b)ⁿ, term r + 1 is C(n,r)aⁿ⁻ʳbʳ, for non-negative integer n and integer 0 ≤ r ≤ n.',
+        practiceAr: 'أوجد معامل س^{٣} في مفكوك (س + ٢)^{٥}.',
+        practiceEn: 'Find the coefficient of x³ in the expansion of (x + 2)⁵.',
+      },
+      {
+        semester: 2, ar: 'المتتابعات والمتسلسلات', en: 'Sequences and series',
+        law: 'للمتتابعة الحسابية: ح_{ن} = أ + (ن − ١) × د. وللهندسية: ح_{ن} = أ × ر^{ن−١}، حيث أ الحد الأول ود الفرق المشترك ور النسبة المشتركة.',
+        lawEn: 'Arithmetic: uₙ = a + (n − 1)d. Geometric: uₙ = arⁿ⁻¹; a is the first term, d the common difference, r the common ratio.',
+        practiceAr: 'متتابعة هندسية حدها الأول ٣ ونسبتها المشتركة ٢. أوجد مجموع أول ٥ حدود.',
+        practiceEn: 'A geometric sequence has first term 3 and common ratio 2. Find the sum of its first 5 terms.',
+      },
+      {
+        semester: 2, ar: 'التكامل والمساحات', en: 'Integration and areas',
+        law: 'عندما تكون ص غير سالبة على الفترة، فإن المساحة تحت المنحنى تساوي التكامل المحدد للدالة من الحد الأدنى إلى الحد الأعلى. إذا تغيّرت الإشارة، نقسم الفترة ونجمع المساحات الموجبة.',
+        lawEn: 'For y ≥ 0 on the interval, area under the curve equals the definite integral from the lower to the upper bound; split sign-changing intervals and add positive areas.',
+        practiceAr: 'احسب المساحة تحت المنحنى ص = ٢س بين س = ٠ و س = ٣.',
+        practiceEn: 'Find the area under y = 2x between x = 0 and x = 3.',
+      },
+      {
+        semester: 2, ar: 'تمثيل البيانات', en: 'Representations of data',
+        law: 'المتوسط الحسابي = مجموع القيم / عددها. الانحراف المعياري = √(التباين). يوضّح مخطط الصندوق الوسيط والربيعين وانتشار البيانات.',
+        lawEn: 'Mean = sum of values/count; standard deviation = √(variance). A box plot displays the median, quartiles, and spread.',
+        practiceAr: 'اشرح كيف يساعد مخطط الصندوق على تحديد القيم المتطرفة والالتواء.',
+        practiceEn: 'Explain how a box plot helps identify outliers and skewness.',
+      },
+    ],
+  },
+}
+
+export const mathSymbolLegend = [
+  { symbol: 'س', meaning: 'المتغير المستقل' },
+  { symbol: 'ص', meaning: 'المتغير التابع' },
+  { symbol: 'د(س)', meaning: 'قيمة الدالة عند س' },
+  { symbol: 'جا', meaning: 'جيب الزاوية' },
+  { symbol: 'جتا', meaning: 'جيب تمام الزاوية' },
+  { symbol: 'ظا', meaning: 'ظل الزاوية' },
+  { symbol: 'هـ', meaning: 'أساس اللوغاريتم الطبيعي، ويساوي تقريبًا ٢٫٧١٨٢٨' },
+  { symbol: 'لط', meaning: 'اللوغاريتم الطبيعي للأساس هـ' },
+  { symbol: 'ت', meaning: 'الوحدة التخيلية؛ ت^{٢} = −١' },
+]
