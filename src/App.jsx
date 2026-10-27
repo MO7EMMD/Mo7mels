@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import './modern.css'
 import StudyPages from './StudyPages.jsx'
+import BookLibrary from './BookLibrary.jsx'
 import { getPageMetadata } from '../server/seo.js'
 import { Bar } from 'react-chartjs-2'
 import {
@@ -26,8 +27,6 @@ const SOCIAL_LINKS = [
   { label: 'TikTok', href: 'https://www.tiktok.com/@ku.i25' },
   { label: 'Telegram', href: 'https://t.me/Nozvxa' },
 ]
-const MINISTRY_GRADE_12_URL = 'https://home.moe.gov.om/ar/manaheg/16'
-const MINISTRY_SUBJECT_CHOICES_URL = 'https://home.moe.gov.om/ar/topics/1/show/13053'
 const STUDY_SUBJECTS = [
   { id: 'islamic', ar: 'التربية الإسلامية', en: 'Islamic Education', icon: '☾', ministryId: 309, tasks: ['لخّص فكرة رئيسية من درس هذا الأسبوع.', 'اكتب دليلاً أو مثالاً يدعم الفكرة.'], tasksEn: ['Summarize one key idea from this week’s lesson.', 'Add evidence or an example that supports it.'] },
   { id: 'arabic', ar: 'اللغة العربية', en: 'Arabic Language', icon: 'ع', ministryId: 313, tasks: ['أعرب: قرأ الطالبُ الكتابَ.', 'اكتب فقرة قصيرة عن هدف دراسي تسعى إليه.'], tasksEn: ['Parse this sentence: قرأ الطالبُ الكتابَ.', 'Write a short paragraph about a study goal.'] },
@@ -37,7 +36,7 @@ const STUDY_SUBJECTS = [
   { id: 'chemistry', ar: 'الكيمياء', en: 'Chemistry', icon: '⚗', ministryId: 326, tasks: ['وازن المعادلة: H₂ + O₂ → H₂O.', 'اذكر عدد ذرات كل عنصر قبل الموازنة وبعدها.'], tasksEn: ['Balance: H₂ + O₂ → H₂O.', 'Count the atoms of each element before and after balancing.'] },
   { id: 'physics', ar: 'الفيزياء', en: 'Physics', icon: '↗', ministryId: 329, tasks: ['يمر تيار في مقاومة 4Ω موصولة بجهد 12V. احسب التيار.', 'اكتب القانون والوحدات المستخدمة.'], tasksEn: ['A 4Ω resistor is connected to 12V. Find the current.', 'Write the formula and units you used.'] },
   { id: 'homeland', ar: 'هذا وطني', en: 'This Is My Country', icon: '⌂', ministryId: 336, tasks: ['اختر موضوعاً من وحدتك الحالية واكتب ثلاث معلومات تعلمتها.', 'أضف سؤالاً واحداً تريد مناقشته في الصف.'], tasksEn: ['Choose a topic from your current unit and write three things you learned.', 'Add one question you would like to discuss in class.'] },
-  { id: 'geography', ar: 'الجغرافيا الاقتصادية', en: 'Economic Geography', icon: '⌖', ministryId: 339, tasks: ['اختر نشاطاً اقتصادياً في عُمان وارسم خريطة ذهنية لعوامله.', 'اشرح كيف يؤثر الموقع أو الموارد في هذا النشاط.'], tasksEn: ['Choose an economic activity in Oman and map its contributing factors.', 'Explain how location or resources affect it.'] },
+  { id: 'geography', ar: 'الجغرافيا والتقنيات الحديثة', en: 'Geography and Modern Technologies', icon: '⌖', ministryId: 339, tasks: ['اختر نشاطاً اقتصادياً في عُمان وارسم خريطة ذهنية لعوامله.', 'اشرح كيف يؤثر الموقع أو الموارد في هذا النشاط.'], tasksEn: ['Choose an economic activity in Oman and map its contributing factors.', 'Explain how location or resources affect it.'] },
   { id: 'ict', ar: 'تقنية المعلومات', en: 'Information Technology', icon: '</>', ministryId: 343, tasks: ['اكتب خطوات إنشاء نسخة احتياطية آمنة لملف دراسي.', 'اذكر طريقتين لحماية حساباتك الرقمية.'], tasksEn: ['List the steps for safely backing up a school file.', 'Name two ways to protect your online accounts.'] },
   { id: 'art', ar: 'الفنون التشكيلية', en: 'Visual Arts', icon: '◩', ministryId: 346, tasks: ['صمّم رسماً أولياً يعبّر عن مكان تحبه في عُمان.', 'جرّب التوازن بين المساحة واللون والخط.'], tasksEn: ['Sketch a place in Oman that matters to you.', 'Experiment with balance, color, and line.'] },
   { id: 'sports', ar: 'الرياضة المدرسية', en: 'School Sports', icon: '◎', ministryId: 350, tasks: ['صمّم خطة إحماء قصيرة قبل نشاط رياضي.', 'دوّن كيف تساعد الراحة وشرب الماء على سلامة الجسم.'], tasksEn: ['Plan a short warm-up before physical activity.', 'Note how rest and hydration support physical wellbeing.'] },
@@ -739,7 +738,6 @@ function App() {
     return localStorage.getItem('darkMode') === 'true'
   })
   const [studyTab, setStudyTab] = useState(() => getStudyTabForPath(typeof window === 'undefined' ? '/' : window.location.pathname))
-  const [studySearch, setStudySearch] = useState('')
   const [selectedStudySubject, setSelectedStudySubject] = useState('math')
   const [worksheetAnswers, setWorksheetAnswers] = useState(() => {
     if (typeof window === 'undefined') return {}
@@ -1670,9 +1668,6 @@ function App() {
   }
 
   const activeStudySubject = STUDY_SUBJECTS.find((subject) => subject.id === selectedStudySubject) || STUDY_SUBJECTS[3]
-  const filteredStudySubjects = STUDY_SUBJECTS.filter((subject) =>
-    `${subject.ar} ${subject.en}`.toLocaleLowerCase().includes(studySearch.toLocaleLowerCase().trim()),
-  )
 
   const updateWorksheetAnswer = (subjectId, value) => {
     const nextAnswers = { ...worksheetAnswers, [subjectId]: value }
@@ -1764,7 +1759,7 @@ function App() {
 
         <section className="study-home-grid" hidden={studyTab !== 'home'}>
           {[
-            { id: 'library', icon: '▤', ar: 'كتب الصف الثاني عشر', en: 'Grade 12 textbooks', noteAr: 'روابط موثقة لمكتبة الوزارة حسب المادة.', noteEn: 'Verified links to Ministry books by subject.' },
+            { id: 'library', icon: '▤', ar: 'كتب الصف الثاني عشر', en: 'Grade 12 textbooks', noteAr: 'كتاب الطالب والنشاط بصيغة PDF لكل مادة.', noteEn: 'Direct student and activity book PDFs by subject.' },
             { id: 'physics', icon: '⚛', ar: 'مختبر الفيزياء', en: 'Physics lab', noteAr: 'تسع وحدات، قوانين، مراجعات ومحاكاة.', noteEn: 'Nine units, formulas, revision, and simulations.' },
             { id: 'math', icon: '∑', ar: 'مسارات الرياضيات', en: 'Mathematics tracks', noteAr: 'الرياضيات الأساسية والمتقدمة، وحدة بوحدة.', noteEn: 'Basic and Advanced Mathematics, unit by unit.' },
             { id: 'worksheets', icon: '✎', ar: 'أوراق العمل', en: 'Worksheets', noteAr: 'تدريبات قابلة للطباعة مع حفظ إجاباتك.', noteEn: 'Printable practice with saved answers.' },
@@ -1776,20 +1771,7 @@ function App() {
           </a>)}
         </section>
 
-        <section className="study-panel" hidden={studyTab !== 'library'}>
-          <div className="study-section-heading"><div><span>{language === 'ar' ? 'مكتبة المنهج' : 'CURRICULUM LIBRARY'}</span><h2>{language === 'ar' ? 'اختر مادتك' : 'Choose a subject'}</h2></div>
-            <a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'مكتبة وزارة التعليم ↗' : 'Ministry textbook library ↗'}</a>
-          </div>
-          <p className="study-help">{language === 'ar' ? 'روابط مباشرة إلى صفحات كتب الصف الثاني عشر الرسمية. تختلف المواد الاختيارية حسب خطة الطالب.' : 'Direct links to official Grade 12 textbook pages. Elective subjects vary by each student’s study plan.'}</p>
-          <label className="study-search"><span aria-hidden="true">⌕</span><input value={studySearch} onChange={(event) => setStudySearch(event.target.value)} placeholder={language === 'ar' ? 'ابحث عن مادة...' : 'Search subjects...'} /></label>
-          <div className="study-subject-grid">
-            {filteredStudySubjects.map((subject) => <article className="study-subject-card" key={subject.id}>
-              <span className="subject-icon" aria-hidden="true">{subject.icon}</span><div><h3>{language === 'ar' ? subject.ar : subject.en}</h3><p>{language === 'ar' ? 'الصف الثاني عشر · فصول وكتب' : 'Grade 12 · terms and books'}</p></div>
-              <a href={`https://home.moe.gov.om/ar/manaheg/${subject.ministryId}`} target="_blank" rel="noreferrer" aria-label={`${language === 'ar' ? 'فتح كتب' : 'Open books for'} ${language === 'ar' ? subject.ar : subject.en}`}>↗</a>
-            </article>)}
-          </div>
-          <p className="study-source-note">{language === 'ar' ? 'المصدر: مكتبة المناهج الرسمية لوزارة التعليم في سلطنة عُمان.' : 'Source: the official Ministry of Education curriculum library for Oman.'} <a href={MINISTRY_GRADE_12_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'عرض المكتبة الرسمية' : 'Open official library'}</a> · <a href={MINISTRY_SUBJECT_CHOICES_URL} target="_blank" rel="noreferrer">{language === 'ar' ? 'ضوابط اختيار المواد' : 'Subject selection guidance'}</a></p>
-        </section>
+        <BookLibrary subjects={STUDY_SUBJECTS} language={language} hidden={studyTab !== 'library'} />
 
         <section className="study-panel" hidden={studyTab !== 'resources'}>
           <div className="study-section-heading"><div><span>{language === 'ar' ? 'الدليل الرسمي' : 'OFFICIAL DIRECTORY'}</span><h2>{language === 'ar' ? 'مصادر وزارة التعليم' : 'Ministry of Education resources'}</h2></div><a href="https://home.moe.gov.om/" target="_blank" rel="noreferrer">{language === 'ar' ? 'موقع الوزارة ↗' : 'Ministry website ↗'}</a></div>

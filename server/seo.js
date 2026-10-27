@@ -3,7 +3,7 @@ export const SEO_ORIGIN = 'https://mo7mels.com'
 
 const publicPages = [
   ['/', 'mo7mels | Grade 12 Oman & Study Tools', 'Free Grade 12 Oman textbooks, Physics lessons and simulations, Mathematics practice, exams, and study tools from mo7mels.'],
-  ['/books', 'Grade 12 Textbooks | mo7mels', 'Find official Oman Grade 12 textbook links by subject, with access to the Ministry curriculum library.'],
+  ['/books', 'Grade 12 Textbooks | mo7mels', 'Open official Oman Grade 12 student and activity book PDFs directly, organized by subject and semester.'],
   ['/physics', 'Physics Lessons & Simulations | mo7mels', 'Explore nine Grade 12 Physics units with lessons, laws, formula sheets, practice, and interactive simulations.'],
   ['/physics/gravitational-fields', 'Gravitational Fields | mo7mels', 'Review gravitational field strength, potential, forces, and circular orbits with Grade 12 Physics practice.'],
   ['/physics/electric-fields', 'Electric Fields & Coulomb’s Law | mo7mels', 'Review electric force, field strength, potential, and Coulomb’s law with examples and practice.'],

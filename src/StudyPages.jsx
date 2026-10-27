@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import textbooks from './textbooks.json'
 
 const MOE_GRADE_12 = 'https://home.moe.gov.om/ar/manaheg/16'
 const MOE_MATH_OUTCOMES = 'https://home.moe.gov.om/images/library/file/Book748807.pdf'
@@ -68,8 +69,8 @@ function ResourceCard({ item, language, onPreview }) {
   const ar = language === 'ar'
   return <article className="study-resource-card">
     <div className="study-resource-icon" aria-hidden="true">{item.icon || '↗'}</div>
-    <div className="study-resource-copy"><strong>{ar ? item.ar : item.en}</strong><small>{ar ? item.noteAr : item.noteEn}</small><span>{item.badge || (ar ? 'مصدر خارجي' : 'External source')}</span></div>
-    <div className="study-resource-actions"><button type="button" onClick={() => onPreview({ title: ar ? item.ar : item.en, url: item.url })}>{ar ? 'معاينة' : 'Preview'}</button><a href={item.url} target="_blank" rel="noreferrer" aria-label={`${ar ? 'فتح' : 'Open'} ${ar ? item.ar : item.en}`}>↗</a></div>
+    <div className="study-resource-copy">{item.directPdf ? <a className="study-textbook-title" href={item.url} target="_blank" rel="noopener noreferrer"><strong>{ar ? item.ar : item.en}</strong></a> : <strong>{ar ? item.ar : item.en}</strong>}<small>{ar ? item.noteAr : item.noteEn}</small><span>{item.badge || (ar ? 'مصدر خارجي' : 'External source')}</span></div>
+    <div className="study-resource-actions">{!item.directPdf && <button type="button" onClick={() => onPreview({ title: ar ? item.ar : item.en, url: item.url })}>{ar ? 'معاينة' : 'Preview'}</button>}<a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${ar ? 'فتح' : 'Open'} ${ar ? item.ar : item.en}`}>{item.directPdf ? (ar ? 'فتح PDF ↗' : 'Open PDF ↗') : '↗'}</a></div>
   </article>
 }
 
@@ -111,8 +112,17 @@ function StudyPages({ page, path, language, navigateTo }) {
     const isWorksheetLibrary = page === 'worksheets'
     const openResource = (title, url) => setResource({ title, url })
 
+    const textbookResources = (subjectId) => textbooks.filter((book) => book.subjectId === subjectId).map((book) => ({
+      ar: `${book.titleAr} · الفصل ${book.term === '1' ? 'الأول' : 'الثاني'}`,
+      en: `${book.titleEn} · Semester ${book.term}`,
+      url: book.url,
+      noteAr: book.kind === 'activity' ? 'كتاب النشاط · ملف PDF مباشر من الوزارة.' : 'كتاب الطالب · ملف PDF مباشر من الوزارة.',
+      noteEn: book.kind === 'activity' ? 'Activity book · direct Ministry PDF.' : 'Student book · direct Ministry PDF.',
+      badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤', directPdf: true,
+    }))
+    const physicsStudentBook = textbooks.find((book) => book.subjectId === 'physics' && book.kind === 'student' && book.term === String(unit?.semester || 1))
     const physicsResources = [
-      { ar: 'كتب الفيزياء الرسمية للصف الثاني عشر', en: 'Official Grade 12 Physics textbooks', url: 'https://home.moe.gov.om/ar/manaheg/329', noteAr: 'كتاب الطالب والتجارب والأنشطة من مكتبة الوزارة.', noteEn: 'Student book and practical activities in the Ministry library.', badge: ar ? 'وزارة التعليم' : 'Ministry of Education', icon: '▤' },
+      ...textbookResources('physics'),
       { ar: 'ملفات الفيزياء · الفصل الأول', en: 'Physics files · Semester 1', url: 'https://almanahj.com/om/12physics1', noteAr: 'أوراق عمل وملخصات ومراجعات بحسب الوحدة.', noteEn: 'Worksheets, summaries, and revision grouped by unit.', badge: 'AlManahj', icon: '✎' },
       { ar: 'ملفات الفيزياء · الفصل الثاني', en: 'Physics files · Semester 2', url: 'https://almanahj.com/om/12physics2', noteAr: 'مصادر الوحدات 6–9 والموجات والفيزياء الحديثة.', noteEn: 'Resources for units 6–9, waves, and modern physics.', badge: 'AlManahj', icon: '✎' },
       { ar: 'أفدني · امتحان الفيزياء مع الإجابة', en: 'Afedni · Physics exam with answers', url: AFEDNI_PHYSICS_FINAL, noteAr: 'اختبار نهاية الفصل الأول 2025–2026 وإجاباته.', noteEn: 'Semester 1 final exam 2025–2026 and answer key.', badge: 'Afedni', icon: '✓' },
@@ -123,7 +133,7 @@ function StudyPages({ page, path, language, navigateTo }) {
     const mathResources = [
       { ar: 'مخرجات التعلم الرسمية للرياضيات 2025–2026', en: 'Official Mathematics learning outcomes 2025–2026', url: MOE_MATH_OUTCOMES, noteAr: 'مخرجات الصف 12 للرياضيات المتقدمة والأساسية للفصلين.', noteEn: 'Grade 12 outcomes for Advanced and Basic Mathematics across both semesters.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤' },
       { ar: 'وثيقة تقويم الرياضيات ومواصفات الامتحان', en: 'Mathematics assessment and exam specifications', url: MOE_MATH_ASSESSMENT, noteAr: 'وثيقة الوزارة للمواصفات والتقويم؛ راجع أحدث تحديث.', noteEn: 'Ministry assessment guidance; check for the latest revision.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤' },
-      { ar: 'كتب الرياضيات الرسمية للصف الثاني عشر', en: 'Official Grade 12 Mathematics textbooks', url: 'https://home.moe.gov.om/ar/manaheg/319', noteAr: 'كتب الرياضيات المتقدمة والأساسية من مكتبة الوزارة.', noteEn: 'Advanced and Basic Mathematics books in the Ministry library.', badge: ar ? 'وزارة التعليم' : 'Ministry of Education', icon: '∑' },
+      ...textbookResources('math'),
       { ar: 'أفدني · ملفات الرياضيات المتقدمة', en: 'Afedni · Advanced Mathematics files', url: AFEDNI_ADVANCED_MATH, noteAr: 'اختبارات وملخصات وأوراق تدريب للفصل الأول.', noteEn: 'Exams, summaries, and practice sheets for Semester 1.', badge: 'Afedni', icon: '✎' },
       { ar: 'أفدني · بنك الرياضيات المتقدمة', en: 'Afedni · Advanced Mathematics bank', url: AFEDNI_MATH_ADV_ARCHIVE, noteAr: 'ملفات مجمعة للرياضيات المتقدمة للصف الثاني عشر.', noteEn: 'A collected Grade 12 Advanced Mathematics file bank.', badge: 'Afedni', icon: '▦' },
       { ar: 'أفدني · بنك الرياضيات الأساسية', en: 'Afedni · Basic Mathematics bank', url: AFEDNI_MATH_BASIC_ARCHIVE, noteAr: 'ملفات مجمعة للرياضيات الأساسية للصف الثاني عشر.', noteEn: 'A collected Grade 12 Basic Mathematics file bank.', badge: 'Afedni', icon: '▦' },
@@ -132,7 +142,7 @@ function StudyPages({ page, path, language, navigateTo }) {
 
     return <>
       {isPhysics && <section className="study-panel subject-learning-page">
-        <div className="study-section-heading"><div><span>{ar ? 'دليل الفيزياء · الصف الثاني عشر' : 'PHYSICS GUIDE · GRADE 12'}</span><h2>{unit ? `${ar ? `الوحدة ${unit.number}` : `Unit ${unit.number}`} · ${ar ? unit.ar : unit.en}` : (ar ? 'الفيزياء: تعلّم، قوانين، ومحاكاة' : 'Physics: lessons, laws, and simulations')}</h2></div><a href="https://home.moe.gov.om/ar/manaheg/329" target="_blank" rel="noreferrer">{ar ? 'كتاب الوزارة ↗' : 'Ministry textbook ↗'}</a></div>
+        <div className="study-section-heading"><div><span>{ar ? 'دليل الفيزياء · الصف الثاني عشر' : 'PHYSICS GUIDE · GRADE 12'}</span><h2>{unit ? `${ar ? `الوحدة ${unit.number}` : `Unit ${unit.number}`} · ${ar ? unit.ar : unit.en}` : (ar ? 'الفيزياء: تعلّم، قوانين، ومحاكاة' : 'Physics: lessons, laws, and simulations')}</h2></div><a href={physicsStudentBook.url} target="_blank" rel="noreferrer">{ar ? 'كتاب الطالب PDF ↗' : 'Student book PDF ↗'}</a></div>
         <p className="study-help">{unit ? (ar ? unit.introAr : unit.introEn) : (ar ? 'اختر وحدة لفتح درس موجز، ورقة قوانين، وروابط تمارين ومصادر مساعدة. ترتيب الوحدات بحسب كتاب الفيزياء للصف الثاني عشر.' : 'Choose a unit for a short lesson, formula sheet, practice links, and related sources. Units follow the Grade 12 Physics textbook.')}</p>
         <div className="physics-unit-grid">{physicsUnits.map((entry) => <a key={entry.id} href={`/physics/${entry.id}`} className={`physics-unit-card${unit?.id === entry.id ? ' active' : ''}`} onClick={(event) => followSubjectLink(event, `/physics/${entry.id}`)}><span>{String(entry.number).padStart(2, '0')}</span><strong>{ar ? entry.ar : entry.en}</strong><small>{ar ? `الفصل ${entry.semester === 1 ? 'الأول' : 'الثاني'}` : `Semester ${entry.semester}`}</small><b>↗</b></a>)}</div>
         {unit && <div className="physics-unit-content">
@@ -157,7 +167,7 @@ function StudyPages({ page, path, language, navigateTo }) {
         <div className="math-track-switch"><a href="/mathematics/advanced" className={mathTrack === 'advanced' ? 'active' : ''} onClick={(event) => followSubjectLink(event, '/mathematics/advanced')}>{ar ? 'الرياضيات المتقدمة' : 'Advanced Mathematics'}</a><a href="/mathematics/basic" className={mathTrack === 'basic' ? 'active' : ''} onClick={(event) => followSubjectLink(event, '/mathematics/basic')}>{ar ? 'الرياضيات الأساسية' : 'Basic Mathematics'}</a></div>
         <div className="math-resource-top"><span>{ar ? `${mathTracks[mathTrack].units.length} وحدات · فصلان دراسيان` : `${mathTracks[mathTrack].units.length} units · two semesters`}</span><a href={mathTracks[mathTrack].afedni} target="_blank" rel="noreferrer">{ar ? 'افتح بنك أفدني ↗' : 'Open Afedni file bank ↗'}</a></div>
         {[1, 2].map((semester) => <section className="math-semester" key={semester}><h3>{ar ? `الفصل الدراسي ${semester === 1 ? 'الأول' : 'الثاني'}` : `Semester ${semester}`}</h3><div className="math-unit-grid">{mathUnitResources.filter((entry) => entry.semester === semester).map((entry, index) => <article className="math-unit-card" key={entry.en}><div className="math-unit-title"><span>{ar ? `الوحدة ${index + 1}` : `UNIT ${index + 1}`}</span><small>{ar ? `الفصل ${semester}` : `Semester ${semester}`}</small></div><h4>{ar ? entry.ar : entry.en}</h4><code>{ar ? entry.law : entry.lawEn}</code><details className="unit-practice math-unit-practice"><summary>{ar ? 'تدريب سريع' : 'Quick practice'}</summary><p>{ar ? entry.practiceAr : entry.practiceEn}</p><label>{ar ? 'إجابتك · تُحفظ على هذا الجهاز' : 'Your answer · saved on this device'}<textarea value={practiceAnswers[`math:${mathTrack}:${entry.en}`] || ''} onChange={(event) => savePracticeAnswer(`math:${mathTrack}:${entry.en}`, event.target.value)} placeholder={ar ? 'اكتب خطوات الحل هنا…' : 'Write your working here…'} /></label></details><div><button type="button" onClick={() => openResource(`${ar ? 'أفدني · ' : 'Afedni · '}${ar ? entry.ar : entry.en}`, entry.worksheetUrl)}>{ar ? 'ابحث عن أوراق الوحدة' : 'Find unit worksheets'} ↗</button><a href={MOE_MATH_OUTCOMES} target="_blank" rel="noreferrer">{ar ? 'وثيقة الوزارة' : 'Ministry document'} ↗</a></div></article>)}</div></section>)}
-        <div className="official-documents"><h3>{ar ? 'وثائق رسمية' : 'Official documents'}</h3><div className="study-resource-grid">{mathResources.slice(0, 3).map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div></div>
+        <div className="official-documents"><h3>{ar ? 'وثائق رسمية' : 'Official documents'}</h3><div className="study-resource-grid">{mathResources.filter((item) => item.url.startsWith('https://home.moe.gov.om/')).map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div></div>
         <p className="study-source-note">{ar ? 'عناوين الوحدات مرتبة وفق وثيقة الوزارة للعام الدراسي 2025–2026؛ راجع أحدث وثيقة ومحتوى كتابك عند تحديث المنهج.' : 'Unit titles follow the Ministry’s 2025–2026 outcomes document. Check the newest document and your textbook when the syllabus is updated.'}</p>
       </section>}
 
@@ -178,7 +188,7 @@ function StudyPages({ page, path, language, navigateTo }) {
       {isWorksheetLibrary && <section className="study-panel subject-learning-page worksheet-library-panel">
         <div className="study-section-heading"><div><span>{ar ? 'مكتبة تدريب' : 'PRACTICE LIBRARY'}</span><h2>{ar ? 'أوراق عمل ومصادر حسب المادة' : 'Worksheets and resources by subject'}</h2></div><a href={MOE_GRADE_12} target="_blank" rel="noreferrer">{ar ? 'كتب الصف الثاني عشر ↗' : 'Grade 12 textbooks ↗'}</a></div>
         <p className="study-help">{ar ? 'إلى جانب ورقة التدريب القابلة للطباعة أعلاه، اختر مصدراً خارجياً لفتح أوراق العمل والملخصات. الملفات تفتح في العارض عند سماح الموقع بذلك.' : 'Alongside the printable practice sheet above, choose an external source for worksheets and summaries. Files open in the viewer when the publisher allows it.'}</p>
-        <div className="study-resource-grid">{[...physicsResources.slice(1, 6), ...mathResources.slice(3, 6)].map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
+        <div className="study-resource-grid">{[...physicsResources.filter((item) => !item.directPdf).slice(0, 5), ...mathResources.filter((item) => !item.directPdf).slice(2, 5)].map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
       </section>}
       <LocalResourceViewer resource={resource} language={language} onClose={() => setResource(null)} />
       {(isPhysics || isMath) && <section className="study-panel simulations-lab"><div className="study-section-heading"><div><span>{ar ? 'مختبر مصغر يعمل داخل الموقع' : 'BUILT-IN MINI LAB'}</span><h2>{ar ? 'محاكاة تفاعلية سريعة' : 'Quick interactive simulations'}</h2></div></div>

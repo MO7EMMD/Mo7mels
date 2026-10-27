@@ -1,0 +1,392 @@
+[
+  {
+    "id": "islamic-186",
+    "subjectId": "islamic",
+    "titleAr": "التربية الاسلامية",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book585798.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/311/show/186",
+    "titleEn": "Islamic Education",
+    "kind": "student"
+  },
+  {
+    "id": "islamic-185",
+    "subjectId": "islamic",
+    "titleAr": "التربية الاسلامية",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book697929.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/312/show/185",
+    "titleEn": "Islamic Education",
+    "kind": "student"
+  },
+  {
+    "id": "arabic-256",
+    "subjectId": "arabic",
+    "titleAr": "المؤنس",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book862540.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/314/show/256",
+    "titleEn": "Al Mu’nis",
+    "kind": "student"
+  },
+  {
+    "id": "arabic-259",
+    "subjectId": "arabic",
+    "titleAr": "المفيد",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book539170.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/314/show/259",
+    "titleEn": "Al Mufid",
+    "kind": "student"
+  },
+  {
+    "id": "arabic-261",
+    "subjectId": "arabic",
+    "titleAr": "المؤنس",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book816603.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/315/show/261",
+    "titleEn": "Al Mu’nis",
+    "kind": "student"
+  },
+  {
+    "id": "arabic-262",
+    "subjectId": "arabic",
+    "titleAr": "المفيد",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book124976.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/315/show/262",
+    "titleEn": "Al Mufid",
+    "kind": "student"
+  },
+  {
+    "id": "english-191",
+    "subjectId": "english",
+    "titleAr": "Work Book",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book595525.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/317/show/191",
+    "titleEn": "Work Book",
+    "kind": "activity"
+  },
+  {
+    "id": "english-188",
+    "subjectId": "english",
+    "titleAr": "Course Book",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book370271.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/317/show/188",
+    "titleEn": "Course Book",
+    "kind": "student"
+  },
+  {
+    "id": "english-195",
+    "subjectId": "english",
+    "titleAr": "Work Book",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book324137.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/318/show/195",
+    "titleEn": "Work Book",
+    "kind": "activity"
+  },
+  {
+    "id": "english-193",
+    "subjectId": "english",
+    "titleAr": "Course Book",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book867057.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/318/show/193",
+    "titleEn": "Course Book",
+    "kind": "student"
+  },
+  {
+    "id": "math-229",
+    "subjectId": "math",
+    "titleAr": "الرياضيات المتقدمة ( كتاب النشاط)",
+    "titleEn": "Advanced Mathematics - Activity Book",
+    "term": "1",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book615964.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/320/show/229"
+  },
+  {
+    "id": "math-231",
+    "subjectId": "math",
+    "titleAr": "الرياضيات الأساسية (كتاب النشاط)",
+    "titleEn": "Basic Mathematics - Activity Book",
+    "term": "1",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book920518.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/320/show/231"
+  },
+  {
+    "id": "math-228",
+    "subjectId": "math",
+    "titleAr": "الرياضيات المتقدمة (كتاب الطالب)",
+    "titleEn": "Advanced Mathematics - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book874959.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/320/show/228"
+  },
+  {
+    "id": "math-230",
+    "subjectId": "math",
+    "titleAr": "الرياضيات الأساسية (كتاب الطالب)",
+    "titleEn": "Basic Mathematics - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book818208.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/320/show/230"
+  },
+  {
+    "id": "math-233",
+    "subjectId": "math",
+    "titleAr": "الرياضيات المتقدمة (كتاب النشاط)",
+    "titleEn": "Advanced Mathematics - Activity Book",
+    "term": "2",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book159134.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/321/show/233"
+  },
+  {
+    "id": "math-236",
+    "subjectId": "math",
+    "titleAr": "الرياضيات الأساسية (كتاب النشاط)",
+    "titleEn": "Basic Mathematics - Activity Book",
+    "term": "2",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book262070.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/321/show/236"
+  },
+  {
+    "id": "math-232",
+    "subjectId": "math",
+    "titleAr": "الرياضيات المتقدمة (كتاب الطالب)",
+    "titleEn": "Advanced Mathematics - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book671029.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/321/show/232"
+  },
+  {
+    "id": "math-234",
+    "subjectId": "math",
+    "titleAr": "الرياضيات الأساسية (كتاب الطالب)",
+    "titleEn": "Basic Mathematics - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book658780.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/321/show/234"
+  },
+  {
+    "id": "biology-198",
+    "subjectId": "biology",
+    "titleAr": "كتاب التجارب العملية والأنشطة",
+    "titleEn": "Biology - Activity Book",
+    "term": "1",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book360793.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/323/show/198"
+  },
+  {
+    "id": "biology-196",
+    "subjectId": "biology",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Biology - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book111129.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/323/show/196"
+  },
+  {
+    "id": "biology-200",
+    "subjectId": "biology",
+    "titleAr": "كتاب التجارب العملية والأنشطة",
+    "titleEn": "Biology - Activity Book",
+    "term": "2",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book418581.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/325/show/200"
+  },
+  {
+    "id": "biology-199",
+    "subjectId": "biology",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Biology - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book963667.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/325/show/199"
+  },
+  {
+    "id": "chemistry-250",
+    "subjectId": "chemistry",
+    "titleAr": "كتاب التجارب العملية والأنشطة",
+    "titleEn": "Chemistry - Activity Book",
+    "term": "1",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book898494.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/327/show/250"
+  },
+  {
+    "id": "chemistry-248",
+    "subjectId": "chemistry",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Chemistry - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book958904.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/327/show/248"
+  },
+  {
+    "id": "chemistry-254",
+    "subjectId": "chemistry",
+    "titleAr": "كتاب التجارب العملية والأنشطة",
+    "titleEn": "Chemistry - Activity Book",
+    "term": "2",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book445023.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/328/show/254"
+  },
+  {
+    "id": "chemistry-252",
+    "subjectId": "chemistry",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Chemistry - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book128986.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/328/show/252"
+  },
+  {
+    "id": "physics-241",
+    "subjectId": "physics",
+    "titleAr": "كتاب التجارب العلمية والأنشطة",
+    "titleEn": "Physics - Activity Book",
+    "term": "1",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book83389.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/332/show/241"
+  },
+  {
+    "id": "physics-240",
+    "subjectId": "physics",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Physics - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book786195.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/332/show/240"
+  },
+  {
+    "id": "physics-245",
+    "subjectId": "physics",
+    "titleAr": "كتاب التجارب العملية والأنشطة",
+    "titleEn": "Physics - Activity Book",
+    "term": "2",
+    "kind": "activity",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book979738.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/333/show/245"
+  },
+  {
+    "id": "physics-243",
+    "subjectId": "physics",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "Physics - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book690430.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/333/show/243"
+  },
+  {
+    "id": "homeland-203",
+    "subjectId": "homeland",
+    "titleAr": "هذا وطني",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book333927.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/337/show/203",
+    "titleEn": "This Is My Country",
+    "kind": "student"
+  },
+  {
+    "id": "homeland-206",
+    "subjectId": "homeland",
+    "titleAr": "هذا وطني",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book397318.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/338/show/206",
+    "titleEn": "This Is My Country",
+    "kind": "student"
+  },
+  {
+    "id": "geography-210",
+    "subjectId": "geography",
+    "titleAr": "الأطلس المدرسي",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book639790.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/340/show/210",
+    "titleEn": "School Atlas",
+    "kind": "other"
+  },
+  {
+    "id": "geography-213",
+    "subjectId": "geography",
+    "titleAr": "الجغرافيا والتقنيات الحديثة",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book664172.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/340/show/213",
+    "titleEn": "Geography and Modern Technologies",
+    "kind": "student"
+  },
+  {
+    "id": "geography-214",
+    "subjectId": "geography",
+    "titleAr": "الأطلس المدرسي",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book529032.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/341/show/214",
+    "titleEn": "School Atlas",
+    "kind": "other"
+  },
+  {
+    "id": "art-238",
+    "subjectId": "art",
+    "titleAr": "الفنون التشكيلية",
+    "term": "1",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book631935.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/348/show/238",
+    "titleEn": "Visual Arts",
+    "kind": "student"
+  },
+  {
+    "id": "art-239",
+    "subjectId": "art",
+    "titleAr": "الفنون التشكيلية",
+    "term": "2",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book402240.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/349/show/239",
+    "titleEn": "Visual Arts",
+    "kind": "student"
+  },
+  {
+    "id": "sports-217",
+    "subjectId": "sports",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "School Sports - Student Book",
+    "term": "1",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book448937.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/351/show/217"
+  },
+  {
+    "id": "sports-219",
+    "subjectId": "sports",
+    "titleAr": "كتاب الطالب",
+    "titleEn": "School Sports - Student Book",
+    "term": "2",
+    "kind": "student",
+    "url": "https://home.moe.gov.om/images/manaheg/file/Book903762.pdf",
+    "sourceUrl": "https://home.moe.gov.om/ar/manaheg/352/show/219"
+  }
+]

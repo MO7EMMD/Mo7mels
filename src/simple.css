@@ -91,6 +91,27 @@ body { margin:0; min-width:320px; background:#f7f8fa; }
 .study-search input { width:100%; border:0; outline:0; background:transparent; color:var(--study-ink); font-family:inherit; font-size:12px; font-weight:400; line-height:1.3; }
 .study-search input::placeholder { color:#969e98; }
 .study-subject-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.textbook-subject-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; }
+.textbook-subject { min-width:0; padding:17px; border:1px solid var(--study-line); border-radius:11px; background:var(--study-paper); }
+.textbook-subject-heading { display:flex; align-items:center; gap:11px; padding-bottom:14px; }
+.textbook-subject-heading h3 { margin:0; color:var(--study-ink); font-size:14px; line-height:1.55; }
+.textbook-subject-heading p { margin:3px 0 0; color:var(--study-muted); font-size:10px; }
+.textbook-kind { padding-top:12px; border-top:1px solid var(--study-line); }
+.textbook-kind+.textbook-kind { margin-top:14px; }
+.textbook-kind h4 { margin:0 0 8px; color:var(--study-ink); font-size:11px; font-weight:700; }
+.textbook-links { display:grid; gap:7px; }
+.textbook-link { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:12px; padding:11px; border:1px solid var(--study-line); border-radius:8px; background:var(--study-bg); color:var(--study-ink); text-decoration:none; transition:border-color .15s; }
+.textbook-link:hover { border-color:#8da995; }
+.textbook-link:focus-visible { outline:2px solid #426c56; outline-offset:3px; }
+.textbook-link-copy { display:grid; min-width:0; gap:4px; }
+.textbook-link strong { font-size:11px; font-weight:600; line-height:1.7; overflow-wrap:anywhere; }
+.textbook-link small { color:var(--study-muted); font-size:9px; }
+.textbook-pdf { display:inline-flex; align-items:center; gap:7px; flex:none; padding:5px 6px; border-radius:5px; background:#e7efe8; color:#355e49; font-size:9px; font-weight:700; direction:ltr; }
+.textbook-pdf>span { font-size:12px; }
+.textbook-unavailable { margin:0; color:var(--study-muted); font-size:10px; line-height:1.7; }
+.textbook-empty { padding:22px; border:1px dashed var(--study-line); border-radius:9px; color:var(--study-muted); font-size:12px; line-height:1.7; text-align:center; }
+.page-shell.dark-mode .textbook-pdf { background:#26392c; color:#c5ddca; }
+@media(max-width:700px) { .textbook-subject-grid { grid-template-columns:1fr; } }
 .study-subject-card { display:flex; min-width:0; min-height:78px; align-items:center; gap:11px; padding:12px; border:1px solid var(--study-line); border-radius:10px; background:var(--study-paper); transition:border-color .15s,transform .15s; }
 .study-subject-card:hover { transform:translateY(-1px); border-color:#bac9bd; }
 .subject-icon { display:grid; width:38px; height:38px; flex:none; place-items:center; border-radius:10px; background:#eef3ee; color:#355e49; font-size:17px; font-weight:650; }
@@ -318,3 +339,7 @@ body { margin:0; min-width:320px; background:#f7f8fa; }
 
 /* Navigation remains crawlable while keeping the existing control styling. */
 .study-nav a,.math-track-switch a{display:inline-flex;align-items:center;text-decoration:none}.study-home-card,.physics-unit-card{text-decoration:none}
+
+.study-textbook-title { color:inherit; text-decoration:none; }
+.study-textbook-title:hover { text-decoration:underline; }
+.study-textbook-title:focus-visible { outline:2px solid #426c56; outline-offset:3px; }
