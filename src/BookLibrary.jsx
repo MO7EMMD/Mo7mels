@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import textbooks from './textbooks.json'
 
-const MINISTRY_LIBRARY = 'https://home.moe.gov.om/ar/manaheg/16'
-const SUBJECT_CHOICES = 'https://home.moe.gov.om/ar/topics/1/show/13053'
-
 function BookLibrary({ subjects, language, hidden }) {
   const [search, setSearch] = useState('')
   const ar = language === 'ar'
@@ -25,7 +22,7 @@ function BookLibrary({ subjects, language, hidden }) {
 
   return <section className="study-panel textbook-library" hidden={hidden}>
     <div className="study-section-heading"><div><span>{ar ? 'مكتبة المنهج' : 'CURRICULUM LIBRARY'}</span><h2>{ar ? 'كتب الطالب والنشاط' : 'Student and activity books'}</h2></div></div>
-    <p className="study-help">{ar ? 'اختر كتاب الطالب أو النشاط لفتح ملف PDF مباشرة من مكتبة الوزارة. راجع الفصل الدراسي واسم الكتاب قبل الفتح.' : 'Choose a student or activity book to open its PDF directly from the Ministry library. Check the semester and book title before opening.'}</p>
+    <p className="study-help">{ar ? 'اختر كتاب الطالب أو النشاط لفتح ملف PDF مباشرة. راجع الفصل الدراسي واسم الكتاب قبل الفتح.' : 'Choose a student or activity book to open its PDF directly. Check the semester and book title before opening.'}</p>
     <label className="study-search"><span aria-hidden="true">⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} aria-label={ar ? 'البحث عن مادة أو كتاب' : 'Search subjects or books'} placeholder={ar ? 'ابحث عن مادة أو كتاب...' : 'Search subjects or books...'} /></label>
     <div className="textbook-subject-grid">
       {visibleSubjects.map((subject) => {
@@ -37,7 +34,7 @@ function BookLibrary({ subjects, language, hidden }) {
             const matchingBooks = books.filter((book) => book.kind === group.kind)
             return <section className="textbook-kind" key={group.kind} aria-label={`${ar ? group.ar : group.en} · ${ar ? subject.ar : subject.en}`}>
               <h4>{ar ? group.ar : group.en}</h4>
-              {matchingBooks.length ? <div className="textbook-links">{matchingBooks.map((book) => bookLink(book, subject))}</div> : <p className="textbook-unavailable">{ar ? `لا يوجد ملف منفصل منشور ل${group.ar} في صفحة المادة لدى الوزارة.` : `No separate ${group.en.toLowerCase()} PDF is listed on the Ministry subject page.`}</p>}
+              {matchingBooks.length ? <div className="textbook-links">{matchingBooks.map((book) => bookLink(book, subject))}</div> : <p className="textbook-unavailable">{ar ? `لا يتوفر ملف منفصل ل${group.ar} في الفهرس الحالي.` : `No separate ${group.en.toLowerCase()} PDF is available in the current catalog.`}</p>}
             </section>
           })}
           {otherBooks.length > 0 && <section className="textbook-kind"><h4>{ar ? 'كتب إضافية' : 'Additional books'}</h4><div className="textbook-links">{otherBooks.map((book) => bookLink(book, subject))}</div></section>}
@@ -45,7 +42,7 @@ function BookLibrary({ subjects, language, hidden }) {
       })}
     </div>
     {visibleSubjects.length === 0 && <p className="textbook-empty" role="status">{ar ? 'لا توجد كتب مطابقة. جرّب اسم مادة أو كتاب آخر.' : 'No matching books. Try a different subject or book title.'}</p>}
-    <p className="study-source-note">{ar ? 'المصدر: مكتبة المناهج الرسمية لوزارة التعليم في سلطنة عُمان.' : 'Source: the official Ministry of Education curriculum library for Oman.'} <a href={MINISTRY_LIBRARY} target="_blank" rel="noopener noreferrer">{ar ? 'عرض المكتبة الرسمية' : 'Open official library'}</a> · <a href={SUBJECT_CHOICES} target="_blank" rel="noopener noreferrer">{ar ? 'ضوابط اختيار المواد' : 'Subject selection guidance'}</a></p>
+    <p className="study-source-note">mo7mels · {ar ? 'مكتبة الصف الثاني عشر' : 'Grade 12 library'}</p>
   </section>
 }
 

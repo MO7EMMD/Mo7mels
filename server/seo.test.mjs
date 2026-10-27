@@ -1,4 +1,5 @@
 import test from 'node:test'
+import { worksheetFiles } from '../src/worksheets.js'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { PUBLIC_PAGES, getPageMetadata, renderSeoHtml, buildSitemapXml, buildRobotsTxt } from './seo.js'

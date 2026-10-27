@@ -1,0 +1,39 @@
+name: Collect Grade 12 exam papers
+
+on:
+  schedule:
+    # 06:17 Asia/Dubai (UTC+4). GitHub may delay scheduled runs.
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-papers
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Discover and verify public Grade 12 PDF papers
+        run: node scripts/update-daily-papers.mjs
+      - name: Refresh page index and validate publication
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; import {buildSitemapXml} from "./server/seo.js"; fs.writeFileSync("public/sitemap.xml",buildSitemapXml());'
+          node --test server/seo.test.mjs
+      - name: Publish verified additions
+        run: |
+          if ! git diff --quiet -- src/daily-papers.json; then
+            git config user.name 'mo7mels papers bot'
+            git config user.email 'papers-bot@users.noreply.github.com'
+            git add src/daily-papers.json public/sitemap.xml
+            git commit -m 'Update verified Grade 12 exam papers'
+            git push
+          fi

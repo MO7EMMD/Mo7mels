@@ -1749,6 +1749,7 @@ function App() {
       </header>
 
       <main className="study-main" id="study-home">
+        {studyTab === 'worksheets' && <StudyPages page={studyTab} path={currentPath} language={language} navigateTo={(path) => { setStudyTab(getStudyTabForPath(path)); navigateTo(path) }} />}
         <section className="study-welcome" hidden={studyTab !== 'home'}>
           <div><span className="study-overline">{language === 'ar' ? 'سلطنة عُمان · الصف الثاني عشر' : 'SULTANATE OF OMAN · GRADE 12'}</span>
             <h1>{language === 'ar' ? 'خطوتك القادمة، تبدأ من هنا.' : 'Your next step starts here.'}</h1>
@@ -1820,7 +1821,7 @@ function App() {
           <p className="study-help board-hint">{language === 'ar' ? 'استخدم القلم أو القلم العريض أو الممحاة. تعمل السبورة باللمس والماوس.' : 'Use the pen, marker, or eraser. The board supports touch and mouse.'}</p>
         </section>
 
-        <StudyPages page={studyTab} path={currentPath} language={language} navigateTo={(path) => { setStudyTab(getStudyTabForPath(path)); navigateTo(path) }} />
+        {studyTab !== 'worksheets' && <StudyPages page={studyTab} path={currentPath} language={language} navigateTo={(path) => { setStudyTab(getStudyTabForPath(path)); navigateTo(path) }} />}
       </main>
       <footer className="study-footer"><span>© {new Date().getFullYear()} {language === 'ar' ? 'مساحة الصف الثاني عشر' : 'Grade 12 Study Space'}</span><nav aria-label={language === 'ar' ? 'روابط الموقع' : 'Site pages'}>{STUDY_TABS.map((tab) => <a key={tab} href={STUDY_PAGE_PATHS[tab]} onClick={(event) => followStudyLink(event, STUDY_PAGE_PATHS[tab], tab)}>{STUDY_TAB_LABELS[tab][language]}</a>)}<a href="/project">{language === 'ar' ? 'مشروع' : 'مشروع · Projects'}</a><a href="/portfolio/">{language === 'ar' ? 'أعمال mo7mels' : 'mo7mels portfolio'}</a></nav><a href="https://t.me/Nozvxa" target="_blank" rel="noreferrer">@Nozvxa ↗</a></footer>
     </div>

@@ -150,3 +150,14 @@ To make verification codes arrive by email in production:
 Fallback behavior:
 
 - If delivery fails, the API now returns a temporary `debugOtp` so signup can continue while provider setup is completed.
+
+
+## Grade 12 papers and daily collector
+
+Textbooks open as direct PDFs. Worksheets and tests open their verified PDF/viewer directly in a new browser tab; the study pages contain no embedded PDF viewer. The Physics section includes nine units, original explained practice, and calculated circuit, wave, and orbit models.
+
+The daily-papers workflow is scheduled for 02:17 UTC (06:17 Asia/Dubai) and can also be run from GitHub Actions. It needs no paid hosting plan or third-party API key. It checks the configured Grade 12 Oman sources, verifies actual public PDF content/viewers, and commits only verified new catalog entries and the sitemap. Render then deploys the updated main branch. Scheduled runs can be delayed by GitHub; public-repository schedules may be disabled after prolonged repository inactivity.
+
+Run locally with node scripts/update-daily-papers.mjs. The collector adds at most 10 files per Dubai calendar day, keeps existing records on source failures, and currently caps the catalog at 5,000 records. Paper provenance remains stored in the catalog; file authorship and PDF content are unchanged. Large or unrenderable files are skipped and can be discovered on a later run.
+
+To pause automatic collection, disable the Collect Grade 12 exam papers workflow in GitHub Actions.

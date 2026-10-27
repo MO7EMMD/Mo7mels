@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { WorksheetCards, WorksheetLibrary } from './WorksheetPages.jsx'
+import { worksheetFiles } from './worksheets.js'
+const PhysicsLab = lazy(() => import('./PhysicsLab.jsx'))
+const PhysicsPractice = lazy(() => import('./PhysicsPractice.jsx'))
 import textbooks from './textbooks.json'
 
-const MOE_GRADE_12 = 'https://home.moe.gov.om/ar/manaheg/16'
 const MOE_MATH_OUTCOMES = 'https://home.moe.gov.om/images/library/file/Book748807.pdf'
 const MOE_MATH_ASSESSMENT = 'https://home.moe.gov.om/images/library/file/Book743402.pdf'
 const MOE_PHYSICS_ASSESSMENT = 'https://home.moe.gov.om/images/library/file/Book281240.pdf'
-const MOE_EXAMS = 'https://home.moe.gov.om/ar/zawity/index.moe'
-const AFEDNI_PHYSICS_FINAL = 'https://afidni.com/امتحان-وإجابة-الفيزياء-الدبلوم-العام/'
-const AFEDNI_NUCLEAR = 'https://afidni.com/كبسولة-إثرائية-وحدة-الفيزياء-النووية/'
-const AFEDNI_ADVANCED_MATH = 'https://afidni.com/category/oman/12/الفصل-الأول-ص12/الرياضيات-المتقدمة-ص12-ف1/'
-const AFEDNI_MATH_ADV_ARCHIVE = 'https://afidni.com/?p=64217'
-const AFEDNI_MATH_BASIC_ARCHIVE = 'https://afidni.com/?p=64224'
-const PHET_PHYSICS = 'https://phet.colorado.edu/en/simulations/filter?subjects=physics'
 
 const physicsUnits = [
   { id: 'gravitational-fields', number: 1, semester: 1, ar: 'مجالات الجاذبية', en: 'Gravitational fields', introAr: 'افهم كيف تصف شدة المجال والجهد حركة الأجسام في مجال الجاذبية، من السقوط إلى المدارات.', introEn: 'Use field strength and potential to describe motion in a gravitational field, from falling bodies to orbits.', lawAr: ['شدة المجال: g = F / m', 'قانون نيوتن: F = GMm / r²', 'شدة المجال حول كتلة: g = GM / r²', 'جهد الجاذبية: φ = −GM / r', 'سرعة المدار الدائري: v = √(GM / r)'], lawEn: ['Field strength: g = F / m', 'Newton’s law: F = GMm / r²', 'Field around a mass: g = GM / r²', 'Gravitational potential: φ = −GM / r', 'Circular orbital speed: v = √(GM / r)'], lessonAr: 'ابدأ برسم خطوط المجال واتجاهها نحو الكتلة. اربط المجال بالقوة لكل كيلوغرام، ثم استخدم الجهد وطاقة الوضع عند مقارنة مواضع مختلفة. في مسائل المدارات، اجعل قوة الجاذبية مساوية للقوة المركزية.', lessonEn: 'Start by sketching field lines toward the mass. Relate field strength to force per kilogram, then compare potential and potential energy at different positions. For orbital motion, equate gravity with the centripetal force.', practiceAr: 'عند بُعد 7.0×10⁶ m من مركز الأرض، احسب شدة مجال الجاذبية باستخدام كتلة الأرض 5.97×10²⁴ kg.', practiceEn: 'At a distance of 7.0×10⁶ m from Earth’s centre, calculate field strength using Earth’s mass 5.97×10²⁴ kg.', simulation: { ar: 'الجاذبية والمدارات', en: 'Gravity and Orbits', url: 'https://phet.colorado.edu/en/simulations/gravity-and-orbits' } },
@@ -22,12 +18,12 @@ const physicsUnits = [
   { id: 'waves', number: 6, semester: 2, ar: 'الموجات والصوت', en: 'Waves and sound', introAr: 'تعلّم وصف الموجات وانتقال الطاقة وسرعة الموجة وتأثير دوبلر للصوت.', introEn: 'Describe waves, energy transfer, wave speed, and the Doppler effect for sound.', lawAr: ['سرعة الموجة: v = fλ', 'التردد: f = 1 / T', 'تغيّر الطول الموجي مع المصدر المتحرك يفسّر انزياح دوبلر', 'شدة الموجة تتناسب مع مربع السعة (في الوسط نفسه)'], lawEn: ['Wave speed: v = fλ', 'Frequency: f = 1 / T', 'A moving source changes observed wavelength (Doppler shift)', 'Wave intensity is proportional to amplitude squared (in the same medium)'], lessonAr: 'ميّز بين انتقال الموجة وانتقال جسيمات الوسط: تنتقل الطاقة بينما تهتز الجسيمات حول مواضع اتزانها. اقسُم المسافة على الزمن لإيجاد السرعة أو استخدم v=fλ.', lessonEn: 'Separate wave travel from particle travel: energy moves through the medium while particles oscillate about equilibrium. Use distance over time or v=fλ to find speed.', practiceAr: 'موجة صوت ترددها 440 Hz وطولها الموجي 0.75 m. احسب سرعتها.', practiceEn: 'A sound wave has frequency 440 Hz and wavelength 0.75 m. Calculate its speed.', simulation: { ar: 'موجة على وتر', en: 'Wave on a String', url: 'https://phet.colorado.edu/en/simulations/wave-on-a-string' } },
   { id: 'superposition', number: 7, semester: 2, ar: 'تراكب الموجات', en: 'Superposition of waves', introAr: 'استكشف التداخل والحيود وتجربة الشقين والموجات المستقرة.', introEn: 'Explore interference, diffraction, the double-slit experiment, and standing waves.', lawAr: ['مبدأ التراكب: الإزاحة المحصلة = مجموع الإزاحات', 'شرط التداخل البنّاء: فرق المسار = nλ', 'شرط التداخل الهدّام: فرق المسار = (n + ½)λ', 'الموجة المستقرة: المسافة بين عقدتين متتاليتين = λ / 2'], lawEn: ['Superposition: resultant displacement = sum of displacements', 'Constructive interference: path difference = nλ', 'Destructive interference: path difference = (n + ½)λ', 'Standing wave: adjacent nodes are λ / 2 apart'], lessonAr: 'ارسم الموجتين منفصلتين ثم اجمع الإزاحتين عند كل نقطة. فرق المسار يحدد إن كان التداخل بنّاءً أم هدّاماً. في الموجة المستقرة، تبقى العقد ساكنة والبطون تهتز بأكبر سعة.', lessonEn: 'Sketch the waves separately, then add their displacements point by point. Path difference tells you whether interference is constructive or destructive. Nodes remain still while antinodes oscillate with maximum amplitude.', practiceAr: 'الطول الموجي 0.60 m وفرق المسار 0.90 m. هل ينتج تداخل بنّاء أم هدّام؟ وضّح السبب.', practiceEn: 'The wavelength is 0.60 m and path difference is 0.90 m. Is interference constructive or destructive? Explain.', simulation: { ar: 'تداخل الموجات', en: 'Wave Interference', url: 'https://phet.colorado.edu/en/simulations/wave-interference' } },
   { id: 'quantum-physics', number: 8, semester: 2, ar: 'فيزياء الكم', en: 'Quantum physics', introAr: 'افهم النموذجين الموجي والجسيمي، والتأثير الكهروضوئي، والفوتونات والأطياف.', introEn: 'Study wave and particle models, the photoelectric effect, photons, and line spectra.', lawAr: ['طاقة الفوتون: E = hf', 'معادلة أينشتاين الكهروضوئية: Kₘₐₓ = hf − φ', 'طول موجة دي برولي: λ = h / p', 'طاقة الانتقال الذري: ΔE = hf'], lawEn: ['Photon energy: E = hf', 'Einstein photoelectric equation: Kₘₐₓ = hf − φ', 'de Broglie wavelength: λ = h / p', 'Atomic transition energy: ΔE = hf'], lessonAr: 'في التأثير الكهروضوئي يحدد التردد طاقة الفوتون، بينما تؤثر شدة الضوء في عدد الفوتونات. لا يحدث انبعاث إلكترونات إذا كان التردد دون تردد العتبة.', lessonEn: 'In the photoelectric effect, frequency sets each photon’s energy while intensity changes the number of photons. No electrons are emitted below the threshold frequency.', practiceAr: 'ضوء تردده 8.0×10¹⁴ Hz يسقط على فلز دالة شغله 2.0 eV. احسب أقصى طاقة حركة للإلكترون باستخدام h = 4.14×10⁻¹⁵ eV·s.', practiceEn: 'Light at 8.0×10¹⁴ Hz hits a metal with work function 2.0 eV. Find maximum electron kinetic energy using h = 4.14×10⁻¹⁵ eV·s.', simulation: { ar: 'التأثير الكهروضوئي', en: 'Photoelectric Effect', url: 'https://phet.colorado.edu/en/simulations/photoelectric' } },
-  { id: 'nuclear-physics', number: 9, semester: 2, ar: 'الفيزياء النووية', en: 'Nuclear physics', introAr: 'ادرس المعادلات النووية وطاقة الربط والعشوائية الإشعاعية والانحلال وعمر النصف.', introEn: 'Study nuclear equations, binding energy, radioactive randomness, decay, and half-life.', lawAr: ['تكافؤ الكتلة والطاقة: E = mc²', 'النقص في الكتلة: Δm = مجموع كتل النيوكليونات − كتلة النواة', 'الانحلال: N = N₀e^(−λt)', 'عمر النصف: t½ = ln(2) / λ', 'النشاط الإشعاعي: A = λN'], lawEn: ['Mass–energy equivalence: E = mc²', 'Mass defect: Δm = sum of nucleon masses − nucleus mass', 'Decay: N = N₀e^(−λt)', 'Half-life: t½ = ln(2) / λ', 'Activity: A = λN'], lessonAr: 'وازِن العدد الكتلي والعدد الذري في المعادلة النووية. استخدم منحنى الانحلال أو العلاقة الأسية لحساب النوى المتبقية، وتذكّر أن نصف العمر ثابت للعينة ولا يعتمد على حجمها.', lessonEn: 'Conserve nucleon number and proton number in nuclear equations. Use a decay graph or the exponential model to calculate remaining nuclei. Half-life is characteristic of the isotope and does not depend on sample size.', practiceAr: 'عمر النصف لنظير مشع 6 ساعات، وكانت العينة 8000 نواة. كم نواة تبقى بعد 18 ساعة؟', practiceEn: 'A radioactive isotope has a 6-hour half-life and starts with 8000 nuclei. How many remain after 18 hours?', simulation: { ar: 'محاكاة الانحلال الإشعاعي', en: 'Radioactive decay activity', url: 'https://phet.colorado.edu/en/simulations/filter?subjects=physics' }, afedni: AFEDNI_NUCLEAR },
+  { id: 'nuclear-physics', number: 9, semester: 2, ar: 'الفيزياء النووية', en: 'Nuclear physics', introAr: 'ادرس المعادلات النووية وطاقة الربط والعشوائية الإشعاعية والانحلال وعمر النصف.', introEn: 'Study nuclear equations, binding energy, radioactive randomness, decay, and half-life.', lawAr: ['تكافؤ الكتلة والطاقة: E = mc²', 'النقص في الكتلة: Δm = مجموع كتل النيوكليونات − كتلة النواة', 'الانحلال: N = N₀e^(−λt)', 'عمر النصف: t½ = ln(2) / λ', 'النشاط الإشعاعي: A = λN'], lawEn: ['Mass–energy equivalence: E = mc²', 'Mass defect: Δm = sum of nucleon masses − nucleus mass', 'Decay: N = N₀e^(−λt)', 'Half-life: t½ = ln(2) / λ', 'Activity: A = λN'], lessonAr: 'وازِن العدد الكتلي والعدد الذري في المعادلة النووية. استخدم منحنى الانحلال أو العلاقة الأسية لحساب النوى المتبقية، وتذكّر أن نصف العمر ثابت للعينة ولا يعتمد على حجمها.', lessonEn: 'Conserve nucleon number and proton number in nuclear equations. Use a decay graph or the exponential model to calculate remaining nuclei. Half-life is characteristic of the isotope and does not depend on sample size.', practiceAr: 'عمر النصف لنظير مشع 6 ساعات، وكانت العينة 8000 نواة. كم نواة تبقى بعد 18 ساعة؟', practiceEn: 'A radioactive isotope has a 6-hour half-life and starts with 8000 nuclei. How many remain after 18 hours?', simulation: { ar: 'محاكاة الانحلال الإشعاعي', en: 'Radioactive decay activity', url: 'https://phet.colorado.edu/en/simulations/filter?subjects=physics' } },
 ]
 
 const mathTracks = {
   advanced: {
-    ar: 'الرياضيات المتقدمة', en: 'Advanced Mathematics', afedni: AFEDNI_MATH_ADV_ARCHIVE,
+    ar: 'الرياضيات المتقدمة', en: 'Advanced Mathematics',
     units: [
       { semester: 1, ar: 'اللوغاريتمات والدوال الأسية', en: 'Logarithms and exponential functions', law: 'logₐ(xy)=logₐx+logₐy · eˣ و ln x دالتان عكسيتان', lawEn: 'logₐ(xy)=logₐx+logₐy · eˣ and ln x are inverse functions', practiceAr: 'حل المعادلة 2ˣ = 8، ثم اكتب الحل باستخدام اللوغاريتمات.', practiceEn: 'Solve 2ˣ = 8, then express the solution using logarithms.' },
       { semester: 1, ar: 'حساب المثلثات', en: 'Trigonometry', law: 'sin(A±B), cos(A±B), tan(A±B) · sin 2A · cos 2A', lawEn: 'sin(A±B), cos(A±B), tan(A±B) · sin 2A · cos 2A', practiceAr: 'استخدم صيغة جمع الزاويتين لإيجاد القيمة الدقيقة لـ sin 75°.', practiceEn: 'Use a compound-angle identity to find the exact value of sin 75°.' },
@@ -40,7 +36,7 @@ const mathTracks = {
     ],
   },
   basic: {
-    ar: 'الرياضيات الأساسية', en: 'Basic Mathematics', afedni: AFEDNI_MATH_BASIC_ARCHIVE,
+    ar: 'الرياضيات الأساسية', en: 'Basic Mathematics',
     units: [
       { semester: 1, ar: 'الطرق الجبرية', en: 'Algebraic methods', law: 'نظرية العامل: إذا كان f(a)=0 فإن (x−a) عامل', lawEn: 'Factor theorem: if f(a)=0, then (x−a) is a factor', practiceAr: 'تحقق من أن (x−2) عامل لـ x³−3x²−4x+12، ثم حلّل المقدار.', practiceEn: 'Show that (x−2) is a factor of x³−3x²−4x+12, then factorise it.' },
       { semester: 1, ar: 'الأسس واللوغاريتمات', en: 'Exponentials and logarithms', law: 'logₐ(xy)=logₐx+logₐy · logₐx=ln x/ln a', lawEn: 'logₐ(xy)=logₐx+logₐy · logₐx=ln x/ln a', practiceAr: 'حل 3ˣ=81، ثم أوجد log₃ 81.', practiceEn: 'Solve 3ˣ=81, then evaluate log₃ 81.' },
@@ -54,151 +50,49 @@ const mathTracks = {
   },
 }
 
-function LocalResourceViewer({ resource, language, onClose }) {
-  if (!resource) return null
+function TextbookLinks({ subjectId, language }) {
   const ar = language === 'ar'
-  return <section className="study-panel resource-viewer" aria-label={ar ? 'عارض المصادر' : 'Resource viewer'}>
-    <div className="study-section-heading"><div><span>{ar ? 'عارض داخل الموقع' : 'IN-SITE VIEWER'}</span><h2>{resource.title}</h2></div><button type="button" className="resource-close" onClick={onClose}>{ar ? 'إغلاق' : 'Close'} ×</button></div>
-    <p className="study-help">{ar ? 'يُعرض المصدر الأصلي هنا إذا كان يسمح بالتضمين. بعض المنصات تمنع العرض داخل إطار؛ عندها استخدم زر فتح المصدر.' : 'The original source appears here when embedding is allowed. Some platforms block frames; use Open source in that case.'}</p>
-    <div className="resource-frame-wrap"><iframe src={resource.url} title={resource.title} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /></div>
-    <a className="resource-original-link" href={resource.url} target="_blank" rel="noreferrer">{ar ? 'فتح المصدر الأصلي في نافذة جديدة' : 'Open original source in a new tab'} ↗</a>
-  </section>
+  return <div className="study-resource-grid">{textbooks.filter((book) => book.subjectId === subjectId).map((book) => <a key={book.id} className="textbook-link" href={book.url} target="_blank" rel="noopener noreferrer"><span className="textbook-link-copy"><strong>{ar ? book.titleAr : book.titleEn}</strong><small>{ar ? `${book.kind === 'activity' ? 'كتاب النشاط' : 'كتاب الطالب'} · الفصل ${book.term === '1' ? 'الأول' : 'الثاني'}` : `${book.kind === 'activity' ? 'Activity book' : 'Student book'} · Semester ${book.term}`}</small></span><span className="textbook-pdf">PDF ↗</span></a>)}</div>
 }
 
-function ResourceCard({ item, language, onPreview }) {
+function DocumentLinks({ language, physics = false }) {
   const ar = language === 'ar'
-  return <article className="study-resource-card">
-    <div className="study-resource-icon" aria-hidden="true">{item.icon || '↗'}</div>
-    <div className="study-resource-copy">{item.directPdf ? <a className="study-textbook-title" href={item.url} target="_blank" rel="noopener noreferrer"><strong>{ar ? item.ar : item.en}</strong></a> : <strong>{ar ? item.ar : item.en}</strong>}<small>{ar ? item.noteAr : item.noteEn}</small><span>{item.badge || (ar ? 'مصدر خارجي' : 'External source')}</span></div>
-    <div className="study-resource-actions">{!item.directPdf && <button type="button" onClick={() => onPreview({ title: ar ? item.ar : item.en, url: item.url })}>{ar ? 'معاينة' : 'Preview'}</button>}<a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${ar ? 'فتح' : 'Open'} ${ar ? item.ar : item.en}`}>{item.directPdf ? (ar ? 'فتح PDF ↗' : 'Open PDF ↗') : '↗'}</a></div>
-  </article>
+  const documents = physics ? [{url:MOE_PHYSICS_ASSESSMENT,ar:'دليل التقويم ومواصفات امتحان الفيزياء',en:'Physics assessment and exam specifications'}] : [{url:MOE_MATH_OUTCOMES,ar:'مخرجات تعلّم الرياضيات 2025–2026',en:'Mathematics learning outcomes 2025–2026'},{url:MOE_MATH_ASSESSMENT,ar:'التقويم ومواصفات امتحان الرياضيات',en:'Mathematics assessment and exam specifications'}]
+  return <div className="study-resource-grid">{documents.map((item) => <a className="textbook-link" href={item.url} key={item.url} target="_blank" rel="noopener noreferrer"><span className="textbook-link-copy"><strong>{ar ? item.ar : item.en}</strong><small>Grade 12 · PDF</small></span><span className="textbook-pdf">PDF ↗</span></a>)}</div>
 }
 
 function StudyPages({ page, path, language, navigateTo }) {
   const ar = language === 'ar'
-  const [resource, setResource] = useState(null)
   const [mathTrack, setMathTrack] = useState(path.includes('/basic') ? 'basic' : 'advanced')
-  const [voltage, setVoltage] = useState(12)
-  const [resistance, setResistance] = useState(4)
-  const [frequency, setFrequency] = useState(3)
-  const [amplitude, setAmplitude] = useState(42)
-  const [practiceAnswers, setPracticeAnswers] = useState(() => {
-    if (typeof window === 'undefined') return {}
-    try { return JSON.parse(window.localStorage.getItem('omanGrade12UnitPractice') || '{}') } catch { return {} }
-  })
-  const followSubjectLink = (event, nextPath) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    event.preventDefault()
-    if (nextPath.startsWith('/mathematics/')) setMathTrack(nextPath.endsWith('/basic') ? 'basic' : 'advanced')
-    navigateTo(nextPath)
-  }
-  const unit = physicsUnits.find((entry) => path.endsWith(`/${entry.id}`))
-  const mathUnitResources = mathTracks[mathTrack].units.map((entry) => ({
-    ...entry,
-    worksheetUrl: `https://afidni.com/?s=${encodeURIComponent(`${entry.ar} ${mathTracks[mathTrack].ar} الصف الثاني عشر`)}`,
-  }))
-  const savePracticeAnswer = (key, value) => {
-    const next = { ...practiceAnswers, [key]: value }
-    setPracticeAnswers(next)
-    window.localStorage.setItem('omanGrade12UnitPractice', JSON.stringify(next))
-  }
-
-  useEffect(() => { setResource(null) }, [page, path])
-
-  if (page === 'physics' || page === 'math' || page === 'exams' || page === 'worksheets') {
-    const isPhysics = page === 'physics'
-    const isMath = page === 'math'
-    const isExams = page === 'exams'
-    const isWorksheetLibrary = page === 'worksheets'
-    const openResource = (title, url) => setResource({ title, url })
-
-    const textbookResources = (subjectId) => textbooks.filter((book) => book.subjectId === subjectId).map((book) => ({
-      ar: `${book.titleAr} · الفصل ${book.term === '1' ? 'الأول' : 'الثاني'}`,
-      en: `${book.titleEn} · Semester ${book.term}`,
-      url: book.url,
-      noteAr: book.kind === 'activity' ? 'كتاب النشاط · ملف PDF مباشر من الوزارة.' : 'كتاب الطالب · ملف PDF مباشر من الوزارة.',
-      noteEn: book.kind === 'activity' ? 'Activity book · direct Ministry PDF.' : 'Student book · direct Ministry PDF.',
-      badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤', directPdf: true,
-    }))
-    const physicsStudentBook = textbooks.find((book) => book.subjectId === 'physics' && book.kind === 'student' && book.term === String(unit?.semester || 1))
-    const physicsResources = [
-      ...textbookResources('physics'),
-      { ar: 'ملفات الفيزياء · الفصل الأول', en: 'Physics files · Semester 1', url: 'https://almanahj.com/om/12physics1', noteAr: 'أوراق عمل وملخصات ومراجعات بحسب الوحدة.', noteEn: 'Worksheets, summaries, and revision grouped by unit.', badge: 'AlManahj', icon: '✎' },
-      { ar: 'ملفات الفيزياء · الفصل الثاني', en: 'Physics files · Semester 2', url: 'https://almanahj.com/om/12physics2', noteAr: 'مصادر الوحدات 6–9 والموجات والفيزياء الحديثة.', noteEn: 'Resources for units 6–9, waves, and modern physics.', badge: 'AlManahj', icon: '✎' },
-      { ar: 'أفدني · امتحان الفيزياء مع الإجابة', en: 'Afedni · Physics exam with answers', url: AFEDNI_PHYSICS_FINAL, noteAr: 'اختبار نهاية الفصل الأول 2025–2026 وإجاباته.', noteEn: 'Semester 1 final exam 2025–2026 and answer key.', badge: 'Afedni', icon: '✓' },
-      { ar: 'أفدني · إثراء الفيزياء النووية', en: 'Afedni · Nuclear physics enrichment', url: AFEDNI_NUCLEAR, noteAr: 'أسئلة إثرائية للوحدة التاسعة مع نموذج إجابة.', noteEn: 'Unit 9 enrichment questions with an answer key.', badge: 'Afedni', icon: '⚛' },
-      { ar: 'ملفات الفيزياء · الصف الثاني عشر', en: 'Physics files · Grade 12', url: 'https://kwedufiles.com/om/12physics', noteAr: 'مكتبة ملفات ومراجعات من مصادر تعليمية متعددة.', noteEn: 'A multi-source library of study files and revision sheets.', badge: 'KweduFiles', icon: '▦' },
-      { ar: 'تجارب ومحاكاة تفاعلية', en: 'Interactive physics simulations', url: PHET_PHYSICS, noteAr: 'محاكاة في الكهرباء والمغناطيسية والموجات والذرة.', noteEn: 'Simulations for electricity, magnetism, waves, and atoms.', badge: 'PhET · University of Colorado', icon: '◎' },
-    ]
-    const mathResources = [
-      { ar: 'مخرجات التعلم الرسمية للرياضيات 2025–2026', en: 'Official Mathematics learning outcomes 2025–2026', url: MOE_MATH_OUTCOMES, noteAr: 'مخرجات الصف 12 للرياضيات المتقدمة والأساسية للفصلين.', noteEn: 'Grade 12 outcomes for Advanced and Basic Mathematics across both semesters.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤' },
-      { ar: 'وثيقة تقويم الرياضيات ومواصفات الامتحان', en: 'Mathematics assessment and exam specifications', url: MOE_MATH_ASSESSMENT, noteAr: 'وثيقة الوزارة للمواصفات والتقويم؛ راجع أحدث تحديث.', noteEn: 'Ministry assessment guidance; check for the latest revision.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry of Education · PDF', icon: '▤' },
-      ...textbookResources('math'),
-      { ar: 'أفدني · ملفات الرياضيات المتقدمة', en: 'Afedni · Advanced Mathematics files', url: AFEDNI_ADVANCED_MATH, noteAr: 'اختبارات وملخصات وأوراق تدريب للفصل الأول.', noteEn: 'Exams, summaries, and practice sheets for Semester 1.', badge: 'Afedni', icon: '✎' },
-      { ar: 'أفدني · بنك الرياضيات المتقدمة', en: 'Afedni · Advanced Mathematics bank', url: AFEDNI_MATH_ADV_ARCHIVE, noteAr: 'ملفات مجمعة للرياضيات المتقدمة للصف الثاني عشر.', noteEn: 'A collected Grade 12 Advanced Mathematics file bank.', badge: 'Afedni', icon: '▦' },
-      { ar: 'أفدني · بنك الرياضيات الأساسية', en: 'Afedni · Basic Mathematics bank', url: AFEDNI_MATH_BASIC_ARCHIVE, noteAr: 'ملفات مجمعة للرياضيات الأساسية للصف الثاني عشر.', noteEn: 'A collected Grade 12 Basic Mathematics file bank.', badge: 'Afedni', icon: '▦' },
-      { ar: 'امتحانات الوزارة · زاويتي', en: 'Ministry examinations · Zawity', url: MOE_EXAMS, noteAr: 'أرشيف الاختبارات ونماذج الإجابة حسب الصف والمحافظة.', noteEn: 'Past papers and answer keys by grade and governorate.', badge: ar ? 'وزارة التعليم' : 'Ministry of Education', icon: '✓' },
-    ]
-
-    return <>
-      {isPhysics && <section className="study-panel subject-learning-page">
-        <div className="study-section-heading"><div><span>{ar ? 'دليل الفيزياء · الصف الثاني عشر' : 'PHYSICS GUIDE · GRADE 12'}</span><h2>{unit ? `${ar ? `الوحدة ${unit.number}` : `Unit ${unit.number}`} · ${ar ? unit.ar : unit.en}` : (ar ? 'الفيزياء: تعلّم، قوانين، ومحاكاة' : 'Physics: lessons, laws, and simulations')}</h2></div><a href={physicsStudentBook.url} target="_blank" rel="noreferrer">{ar ? 'كتاب الطالب PDF ↗' : 'Student book PDF ↗'}</a></div>
-        <p className="study-help">{unit ? (ar ? unit.introAr : unit.introEn) : (ar ? 'اختر وحدة لفتح درس موجز، ورقة قوانين، وروابط تمارين ومصادر مساعدة. ترتيب الوحدات بحسب كتاب الفيزياء للصف الثاني عشر.' : 'Choose a unit for a short lesson, formula sheet, practice links, and related sources. Units follow the Grade 12 Physics textbook.')}</p>
-        <div className="physics-unit-grid">{physicsUnits.map((entry) => <a key={entry.id} href={`/physics/${entry.id}`} className={`physics-unit-card${unit?.id === entry.id ? ' active' : ''}`} onClick={(event) => followSubjectLink(event, `/physics/${entry.id}`)}><span>{String(entry.number).padStart(2, '0')}</span><strong>{ar ? entry.ar : entry.en}</strong><small>{ar ? `الفصل ${entry.semester === 1 ? 'الأول' : 'الثاني'}` : `Semester ${entry.semester}`}</small><b>↗</b></a>)}</div>
-        {unit && <div className="physics-unit-content">
-          <div className="lesson-card"><span>{ar ? 'شرح موجز' : 'LESSON NOTES'}</span><p>{ar ? unit.lessonAr : unit.lessonEn}</p></div>
-          <section className="formula-section printable-study-section"><div className="mini-section-heading"><span>{ar ? 'ورقة القوانين والمعادلات' : 'FORMULA SHEET'}</span><button type="button" onClick={() => window.print()}>{ar ? 'طباعة' : 'Print'} ⤓</button></div><div className="formula-grid">{(ar ? unit.lawAr : unit.lawEn).map((formula) => <code key={formula}>{formula}</code>)}</div></section>
-          <details className="unit-practice"><summary>{ar ? 'تدريب سريع لهذه الوحدة' : 'Quick practice for this unit'}</summary><p>{ar ? unit.practiceAr : unit.practiceEn}</p><label>{ar ? 'إجابتك · تُحفظ على هذا الجهاز' : 'Your answer · saved on this device'}<textarea value={practiceAnswers[`physics:${unit.id}`] || ''} onChange={(event) => savePracticeAnswer(`physics:${unit.id}`, event.target.value)} placeholder={ar ? 'اكتب خطوات الحل هنا…' : 'Write your working here…'} /></label></details>
-          <div className="simulation-card"><div><span>{ar ? 'محاكاة تفاعلية' : 'INTERACTIVE SIMULATION'}</span><h3>{ar ? unit.simulation.ar : unit.simulation.en}</h3><p>{ar ? 'شغّل المحاكاة وغيّر المتغيرات، ثم سجّل ما تلاحظه في دفترك.' : 'Open the simulation, adjust its controls, and record your observations.'}</p></div><button type="button" onClick={() => openResource(ar ? unit.simulation.ar : unit.simulation.en, unit.simulation.url)}>{ar ? 'افتح هنا' : 'Open here'} ↗</button></div>
-          <div className="study-resource-grid">{[
-            { ar: `أفدني · أوراق ${unit.ar}`, en: `Afedni · ${unit.en} worksheets`, url: `https://afidni.com/?s=${encodeURIComponent(`${unit.ar} فيزياء الصف الثاني عشر`)}`, noteAr: 'نتائج ملفات وتمارين الوحدة من منصة أفدني.', noteEn: 'Unit-specific files and practice from Afedni search.', badge: 'Afedni', icon: '✎' },
-            { ar: `المناهج · ملفات الفصل ${unit.semester === 1 ? 'الأول' : 'الثاني'}`, en: `AlManahj · Semester ${unit.semester} file bank`, url: `https://almanahj.com/om/12physics${unit.semester}`, noteAr: 'أوراق العمل والملخصات المصنفة حسب الفصل.', noteEn: 'Worksheets and summaries grouped by semester.', badge: 'AlManahj', icon: '▦' },
-          ].map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
-          {unit.afedni && <ResourceCard item={{ ar: 'أفدني · أسئلة الوحدة التاسعة وإجاباتها', en: 'Afedni · Unit 9 questions and answers', url: unit.afedni, noteAr: 'أسئلة إثرائية للفيزياء النووية.', noteEn: 'Nuclear physics enrichment questions.', badge: 'Afedni' }} language={language} onPreview={(item) => setResource(item)} />}
-        </div>}
-        <div className="study-subheading"><div><span>{ar ? 'مكتبة المصادر' : 'RESOURCE LIBRARY'}</span><h3>{ar ? 'أوراق عمل ومراجعات من منصات متعددة' : 'Worksheets and revision from multiple platforms'}</h3></div></div>
-        <div className="study-resource-grid">{physicsResources.map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
-        <p className="study-source-note">{ar ? 'الملفات والاختبارات تبقى مستضافة لدى الجهة الناشرة. قد تمنع بعض المواقع العرض المضمن؛ استخدم رابط المصدر عند الحاجة.' : 'Files and exams remain hosted by their publishers. Some sites block embedded viewing; use the source link if needed.'}</p>
-      </section>}
-
-      {isMath && <section className="study-panel subject-learning-page">
-        <div className="study-section-heading"><div><span>{ar ? 'الرياضيات · الصف الثاني عشر' : 'MATHEMATICS · GRADE 12'}</span><h2>{ar ? 'اختر المسار والوحدة' : 'Choose a track and unit'}</h2></div><a href={MOE_MATH_OUTCOMES} target="_blank" rel="noreferrer">{ar ? 'مخرجات الوزارة ↗' : 'Ministry outcomes ↗'}</a></div>
-        <p className="study-help">{ar ? 'الوحدات أدناه منظمة بحسب وثيقة مخرجات التعلم للعام 2025–2026. افتح ملف كل وحدة من مجموعة أفدني أو راجع المصدر الرسمي.' : 'Units below follow the 2025–2026 learning outcomes document. Open each unit’s worksheet collection from Afedni or consult the official source.'}</p>
-        <div className="math-track-switch"><a href="/mathematics/advanced" className={mathTrack === 'advanced' ? 'active' : ''} onClick={(event) => followSubjectLink(event, '/mathematics/advanced')}>{ar ? 'الرياضيات المتقدمة' : 'Advanced Mathematics'}</a><a href="/mathematics/basic" className={mathTrack === 'basic' ? 'active' : ''} onClick={(event) => followSubjectLink(event, '/mathematics/basic')}>{ar ? 'الرياضيات الأساسية' : 'Basic Mathematics'}</a></div>
-        <div className="math-resource-top"><span>{ar ? `${mathTracks[mathTrack].units.length} وحدات · فصلان دراسيان` : `${mathTracks[mathTrack].units.length} units · two semesters`}</span><a href={mathTracks[mathTrack].afedni} target="_blank" rel="noreferrer">{ar ? 'افتح بنك أفدني ↗' : 'Open Afedni file bank ↗'}</a></div>
-        {[1, 2].map((semester) => <section className="math-semester" key={semester}><h3>{ar ? `الفصل الدراسي ${semester === 1 ? 'الأول' : 'الثاني'}` : `Semester ${semester}`}</h3><div className="math-unit-grid">{mathUnitResources.filter((entry) => entry.semester === semester).map((entry, index) => <article className="math-unit-card" key={entry.en}><div className="math-unit-title"><span>{ar ? `الوحدة ${index + 1}` : `UNIT ${index + 1}`}</span><small>{ar ? `الفصل ${semester}` : `Semester ${semester}`}</small></div><h4>{ar ? entry.ar : entry.en}</h4><code>{ar ? entry.law : entry.lawEn}</code><details className="unit-practice math-unit-practice"><summary>{ar ? 'تدريب سريع' : 'Quick practice'}</summary><p>{ar ? entry.practiceAr : entry.practiceEn}</p><label>{ar ? 'إجابتك · تُحفظ على هذا الجهاز' : 'Your answer · saved on this device'}<textarea value={practiceAnswers[`math:${mathTrack}:${entry.en}`] || ''} onChange={(event) => savePracticeAnswer(`math:${mathTrack}:${entry.en}`, event.target.value)} placeholder={ar ? 'اكتب خطوات الحل هنا…' : 'Write your working here…'} /></label></details><div><button type="button" onClick={() => openResource(`${ar ? 'أفدني · ' : 'Afedni · '}${ar ? entry.ar : entry.en}`, entry.worksheetUrl)}>{ar ? 'ابحث عن أوراق الوحدة' : 'Find unit worksheets'} ↗</button><a href={MOE_MATH_OUTCOMES} target="_blank" rel="noreferrer">{ar ? 'وثيقة الوزارة' : 'Ministry document'} ↗</a></div></article>)}</div></section>)}
-        <div className="official-documents"><h3>{ar ? 'وثائق رسمية' : 'Official documents'}</h3><div className="study-resource-grid">{mathResources.filter((item) => item.url.startsWith('https://home.moe.gov.om/')).map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div></div>
-        <p className="study-source-note">{ar ? 'عناوين الوحدات مرتبة وفق وثيقة الوزارة للعام الدراسي 2025–2026؛ راجع أحدث وثيقة ومحتوى كتابك عند تحديث المنهج.' : 'Unit titles follow the Ministry’s 2025–2026 outcomes document. Check the newest document and your textbook when the syllabus is updated.'}</p>
-      </section>}
-
-      {isExams && <section className="study-panel subject-learning-page">
-        <div className="study-section-heading"><div><span>{ar ? 'مراجعة نهائية' : 'FINAL REVISION'}</span><h2>{ar ? 'الامتحانات النهائية ونماذج الإجابة' : 'Final exams and answer keys'}</h2></div><a href={MOE_EXAMS} target="_blank" rel="noreferrer">{ar ? 'أرشيف زاويتي ↗' : 'Zawity archive ↗'}</a></div>
-        <p className="study-help">{ar ? 'روابط لأرشيف الوزارة واختبارات الفيزياء والرياضيات المنشورة من منصات تعليمية. تحقق من العام الدراسي والفصل قبل البدء.' : 'Links to the Ministry archive and Physics and Mathematics papers published by learning platforms. Check the school year and semester before you begin.'}</p>
-        <div className="exam-resource-grid">{[
-          { ar: 'أرشيف اختبارات الوزارة · زاويتي', en: 'Ministry exam archive · Zawity', url: MOE_EXAMS, noteAr: 'أسئلة امتحانات الصفوف ونماذج الإجابة من الوزارة.', noteEn: 'Ministry exam papers and answer keys by grade.', badge: ar ? 'رسمي' : 'Official', icon: '▤' },
-          { ar: 'أفدني · امتحان الفيزياء وإجابته 2025–2026', en: 'Afedni · Physics exam and answers 2025–2026', url: AFEDNI_PHYSICS_FINAL, noteAr: 'نموذج امتحان نهائي للفصل الأول مع الإجابة.', noteEn: 'Semester 1 final exam paper with answers.', badge: 'Afedni', icon: '⚛' },
-          { ar: 'أفدني · امتحانات الرياضيات المتقدمة', en: 'Afedni · Advanced Mathematics exams', url: AFEDNI_ADVANCED_MATH, noteAr: 'امتحانات وملخصات وتدريبات للصف الثاني عشر.', noteEn: 'Grade 12 exams, summaries, and practice material.', badge: 'Afedni', icon: '∑' },
-          { ar: 'أفدني · بنك الرياضيات الأساسية', en: 'Afedni · Basic Mathematics file bank', url: AFEDNI_MATH_BASIC_ARCHIVE, noteAr: 'ملفات مراجعة وامتحانات للرياضيات الأساسية.', noteEn: 'Revision and exam files for Basic Mathematics.', badge: 'Afedni', icon: '∑' },
-          { ar: 'دليل تقويم العلوم للمدارس الخاصة · الفيزياء', en: 'Private-school Science assessment handbook · Physics', url: MOE_PHYSICS_ASSESSMENT, noteAr: 'يعرض توزيع الدرجات لوحدات الفيزياء للصف 12 في المدارس الخاصة.', noteEn: 'Shows Grade 12 Physics unit weighting for private schools.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry · PDF', icon: '▤' },
-          { ar: 'مواصفات امتحان الرياضيات وتوزيع الوحدات', en: 'Mathematics exam specifications and unit weighting', url: MOE_MATH_ASSESSMENT, noteAr: 'وثيقة الوزارة للمواصفات والتقويم؛ راجع أحدث تحديث.', noteEn: 'Ministry assessment guidance; check for the latest revision.', badge: ar ? 'وزارة التعليم · PDF' : 'Ministry · PDF', icon: '▤' },
-        ].map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
-        <div className="exam-note"><strong>{ar ? 'خطة سريعة للمراجعة' : 'A simple revision plan'}</strong><p>{ar ? 'ابدأ بوثيقة توزيع الدرجات، راجع القوانين لكل وحدة، ثم حل اختباراً كاملاً بزمن محدد وصحح إجاباتك من النموذج.' : 'Start with the unit weighting, review each unit’s laws, then sit a timed paper and check your answers against its key.'}</p></div>
-      </section>}
-
-      {isWorksheetLibrary && <section className="study-panel subject-learning-page worksheet-library-panel">
-        <div className="study-section-heading"><div><span>{ar ? 'مكتبة تدريب' : 'PRACTICE LIBRARY'}</span><h2>{ar ? 'أوراق عمل ومصادر حسب المادة' : 'Worksheets and resources by subject'}</h2></div><a href={MOE_GRADE_12} target="_blank" rel="noreferrer">{ar ? 'كتب الصف الثاني عشر ↗' : 'Grade 12 textbooks ↗'}</a></div>
-        <p className="study-help">{ar ? 'إلى جانب ورقة التدريب القابلة للطباعة أعلاه، اختر مصدراً خارجياً لفتح أوراق العمل والملخصات. الملفات تفتح في العارض عند سماح الموقع بذلك.' : 'Alongside the printable practice sheet above, choose an external source for worksheets and summaries. Files open in the viewer when the publisher allows it.'}</p>
-        <div className="study-resource-grid">{[...physicsResources.filter((item) => !item.directPdf).slice(0, 5), ...mathResources.filter((item) => !item.directPdf).slice(2, 5)].map((item) => <ResourceCard key={item.url} item={item} language={language} onPreview={setResource} />)}</div>
-      </section>}
-      <LocalResourceViewer resource={resource} language={language} onClose={() => setResource(null)} />
-      {(isPhysics || isMath) && <section className="study-panel simulations-lab"><div className="study-section-heading"><div><span>{ar ? 'مختبر مصغر يعمل داخل الموقع' : 'BUILT-IN MINI LAB'}</span><h2>{ar ? 'محاكاة تفاعلية سريعة' : 'Quick interactive simulations'}</h2></div></div>
-        <div className="mini-lab-grid">
-          <article className="mini-lab-card"><div><span>{ar ? 'قانون أوم' : 'OHM’S LAW'}</span><h3>{ar ? 'جرّب دائرة بسيطة' : 'Try a simple circuit'}</h3><p>{ar ? `التيار الناتج: ${(voltage / resistance).toFixed(2)} أمبير` : `Calculated current: ${(voltage / resistance).toFixed(2)} A`}</p></div><label>{ar ? `الجهد ${voltage} V` : `Voltage ${voltage} V`}<input type="range" min="1" max="24" value={voltage} onChange={(event) => setVoltage(Number(event.target.value))} /></label><label>{ar ? `المقاومة ${resistance} Ω` : `Resistance ${resistance} Ω`}<input type="range" min="1" max="24" value={resistance} onChange={(event) => setResistance(Number(event.target.value))} /></label><div className="circuit-visual"><span>＋</span><i /><b>R</b><i /><span>−</span></div></article>
-          <article className="mini-lab-card wave-lab-card"><div><span>{ar ? 'موجة مستعرضة' : 'TRANSVERSE WAVE'}</span><h3>{ar ? 'غيّر السعة والتردد' : 'Change amplitude and frequency'}</h3><p>{ar ? `التردد: ${frequency} Hz · السعة: ${amplitude}%` : `Frequency: ${frequency} Hz · amplitude: ${amplitude}%`}</p></div><svg className="wave-simulation" viewBox="0 0 500 130" role="img" aria-label={ar ? 'رسم توضيحي لموجة متحركة' : 'Animated wave illustration'}><path d={`M-160 65 ${Array.from({ length: 34 }, (_, index) => { const x = -150 + index * 25; const y = 65 - Math.sin((index / 8) * Math.PI * 2) * amplitude * 0.68; return `L${x} ${y.toFixed(1)}` }).join(' ')}`} /><path className="wave-dot" d="M0 65h500" /><animateTransform attributeName="transform" type="translate" from="0 0" to="-200 0" dur={`${Math.max(1, 9 / frequency)}s`} repeatCount="indefinite" /></svg><label>{ar ? `التردد ${frequency} Hz` : `Frequency ${frequency} Hz`}<input type="range" min="1" max="8" value={frequency} onChange={(event) => setFrequency(Number(event.target.value))} /></label><label>{ar ? `السعة ${amplitude}%` : `Amplitude ${amplitude}%`}<input type="range" min="12" max="65" value={amplitude} onChange={(event) => setAmplitude(Number(event.target.value))} /></label></article>
-        </div><p className="study-source-note">{ar ? 'المحاكاة المصغرة للتوضيح التعليمي. افتح محاكاة PhET الكاملة من صفحة الفيزياء لمزيد من التجارب.' : 'These small models are illustrative. Open the full PhET simulations from the Physics page for more experiments.'}</p>
-      </section>}
-    </>
-  }
+  const [practiceAnswers, setPracticeAnswers] = useState(() => {try {return JSON.parse(window.localStorage.getItem('omanGrade12UnitPractice') || '{}')} catch {return {}}})
+  useEffect(() => {if(path.startsWith('/mathematics/')) setMathTrack(path.includes('/basic') ? 'basic' : 'advanced')}, [path])
+  const saveAnswer = (key, value) => {const next={...practiceAnswers,[key]:value};setPracticeAnswers(next);try{window.localStorage.setItem('omanGrade12UnitPractice',JSON.stringify(next))}catch{/* Keep editing when browser storage is unavailable. */}}
+  const follow = (event, target) => {if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();navigateTo(target)}
+  const unit = physicsUnits.find((entry) => path === `/physics/${entry.id}`)
+  const physicsPapers = worksheetFiles.filter((paper) => paper.subjectId === 'physics')
+  const mathPapers = worksheetFiles.filter((paper) => paper.subjectId === 'math' && paper.track === mathTrack)
+  const relevantPhysicsPapers = unit ? (physicsPapers.some((paper) => paper.topic === unit.id) ? physicsPapers.filter((paper) => paper.topic === unit.id) : physicsPapers.filter((paper) => paper.semester === unit.semester)) : physicsPapers
+  if(page === 'physics') return <>
+    <section className="study-panel subject-learning-page">
+      <div className="study-section-heading"><div><span>mo7mels · PHYSICS 12</span><h2>{unit ? `${ar ? `الوحدة ${unit.number}` : `Unit ${unit.number}`} · ${ar ? unit.ar : unit.en}` : (ar ? 'الفيزياء: من القانون إلى التجربة' : 'Physics: from equations to experiments')}</h2></div></div>
+      <p className="study-help">{unit ? (ar ? unit.introAr : unit.introEn) : (ar ? 'تسع وحدات للفصلين، مختبر تفاعلي، أسئلة مع التصحيح، وأوراق مراجعة تفتح في تبويب جديد في المتصفح.' : 'Nine units across both semesters, an interactive lab, explained practice questions, and papers that open in a new browser tab.')}</p>
+      <div className="physics-unit-grid">{physicsUnits.map((entry) => <a key={entry.id} href={`/physics/${entry.id}`} className={`physics-unit-card${unit?.id===entry.id?' active':''}`} onClick={(event) => follow(event,`/physics/${entry.id}`)}><span>{String(entry.number).padStart(2,'0')}</span><strong>{ar?entry.ar:entry.en}</strong><small>{ar?`الفصل ${entry.semester===1?'الأول':'الثاني'}`:`Semester ${entry.semester}`}</small><b>↗</b></a>)}</div>
+      {unit && <div className="physics-unit-content"><div className="lesson-card"><span>{ar?'الفكرة الأساسية':'KEY IDEA'}</span><p>{ar?unit.lessonAr:unit.lessonEn}</p></div><section className="formula-section printable-study-section"><div className="mini-section-heading"><span>{ar?'ورقة القوانين والمعادلات':'FORMULA SHEET'}</span><button type="button" onClick={() => window.print()}>{ar?'طباعة':'Print'} ⤓</button></div><div className="formula-grid">{(ar?unit.lawAr:unit.lawEn).map((formula) => <code key={formula}>{formula}</code>)}</div></section><details className="unit-practice"><summary>{ar?'مسألة تطبيقية':'Worked practice prompt'}</summary><p>{ar?unit.practiceAr:unit.practiceEn}</p><label>{ar?'خطوات الحل · تحفظ على جهازك':'Your working · saved on this device'}<textarea value={practiceAnswers[`physics:${unit.id}`]||''} onChange={(event) => saveAnswer(`physics:${unit.id}`,event.target.value)} /></label></details></div>}
+    </section>
+    <Suspense fallback={<section className="study-panel" role="status">{ar?'جارٍ تجهيز المختبر...':'Preparing the lab...'}</section>}><PhysicsLab language={language} initialTab={unit?.id==='gravitational-fields'?'orbits':['waves','superposition'].includes(unit?.id)?'waves':'circuits'} key={unit?.id||'physics'} /></Suspense>
+    <Suspense fallback={null}><PhysicsPractice language={language} unitId={unit?.id} /></Suspense>
+    <section className="study-panel"><div className="study-section-heading"><div><span>mo7mels · PDF</span><h2>{ar?'أوراق الفيزياء والاختبارات':'Physics worksheets and tests'}</h2></div></div><p className="study-help">{ar?'اضغط الورقة لفتح ملفها فورًا في تبويب جديد في المتصفح.':'Select a paper to open its file immediately in a new browser tab.'}</p><WorksheetCards files={relevantPhysicsPapers} language={language}/></section>
+    <section className="study-panel"><div className="study-section-heading"><div><span>{ar?'الكتب والمراجعة':'BOOKS & REVISION'}</span><h2>{ar?'كتاب الطالب والنشاط · الفيزياء':'Physics student and activity books'}</h2></div></div><TextbookLinks subjectId="physics" language={language}/><DocumentLinks physics language={language}/></section>
+  </>
+  if(page === 'math') return <section className="study-panel subject-learning-page">
+    <div className="study-section-heading"><div><span>mo7mels · MATHEMATICS 12</span><h2>{ar?'اختر المسار والوحدة':'Choose a track and unit'}</h2></div></div>
+    <p className="study-help">{ar?'ملخصات وقوانين وتدريب للمسارين الأساسي والمتقدم، مع كتب الطالب والنشاط وأوراق مراجعة.':'Notes, formulas, and practice for Basic and Advanced Mathematics, with textbooks and revision papers.'}</p>
+    <div className="math-track-switch">{['advanced','basic'].map((track) => <a key={track} href={`/mathematics/${track}`} className={mathTrack===track?'active':''} onClick={(event) => follow(event,`/mathematics/${track}`)}>{ar?mathTracks[track].ar:mathTracks[track].en}</a>)}</div>
+    {[1,2].map((semester) => <section className="math-semester" key={semester}><h3>{ar?`الفصل الدراسي ${semester===1?'الأول':'الثاني'}`:`Semester ${semester}`}</h3><div className="math-unit-grid">{mathTracks[mathTrack].units.filter((entry) => entry.semester===semester).map((entry,index) => <article className="math-unit-card" key={entry.en}><div className="math-unit-title"><span>{ar?`الوحدة ${index+1}`:`UNIT ${index+1}`}</span></div><h4>{ar?entry.ar:entry.en}</h4><code>{ar?entry.law:entry.lawEn}</code><details className="unit-practice math-unit-practice"><summary>{ar?'تدريب سريع':'Quick practice'}</summary><p>{ar?entry.practiceAr:entry.practiceEn}</p><label>{ar?'خطوات الحل · تحفظ على جهازك':'Your working · saved on this device'}<textarea value={practiceAnswers[`math:${mathTrack}:${entry.en}`]||''} onChange={(event) => saveAnswer(`math:${mathTrack}:${entry.en}`,event.target.value)}/></label></details></article>)}</div></section>)}
+    <div className="official-documents"><h3>{ar?'أوراق mo7mels لهذا المسار':'mo7mels papers for this track'}</h3><WorksheetCards files={mathPapers} language={language}/></div>
+    <div className="official-documents"><h3>{ar?'كتب الطالب والنشاط':'Student and activity books'}</h3><TextbookLinks subjectId="math" language={language}/><DocumentLinks language={language}/></div>
+  </section>
+  if(page === 'worksheets' || page === 'exams') return <section className="study-panel worksheet-library-panel"><div className="study-section-heading"><div><span>mo7mels · GRADE 12</span><h2>{ar?(page==='exams'?'الاختبارات النهائية والمراجعات':'مكتبة أوراق العمل'):(page==='exams'?'Final exams and revision':'Worksheet library')}</h2></div></div><p className="study-help">{ar?'اختر الورقة المطلوبة. ستفتح في تبويب جديد في المتصفح مع عرض ملف PDF مباشرة.':'Choose a paper. Its PDF opens in a dedicated new browser tab.'}</p><WorksheetLibrary language={language}/></section>
   return null
 }
 
