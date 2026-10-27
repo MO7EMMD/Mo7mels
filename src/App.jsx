@@ -1763,7 +1763,7 @@ function App() {
             { id: 'library', icon: '▤', ar: 'كتب الصف الثاني عشر', en: 'Grade 12 textbooks', noteAr: 'كتاب الطالب والنشاط بصيغة PDF لكل مادة.', noteEn: 'Direct student and activity book PDFs by subject.' },
             { id: 'physics', icon: '⚛', ar: 'مختبر الفيزياء', en: 'Physics lab', noteAr: 'تسع وحدات، قوانين، مراجعات ومحاكاة.', noteEn: 'Nine units, formulas, revision, and simulations.' },
             { id: 'math', icon: '∑', ar: 'مسارات الرياضيات', en: 'Mathematics tracks', noteAr: 'الرياضيات الأساسية والمتقدمة، وحدة بوحدة.', noteEn: 'Basic and Advanced Mathematics, unit by unit.' },
-            { id: 'worksheets', icon: '✎', ar: 'أوراق العمل', en: 'Worksheets', noteAr: 'تدريبات قابلة للطباعة مع حفظ إجاباتك.', noteEn: 'Printable practice with saved answers.' },
+            { id: 'worksheets', icon: '✎', ar: 'أوراق العمل', en: 'Worksheets', noteAr: 'أوراق واختبارات تفتح في تبويبات جديدة.', noteEn: 'Worksheets and tests in new browser tabs.' },
             { id: 'exams', icon: '✓', ar: 'الامتحانات النهائية', en: 'Final exams', noteAr: 'نماذج وأسئلة وزارية وإجاباتها.', noteEn: 'Ministry papers, sample exams, and answer keys.' },
             { id: 'board', icon: '▱', ar: 'السبورة البيضاء', en: 'Whiteboard', noteAr: 'اكتب وارسم واحفظ ملاحظاتك كصورة.', noteEn: 'Draw, write, and save your notes as an image.' },
             { id: 'resources', icon: '⌘', ar: 'مصادر وزارة التعليم', en: 'Ministry resources', noteAr: 'المنصات والمكتبات والخدمات الرسمية.', noteEn: 'Official platforms, libraries, and services.' },
@@ -1790,22 +1790,6 @@ function App() {
           <p className="study-help">{language === 'ar' ? 'روابط الموقع العامة، الصفحات التعريفية، والأقسام الإخبارية والخدمية.' : 'The Ministry’s general information, news, service, and footer links.'}</p>
           <div className="ministry-link-grid useful-link-grid">{MINISTRY_PORTAL_LINKS.map((item) => <a key={item.href + item.en} href={item.href} target="_blank" rel="noreferrer"><span>{language === 'ar' ? item.ar : item.en}</span><b aria-hidden="true">↗</b></a>)}</div>
           <div className="ministry-contact-strip"><div><strong>{language === 'ar' ? 'مركز الاتصال' : 'Contact centre'}</strong><span>{language === 'ar' ? 'وزارة التعليم · سلطنة عُمان' : 'Ministry of Education · Sultanate of Oman'}</span></div><a href="tel:+96824255552">+968 2425 5552</a><a href="https://wa.me/96824255552" target="_blank" rel="noreferrer">WhatsApp ↗</a><a href="https://tajawob.om/p/home" target="_blank" rel="noreferrer">{language === 'ar' ? 'مقترحات وشكاوى عبر تجاوب' : 'Feedback via Tajaawob'} ↗</a></div>
-        </section>
-
-        <section className="study-panel" hidden={studyTab !== 'worksheets'}>
-          <div className="study-section-heading"><div><span>{language === 'ar' ? 'تدريب ومراجعة' : 'PRACTICE & REVISION'}</span><h2>{language === 'ar' ? 'ورقة عمل سريعة' : 'Quick worksheet'}</h2></div>
-            <span className="study-local-badge">{language === 'ar' ? 'حفظ تلقائي على جهازك' : 'Auto-saved on this device'}</span>
-          </div>
-          <div className="worksheet-subject-list" aria-label={language === 'ar' ? 'اختر المادة' : 'Choose a subject'}>
-            {STUDY_SUBJECTS.map((subject) => <button type="button" key={subject.id} className={selectedStudySubject === subject.id ? 'active' : ''} onClick={() => setSelectedStudySubject(subject.id)}>{language === 'ar' ? subject.ar : subject.en}</button>)}
-          </div>
-          <article className="worksheet-sheet" id="worksheet-print-area">
-            <div className="worksheet-title"><div><span>{language === 'ar' ? 'ورقة تدريبية · الصف الثاني عشر' : 'PRACTICE SHEET · GRADE 12'}</span><h3>{language === 'ar' ? activeStudySubject.ar : activeStudySubject.en}</h3></div><span className="worksheet-date">{new Date().toLocaleDateString(language === 'ar' ? 'ar-OM' : 'en-OM')}</span></div>
-            <p className="study-help">{language === 'ar' ? 'أسئلة بداية للمراجعة. راجع كتابك وخطة مادتك للتأكد من مطابقة موضوعات المنهج.' : 'Starter questions for revision. Check your textbook and course plan to match your current syllabus.'}</p>
-            <ol className="worksheet-tasks">{(language === 'ar' ? activeStudySubject.tasks : activeStudySubject.tasksEn).map((task) => <li key={task}>{task}</li>)}</ol>
-            <label className="worksheet-answer"><span>{language === 'ar' ? 'ملاحظاتك وإجاباتك' : 'Your notes and answers'}</span><textarea value={worksheetAnswers[selectedStudySubject] || ''} onChange={(event) => updateWorksheetAnswer(selectedStudySubject, event.target.value)} placeholder={language === 'ar' ? 'اكتب إجابتك هنا...' : 'Write your answer here...'} /></label>
-            <button type="button" className="study-print-button" onClick={() => window.print()}>{language === 'ar' ? 'طباعة ورقة العمل' : 'Print worksheet'} <span>↗</span></button>
-          </article>
         </section>
 
         <section className="study-panel" hidden={studyTab !== 'board'}>
