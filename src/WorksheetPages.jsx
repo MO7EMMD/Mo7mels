@@ -16,12 +16,12 @@ export function WorksheetCards({ files = worksheetFiles, language }) {
   </a>)}</div>{limit<files.length&&<button type="button" className="paper-show-more" onClick={()=>setLimit((value)=>value+12)}>{ar?`عرض ${Math.min(12,files.length-limit)} أوراق إضافية`:`Show ${Math.min(12,files.length-limit)} more papers`}</button>}</>
 }
 
-export function WorksheetLibrary({ language }) {
+export function WorksheetLibrary({ language, catalog = worksheetFiles }) {
   const ar=language==='ar'
   const [query,setQuery]=useState(''),[subject,setSubject]=useState(''),[semester,setSemester]=useState('')
   const search=query.trim().toLocaleLowerCase()
-  const subjects=[...new Set(worksheetFiles.map((paper)=>paper.subjectId))]
-  const files=worksheetFiles.filter((paper)=>(!subject||paper.subjectId===subject)&&(!semester||String(paper.semester)===semester)&&(!search||`${paper.titleAr} ${paper.titleEn} ${paperSubjects[paper.subjectId]?.join(' ')||''}`.toLocaleLowerCase().includes(search)))
+  const subjects=[...new Set(catalog.map((paper)=>paper.subjectId))]
+  const files=catalog.filter((paper)=>(!subject||paper.subjectId===subject)&&(!semester||String(paper.semester)===semester)&&(!search||`${paper.titleAr} ${paper.titleEn} ${paperSubjects[paper.subjectId]?.join(' ')||''}`.toLocaleLowerCase().includes(search)))
   return <><div className="paper-filters"><input aria-label={ar?'البحث في أوراق العمل':'Search worksheets'} placeholder={ar?'ابحث عن ورقة أو اختبار...':'Search a worksheet or test...'} value={query} onChange={(event)=>setQuery(event.target.value)}/><select aria-label={ar?'تصفية الأوراق بالمادة':'Filter papers by subject'} value={subject} onChange={(event)=>setSubject(event.target.value)}><option value="">{ar?'كل المواد':'All subjects'}</option>{subjects.map((id)=><option key={id} value={id}>{paperSubjects[id]?.[ar?0:1]||id}</option>)}</select><select aria-label={ar?'تصفية الأوراق بالفصل':'Filter papers by semester'} value={semester} onChange={(event)=>setSemester(event.target.value)}><option value="">{ar?'الفصلان':'Both semesters'}</option><option value="1">{ar?'الفصل الأول':'Semester 1'}</option><option value="2">{ar?'الفصل الثاني':'Semester 2'}</option></select></div><p className="paper-results" role="status">{ar?`${files.length} ورقة متاحة`:`${files.length} papers available`}</p>{files.length?<WorksheetCards files={files} language={language}/>:<p className="study-help">{ar?'لا توجد أوراق مطابقة لهذا البحث.':'No papers match this search.'}</p>}</>
 }
 

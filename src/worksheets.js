@@ -1,4 +1,5 @@
 import dailyPapers from './daily-papers.json' with { type: 'json' }
+import { mergePaperCatalogs, normalizeDailyPapers } from './paper-catalog.js'
 
 const curatedWorksheets = [
   {
@@ -93,15 +94,6 @@ const curatedWorksheets = [
 
 export const worksheetPath = (paper) => `/worksheets/${paper.id}`
 
-const canonicalPaper = (paper) => {
-  const value = paper.pdfUrl || paper.viewerUrl
-  const url = new URL(value)
-  return url.searchParams.get('url') || value.replace(/\/(?:preview|view)(?:\?.*)?$/, '')
-}
-const seenPapers = new Set()
-export const worksheetFiles = [...curatedWorksheets, ...dailyPapers].filter((paper) => {
-  const key = canonicalPaper(paper)
-  if(seenPapers.has(key)) return false
-  seenPapers.add(key)
-  return true
-}).sort((a,b) => (b.addedAt || '').localeCompare(a.addedAt || ''))
+const bundledDailyPapers = normalizeDailyPapers(dailyPapers)
+export const mergeWorksheets = (latest = []) => mergePaperCatalogs(curatedWorksheets, latest, bundledDailyPapers)
+export const worksheetFiles = mergeWorksheets()

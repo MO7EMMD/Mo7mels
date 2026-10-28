@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { WorksheetCards, WorksheetLibrary } from './WorksheetPages.jsx'
-import { worksheetFiles } from './worksheets.js'
+import { useWorksheetFiles } from './useWorksheetFiles.js'
 const PhysicsLab = lazy(() => import('./PhysicsLab.jsx'))
 const PhysicsPractice = lazy(() => import('./PhysicsPractice.jsx'))
 import textbooks from './textbooks.json'
@@ -37,6 +37,7 @@ function DocumentLinks({ language, physics = false }) {
 
 function StudyPages({ page, path, language, navigateTo }) {
   const ar = page === 'math' || language === 'ar'
+  const worksheetFiles = useWorksheetFiles()
   const [mathTrack, setMathTrack] = useState(path.includes('/basic') ? 'basic' : 'advanced')
   const [practiceAnswers, setPracticeAnswers] = useState(() => {try {return JSON.parse(window.localStorage.getItem('omanGrade12UnitPractice') || '{}')} catch {return {}}})
   useEffect(() => {if(path.startsWith('/mathematics/')) setMathTrack(path.includes('/basic') ? 'basic' : 'advanced')}, [path])
@@ -67,7 +68,7 @@ function StudyPages({ page, path, language, navigateTo }) {
     <div className="official-documents"><h3>{ar?'أوراق mo7mels لهذا المسار':'mo7mels papers for this track'}</h3><WorksheetCards files={mathPapers} language="ar"/></div>
     <div className="official-documents"><h3>{ar?'كتب الطالب والنشاط':'Student and activity books'}</h3><TextbookLinks subjectId="math" language="ar"/><DocumentLinks language="ar"/></div>
   </section>
-  if(page === 'worksheets' || page === 'exams') return <section className="study-panel worksheet-library-panel"><div className="study-section-heading"><div><span>mo7mels · GRADE 12</span><h2>{ar?(page==='exams'?'الاختبارات النهائية والمراجعات':'مكتبة أوراق العمل'):(page==='exams'?'Final exams and revision':'Worksheet library')}</h2></div></div><p className="study-help">{ar?'اختر الورقة المطلوبة. ستفتح في تبويب جديد في المتصفح مع عرض ملف PDF مباشرة.':'Choose a paper. Its PDF opens in a dedicated new browser tab.'}</p><WorksheetLibrary language={language}/></section>
+  if(page === 'worksheets' || page === 'exams') return <section className="study-panel worksheet-library-panel"><div className="study-section-heading"><div><span>mo7mels · GRADE 12</span><h2>{ar?(page==='exams'?'الاختبارات النهائية والمراجعات':'مكتبة أوراق العمل'):(page==='exams'?'Final exams and revision':'Worksheet library')}</h2></div></div><p className="study-help">{ar?'اختر الورقة المطلوبة. ستفتح في تبويب جديد في المتصفح مع عرض ملف PDF مباشرة.':'Choose a paper. Its PDF opens in a dedicated new browser tab.'}</p><WorksheetLibrary language={language} catalog={worksheetFiles}/></section>
   return null
 }
 

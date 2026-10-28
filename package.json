@@ -9,9 +9,10 @@
     "server": "node server/server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "migrate:json": "node server/migrate-from-json-to-postgres.js",
-    "build": "vite build",
+    "build": "node scripts/build-cloudflare.mjs",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:frontend": "vite build --outDir dist/client"
   },
   "dependencies": {
     "chart.js": "^4.5.1",
@@ -33,6 +34,8 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "wrangler": "4.92.0",
+    "esbuild": "0.21.5"
   }
 }
