@@ -7,6 +7,8 @@ import { normalizeDailyPapers } from '../src/paper-catalog.js'
 
 const PORTAL_ORIGIN = 'https://mo7mels-projects.robustcabin8192.chatgpt.site'
 const PORTAL_COOKIE = 'mo7mels_projects_session'
+const PORTAL_OAUTH_COOKIE = 'mo7mels_projects_oauth'
+const PORTAL_COOKIES = new Set([PORTAL_COOKIE, PORTAL_OAUTH_COOKIE])
 const METHODS = new Set(['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'])
 const HOP_HEADERS = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade'])
 const DAILY_CATALOG_URL = 'https://raw.githubusercontent.com/MO7EMMD/Mo7mels/main/src/daily-papers.json'
@@ -36,18 +38,38 @@ function connectionHeaders(headers) {
 }
 
 function portalCookie(rawCookie) {
-  const value = String(rawCookie || '').split(';').map(part => part.trim()).find(part => part.startsWith(PORTAL_COOKIE + '='))
-  return value && new RegExp(`^${PORTAL_COOKIE}=[a-f0-9]{64}$`).test(value) ? value : ''
+  const cookies = new Map(), seen = new Set()
+  for (const part of String(rawCookie || '').split(';')) {
+    const pair = part.trim(), separator = pair.indexOf('='), name = pair.slice(0, separator)
+    if (separator < 0 || !PORTAL_COOKIES.has(name)) continue
+    // Duplicate names are ambiguous across cookie paths; fail closed for that
+    // name instead of choosing an attacker-controlled first or last value.
+    if (seen.has(name)) { cookies.delete(name); continue }
+    seen.add(name)
+    if (/^[a-f0-9]{64}$/.test(pair.slice(separator + 1))) cookies.set(name, pair)
+  }
+  return [...cookies.values()].join('; ')
 }
 
 function responseCookies(values) {
-  return values.filter(value => value.startsWith(PORTAL_COOKIE + '=')).map(value => {
+  const cookies = new Map()
+  for (const value of values) {
     const parts = value.split(';').map(part => part.trim())
     const pair = parts.shift()
-    if (!new RegExp(`^${PORTAL_COOKIE}=(?:[a-f0-9]{64})?$`).test(pair)) return null
-    const lifetime = parts.filter(part => /^(?:max-age=-?\d+|expires=.+)$/i.test(part))
-    return [pair, 'Path=/project', 'HttpOnly', 'SameSite=Strict', 'Secure', ...lifetime].join('; ')
-  }).filter(Boolean)
+    const match = /^(mo7mels_projects_session|mo7mels_projects_oauth)=([a-f0-9]{64})?$/.exec(pair || '')
+    if (!match) continue
+    const oauth = match[1] === PORTAL_OAUTH_COOKIE
+    let lifetime
+    if (oauth) {
+      const maxAge = parts.find(part => /^max-age=-?\d+$/i.test(part))
+      const age = !match[2] ? 0 : maxAge ? Math.max(0, Math.min(600, Number(maxAge.slice(8)))) : 600
+      lifetime = ['Max-Age=' + age]
+    } else lifetime = parts.filter(part => /^(?:max-age=-?\d+|expires=.+)$/i.test(part))
+    // Only the short-lived flow binding must survive the top-level Google
+    // redirect. The authenticated portal session retains its Strict policy.
+    cookies.set(match[1], [pair, 'Path=/project', 'HttpOnly', oauth ? 'SameSite=Lax' : 'SameSite=Strict', 'Secure', ...lifetime].join('; '))
+  }
+  return [...cookies.values()]
 }
 
 const failure = (status, error) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } })

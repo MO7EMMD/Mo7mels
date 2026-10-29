@@ -73,6 +73,73 @@ assert(!response.headers.getSetCookie()[0].includes('Domain='))
 assert.deepEqual(new Uint8Array(await response.arrayBuffer()),Uint8Array.of(0,255,21))
 console.log('PASS gateway: dynamic SEO/static/portfolio, redirects, sitemap, API dispatch, origin/header/cookie isolation, 3MiB streamed upload and binary response.')
 
+// OAuth adds one narrowly scoped flow cookie. Unrelated root-site cookies and
+// malformed or ambiguous cookie pairs must never cross the portal boundary.
+const sessionPair = 'mo7mels_projects_session=' + 'a'.repeat(64)
+const flowPair = 'mo7mels_projects_oauth=' + 'c'.repeat(64)
+let cookieSeen, issuedCookies = []
+const cookieGateway = createGateway({ fetch: async (url, options) => {
+  cookieSeen = { url: String(url), headers: options.headers }
+  const headers = new Headers()
+  for (const value of issuedCookies) headers.append('Set-Cookie', value)
+  if (new URL(url).pathname.endsWith('/start')) {
+    headers.set('Location', 'https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account')
+    return new Response(null, { status: 302, headers })
+  }
+  return new Response(null, { headers })
+} })
+issuedCookies = [flowPair + '; Domain=upstream.test; Path=/; SameSite=None; Max-Age=99999; Expires=Wed, 01 Jan 2099 00:00:00 GMT', 'mo7mels_session=root-secret; Path=/']
+response = await cookieGateway.fetch(request('/project/api/auth/google/start'), env)
+assert.equal(response.status, 302)
+assert.equal(response.headers.get('Location'), 'https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account')
+assert.deepEqual(response.headers.getSetCookie(), [flowPair + '; Path=/project; HttpOnly; SameSite=Lax; Secure; Max-Age=600'])
+assert.equal(cookieSeen.url, 'https://mo7mels-projects.robustcabin8192.chatgpt.site/project/api/auth/google/start')
+
+issuedCookies = [
+  'mo7mels_projects_session=' + 'b'.repeat(64) + '; Domain=upstream.test; Path=/; SameSite=None; Max-Age=43200',
+  'mo7mels_projects_oauth=; Domain=upstream.test; Path=/; Max-Age=99999',
+  'mo7mels_session=root-secret; Path=/',
+  'mo7mels_projects_oauth_evil=' + 'd'.repeat(64) + '; Path=/',
+]
+response = await cookieGateway.fetch(request('/project/api/auth/google/callback?code=example', { headers: { Cookie: 'mo7mels_session=root-secret; ' + flowPair + '; ' + sessionPair + '; unrelated=x' } }), env)
+assert.equal(cookieSeen.headers.get('cookie'), flowPair + '; ' + sessionPair)
+assert.equal(cookieSeen.headers.get('authorization'), null)
+assert.equal(cookieSeen.headers.get('origin'), null)
+assert.deepEqual(response.headers.getSetCookie(), [
+  'mo7mels_projects_session=' + 'b'.repeat(64) + '; Path=/project; HttpOnly; SameSite=Strict; Secure; Max-Age=43200',
+  'mo7mels_projects_oauth=; Path=/project; HttpOnly; SameSite=Lax; Secure; Max-Age=0',
+])
+
+for (const malformed of [
+  'mo7mels_projects_oauth=',
+  'mo7mels_projects_oauth=' + 'A'.repeat(64),
+  'mo7mels_projects_oauth=' + 'a'.repeat(63),
+  'mo7mels_projects_oauth=' + 'a'.repeat(65),
+  'mo7mels_projects_oauth="' + 'a'.repeat(64) + '"',
+  'mo7mels_projects_oauth=' + 'a'.repeat(64) + '=extra',
+  'MO7MELS_PROJECTS_OAUTH=' + 'a'.repeat(64),
+  'mo7mels_projects_session=invalid',
+]) {
+  await cookieGateway.fetch(request('/project/api/auth/google/callback', { headers: { Cookie: 'mo7mels_session=root-secret; ' + malformed } }), env)
+  assert.equal(cookieSeen.headers.get('cookie'), null, 'reject malformed or unrecognized cookie name/value')
+}
+await cookieGateway.fetch(request('/project/api/auth/google/callback', { headers: { Cookie: sessionPair + '; ' + flowPair + '; mo7mels_projects_oauth=' + 'd'.repeat(64) } }), env)
+assert.equal(cookieSeen.headers.get('cookie'), sessionPair, 'duplicate flow names are rejected while the independent session survives')
+await cookieGateway.fetch(request('/project/api/auth/google/callback', { headers: { Cookie: 'mo7mels_projects_session=invalid; ' + sessionPair + '; ' + flowPair } }), env)
+assert.equal(cookieSeen.headers.get('cookie'), flowPair, 'a later valid duplicate cannot override an invalid first cookie')
+
+issuedCookies = [flowPair, flowPair + '; Max-Age=90', 'mo7mels_projects_oauth=bad; Max-Age=600', 'mo7mels_projects_session=bad', 'foreign=cookie']
+response = await cookieGateway.fetch(request('/project/api/auth/google/callback'), env)
+assert.deepEqual(response.headers.getSetCookie(), [flowPair + '; Path=/project; HttpOnly; SameSite=Lax; Secure; Max-Age=90'], 'at most one valid outgoing cookie per allowlisted name')
+issuedCookies = [flowPair + '; Max-Age=-1']
+response = await cookieGateway.fetch(request('/project/api/auth/google/callback'), env)
+assert.match(response.headers.getSetCookie()[0], /Max-Age=0$/)
+issuedCookies = [flowPair + '; Expires=Wed, 01 Jan 2099 00:00:00 GMT']
+response = await cookieGateway.fetch(request('/project/api/auth/google/callback'), env)
+assert.match(response.headers.getSetCookie()[0], /Max-Age=600$/)
+assert(!response.headers.getSetCookie()[0].includes('Expires='))
+console.log('PASS Google OAuth proxy: transient Lax flow and Strict session cookies, callback forwarding, multiple Set-Cookie, 600-second cap, clearing, malformed/duplicate/foreign cookie isolation.')
+
 const { normalizeDailyPapers, mergePaperCatalogs } = await import(catalogUrl)
 const { mergeWorksheets, worksheetFiles } = await import(pathToFileURL(path.join(root, 'src/worksheets.js')).href)
 const newPaper = {id:'daily-new-after-build',subjectId:'math',semester:1,track:'basic',titleAr:'اختبار جديد بعد بناء الموقع',titleEn:'New paper after build',viewerUrl:'https://drive.google.com/file/d/NEW-DAILY-FILE/preview',addedAt:'2026-10-29T08:00:00Z'}
@@ -129,6 +196,8 @@ console.log('PASS daily catalog: new post-build paper, curated/bundled preservat
 
 // Exercise the retained account API under Node HTTP with an in-memory fake DB.
 // Production runtime still requires Cloudflare HTTP adapter validation.
+// The boundary suites above can also run where loopback networking is blocked.
+if (!process.argv.includes('--gateway-only')) {
 const moduleRequire = createRequire(path.join(root,'../grade12-books/package.json'))
 const appSource = (await fs.readFile(path.join(root,'server/worker-app.js'),'utf8')).replace(/^import .+\r?\n/gm,'')
 const appCode = `import cors from ${JSON.stringify(pathToFileURL(moduleRequire.resolve('cors')).href)};import express from ${JSON.stringify(pathToFileURL(moduleRequire.resolve('express')).href)};import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';const {buildRobotsTxt,buildSitemapXml}=await import(${JSON.stringify(seoUrl)});\n${appSource}`
@@ -158,3 +227,4 @@ try{
  assert.equal(google.status,503)
  console.log('PASS retained account API: signup, login, private identity, logout/session revocation, no password material, unconfigured Google status.')
 }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
+}
